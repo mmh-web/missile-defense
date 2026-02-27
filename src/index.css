@@ -1,0 +1,248 @@
+@import "tailwindcss";
+
+/* ============================================
+   MISSILE DEFENSE — Custom Styles
+   ============================================ */
+
+/* Base */
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background-color: #0a0e1a;
+  color: #e5e7eb;
+  font-family: 'Courier New', 'Lucida Console', Monaco, monospace;
+  overflow: hidden;
+  user-select: none;
+}
+
+/* ============================================
+   Radar Sweep Animation
+   ============================================ */
+.radar-sweep {
+  animation: radarSweep 4s linear infinite;
+  transform-origin: 50px 50px;
+}
+
+@keyframes radarSweep {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Radar sweep overlay — conic gradient that rotates */
+.radar-sweep-overlay {
+  background: conic-gradient(
+    from 0deg at 50% 50%,
+    transparent 0deg,
+    transparent 340deg,
+    rgba(0, 255, 136, 0.08) 350deg,
+    rgba(0, 255, 136, 0.15) 358deg,
+    rgba(0, 255, 136, 0.06) 360deg
+  );
+  animation: radarSweepOverlay 4s linear infinite;
+}
+
+@keyframes radarSweepOverlay {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================
+   Radar Blip Pulse
+   ============================================ */
+.radar-pulse {
+  animation: blipPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes blipPulse {
+  0%, 100% {
+    r: 2;
+    opacity: 0.3;
+  }
+  50% {
+    r: 4;
+    opacity: 0;
+  }
+}
+
+/* ============================================
+   Tzeva Adom Overlay
+   ============================================ */
+.tzeva-adom-overlay {
+  animation: tzevaFlash 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes tzevaFlash {
+  from {
+    background-color: rgba(127, 29, 29, 0.92);
+  }
+  to {
+    background-color: rgba(185, 28, 28, 0.95);
+  }
+}
+
+/* ============================================
+   Custom Scrollbar
+   ============================================ */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #1f2937;
+  border-radius: 2px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #374151;
+}
+
+/* ============================================
+   Range Input Styling
+   ============================================ */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  background: #1f2937;
+  border-radius: 3px;
+  outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #22c55e;
+  cursor: pointer;
+  border: 2px solid #0a0e1a;
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #22c55e;
+  cursor: pointer;
+  border: 2px solid #0a0e1a;
+}
+
+/* ============================================
+   Scanline Effect (subtle)
+   ============================================ */
+#root::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.03) 2px,
+    rgba(0, 0, 0, 0.03) 4px
+  );
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* ============================================
+   Decoy Pulse (slower, fading)
+   ============================================ */
+.decoy-pulse {
+  animation: decoyPulse 2.5s ease-in-out infinite;
+}
+
+@keyframes decoyPulse {
+  0%, 100% {
+    r: 1.5;
+    opacity: 0.2;
+  }
+  50% {
+    r: 3;
+    opacity: 0;
+  }
+}
+
+/* ============================================
+   Impact Flash Ring (on city hit/save)
+   ============================================ */
+.impact-flash-ring {
+  animation: impactFlash 2s ease-out forwards;
+}
+
+@keyframes impactFlash {
+  0% {
+    r: 1.5;
+    opacity: 1;
+    stroke-width: 1;
+  }
+  100% {
+    r: 6;
+    opacity: 0;
+    stroke-width: 0.1;
+  }
+}
+
+/* ============================================
+   Impact Zone Reveal Flash
+   ============================================ */
+.impact-reveal-flash {
+  animation: revealFlash 1s ease-out;
+}
+
+@keyframes revealFlash {
+  0% {
+    color: #ffffff;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+  }
+  100% {
+    text-shadow: none;
+  }
+}
+
+/* ============================================
+   Final Salvo Warning
+   ============================================ */
+.final-salvo-warning {
+  animation: salvoWarningPulse 1s ease-in-out infinite alternate;
+}
+
+@keyframes salvoWarningPulse {
+  from {
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+    transform: scale(1);
+  }
+  to {
+    box-shadow: 0 0 40px rgba(239, 68, 68, 0.6);
+    transform: scale(1.02);
+  }
+}
+
+/* ============================================
+   Button Active States
+   ============================================ */
+button:focus-visible {
+  outline: 2px solid rgba(0, 255, 136, 0.5);
+  outline-offset: 2px;
+}
+
+/* ============================================
+   Tabular nums for countdown displays
+   ============================================ */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
