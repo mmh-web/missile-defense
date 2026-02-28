@@ -19,8 +19,12 @@ export default function ControlPanel({
   totalPenaltyTime,
   feedbackMessage,
   streak,
+  availableSystems,
 }) {
   const hasSelection = selectedThreatId !== null;
+  const visibleInterceptors = availableSystems
+    ? INTERCEPTORS.filter(({ key }) => availableSystems.includes(key))
+    : INTERCEPTORS;
 
   return (
     <div className="w-full">
@@ -67,7 +71,7 @@ export default function ControlPanel({
 
       {/* Interceptor buttons */}
       <div className="flex gap-2">
-        {INTERCEPTORS.map(({ key, label, color, shortcut }) => {
+        {visibleInterceptors.map(({ key, label, color, shortcut }) => {
           const count = ammo[key];
           const depleted = count <= 0;
           const disabled = depleted || !hasSelection;

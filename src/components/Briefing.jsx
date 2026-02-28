@@ -1,4 +1,4 @@
-const MATCHINGS = [
+const ALL_MATCHINGS = [
   {
     system: 'IRON DOME',
     systemColor: '#22c55e',
@@ -29,7 +29,10 @@ const MATCHINGS = [
   },
 ];
 
-export default function Briefing({ onReady }) {
+export default function Briefing({ onReady, level = 1 }) {
+  // For Level 1: only show Iron Dome
+  const matchings = level === 1 ? ALL_MATCHINGS.slice(0, 1) : ALL_MATCHINGS;
+
   return (
     <div className="h-screen bg-[#0a0e1a] flex items-center justify-center relative overflow-y-auto">
       <div className="max-w-3xl w-full py-8 px-4">
@@ -42,52 +45,43 @@ export default function Briefing({ onReady }) {
             MISSION BRIEFING
           </div>
           <h1 className="text-3xl font-bold font-mono text-green-400 tracking-wider mb-1">
-            DEFENSE SYSTEMS
+            LEVEL {level}
           </h1>
+          {level === 1 && (
+            <div className="text-sm font-mono text-gray-500 tracking-wider mt-2">
+              Drone swarm detected. You are Israel's last line of defense.
+            </div>
+          )}
           <div className="h-px bg-green-900 w-48 mx-auto mt-3" />
         </div>
 
         {/* System-Threat Matching Grid */}
         <div className="mb-8">
           <div className="text-xs text-gray-500 font-mono tracking-widest mb-4 text-center">
-            INTERCEPTOR — THREAT MATCHING
+            {level === 1 ? 'YOUR WEAPON' : 'INTERCEPTOR — THREAT MATCHING'}
           </div>
 
           <div className="space-y-3">
-            {MATCHINGS.map(({ system, systemColor, shortcut, threat, description }) => (
+            {matchings.map(({ system, systemColor, shortcut, threat, description }) => (
               <div
                 key={system}
                 className="flex items-center gap-4 p-3 rounded-lg bg-gray-900/50 border border-gray-800"
               >
-                {/* Shortcut key */}
                 <div
                   className="flex-shrink-0 w-8 h-8 rounded border-2 flex items-center justify-center font-mono font-bold text-sm"
                   style={{ borderColor: systemColor, color: systemColor }}
                 >
                   {shortcut}
                 </div>
-
-                {/* System name */}
                 <div className="flex-1 text-right">
-                  <div
-                    className="font-mono font-bold text-sm tracking-wider"
-                    style={{ color: systemColor }}
-                  >
+                  <div className="font-mono font-bold text-sm tracking-wider" style={{ color: systemColor }}>
                     {system}
                   </div>
                 </div>
-
-                {/* Arrow */}
                 <div className="flex-shrink-0 text-green-600 font-mono text-xl px-2">&#x2192;</div>
-
-                {/* Threat */}
                 <div className="flex-1">
-                  <div className="font-mono font-bold text-sm tracking-wider text-gray-200">
-                    {threat}
-                  </div>
-                  <div className="text-[10px] text-gray-500 font-mono mt-0.5">
-                    {description}
-                  </div>
+                  <div className="font-mono font-bold text-sm tracking-wider text-gray-200">{threat}</div>
+                  <div className="text-[10px] text-gray-500 font-mono mt-0.5">{description}</div>
                 </div>
               </div>
             ))}
@@ -122,11 +116,22 @@ export default function Briefing({ onReady }) {
         {/* Controls Reference */}
         <div className="border border-gray-800 rounded-lg p-4 mb-8 bg-gray-900/20">
           <div className="text-xs text-gray-500 font-mono tracking-widest mb-3">CONTROLS</div>
-          <div className="flex gap-6 justify-center text-xs font-mono text-gray-400">
-            <span><span className="text-green-400">1-4</span> Interceptors</span>
-            <span><span className="text-green-400">5 / Space</span> Hold Fire</span>
-            <span><span className="text-green-400">Tab</span> Cycle Threats</span>
-            <span><span className="text-green-400">ESC</span> Pause</span>
+          <div className="flex gap-6 justify-center text-xs font-mono text-gray-400 flex-wrap">
+            {level === 1 ? (
+              <>
+                <span><span className="text-green-400">1</span> Iron Dome</span>
+                <span><span className="text-green-400">5 / Space</span> Hold Fire</span>
+                <span><span className="text-green-400">Tab</span> Cycle Threats</span>
+                <span><span className="text-green-400">ESC</span> Pause</span>
+              </>
+            ) : (
+              <>
+                <span><span className="text-green-400">1-4</span> Interceptors</span>
+                <span><span className="text-green-400">5 / Space</span> Hold Fire</span>
+                <span><span className="text-green-400">Tab</span> Cycle Threats</span>
+                <span><span className="text-green-400">ESC</span> Pause</span>
+              </>
+            )}
           </div>
         </div>
 

@@ -6,8 +6,10 @@ import ControlPanel from './components/ControlPanel.jsx';
 import TzevaAdom from './components/TzevaAdom.jsx';
 import Summary, { LeaderboardTable } from './components/Summary.jsx';
 import Briefing from './components/Briefing.jsx';
+import LevelIntro from './components/LevelIntro.jsx';
+import LevelComplete from './components/LevelComplete.jsx';
 import FacilitatorControls from './components/FacilitatorControls.jsx';
-import { GAME_MODES, getConfig } from './config/threats.js';
+import { getLevelConfig } from './config/threats.js';
 import { getLeaderboard } from './utils/leaderboard.js';
 
 function formatCountdown(seconds) {
@@ -24,7 +26,7 @@ export default function App() {
 
   const {
     gameState,
-    gameMode,
+    currentLevel,
     sessionTime,
     ammo,
     activeThreats,
@@ -39,22 +41,22 @@ export default function App() {
     impactFlashes,
     activeTrails,
     screenShake,
-    startGame,
+    startCampaign,
+    startLevel,
+    advanceLevel,
+    finishCampaign,
     resetGame,
     togglePause,
     skipBriefing,
-    skipStudy,
     handleAction,
     setSelectedThreatId,
     setVolume,
-    setGameMode,
-    getSummaryStats,
+    getLevelStats,
+    getCampaignStats,
     GAME_STATES,
   } = game;
 
-  const config = getConfig(gameMode);
-  const studyTimeLeft = Math.max(0, config.study_duration - sessionTime);
-  const isStudy = gameState === GAME_STATES.STUDY;
+  const config = getLevelConfig(currentLevel);
 
   // Auto-skip briefing on replay
   useEffect(() => {
@@ -63,12 +65,13 @@ export default function App() {
     }
   }, [gameState, skipBriefing, GAME_STATES]);
 
-  // Keyboard handling: ESC, Ctrl+R, interceptor keys, threat cycling
+  // Keyboard handling
   useEffect(() => {
     const handleKeyDown = (e) => {
       // ESC: toggle facilitator panel
       if (e.key === 'Escape') {
-        if (gameState !== GAME_STATES.PRE_GAME && gameState !== GAME_STATES.BRIEFING) {
+        if (gameState !== GAME_STATES.PRE_GAME && gameState !== GAME_STATES.BRIEFING &&
+            gameState !== GAME_STATES.LEVEL_INTRO && gameState !== GAME_STATES.LEVEL_COMPLETE) {
           setShowFacilitator((prev) => {
             if (!prev) {
               if (!paused) togglePause();
@@ -82,17 +85,21 @@ export default function App() {
       // Keyboard shortcuts only during ACTIVE, not paused
       if (gameState !== GAME_STATES.ACTIVE || paused) return;
 
-      // Number keys 1-4 for interceptors
-      const interceptorKeys = {
+      // Number keys 1-4 for interceptors — filtered by available systems
+      const allInterceptorKeys = {
         '1': 'iron_dome',
         '2': 'davids_sling',
         '3': 'arrow_2',
         '4': 'arrow_3',
       };
 
-      if (interceptorKeys[e.key]) {
-        e.preventDefault();
-        handleAction(interceptorKeys[e.key]);
+      if (allInterceptorKeys[e.key]) {
+        const action = allInterceptorKeys[e.key];
+        // Only allow if this system is available in the current level
+        if (config?.available_systems?.includes(action)) {
+          e.preventDefault();
+          handleAction(action);
+        }
         return;
       }
 
@@ -125,7 +132,7 @@ export default function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [gameState, paused, togglePause, handleAction, activeThreats, selectedThreatId, setSelectedThreatId, GAME_STATES]);
+  }, [gameState, paused, togglePause, handleAction, activeThreats, selectedThreatId, setSelectedThreatId, GAME_STATES, config]);
 
   const handleCloseFacilitator = useCallback(() => {
     setShowFacilitator(false);
@@ -170,35 +177,15 @@ export default function App() {
             AIR DEFENSE COMMAND
           </div>
 
-          {/* Game Mode Selector */}
-          <div className="flex gap-4 justify-center mb-8">
-            {Object.values(GAME_MODES).map((mode) => (
-              <button
-                key={mode.key}
-                onClick={() => setGameMode(mode.key)}
-                className={`
-                  px-6 py-3 rounded-lg font-mono text-sm tracking-wider border-2 transition-all cursor-pointer
-                  ${gameMode === mode.key
-                    ? 'border-green-500 bg-green-900/30 text-green-400 shadow-[0_0_15px_rgba(0,255,136,0.2)]'
-                    : 'border-gray-700 bg-gray-900/30 text-gray-500 hover:border-gray-500 hover:text-gray-400'
-                  }
-                `}
-              >
-                <div className="font-bold">{mode.label}</div>
-                <div className="text-xs mt-1 opacity-70">{mode.description}</div>
-              </button>
-            ))}
-          </div>
-
           <button
-            onClick={() => startGame(gameMode)}
+            onClick={() => startCampaign()}
             className="px-12 py-5 bg-green-900/30 border-2 border-green-500 text-green-400
               font-mono font-bold text-xl tracking-widest rounded-lg
               hover:bg-green-900/50 hover:border-green-300 hover:text-green-300
               hover:shadow-[0_0_30px_rgba(0,255,136,0.3)]
               transition-all active:scale-95 cursor-pointer"
           >
-            START MISSION
+            START CAMPAIGN
           </button>
 
           <button
@@ -206,7 +193,7 @@ export default function App() {
             className="mt-4 px-6 py-2 border border-gray-700 text-gray-500
               font-mono text-xs tracking-widest rounded
               hover:border-gray-500 hover:text-gray-400 transition-all
-              active:scale-95 cursor-pointer"
+              active:scale-95 cursor-pointer block mx-auto"
           >
             LEADERBOARD
           </button>
@@ -221,8 +208,8 @@ export default function App() {
           <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/80 backdrop-blur-sm">
             <div className="max-w-lg w-full mx-4">
               <LeaderboardTable
-                entries={getLeaderboard(gameMode)}
-                gameMode={gameMode}
+                entries={getLeaderboard('CAMPAIGN')}
+                gameMode="CAMPAIGN"
               />
               <div className="text-center mt-4">
                 <button
@@ -256,11 +243,12 @@ export default function App() {
   }
 
   // ========================
-  // BRIEFING SCREEN
+  // BRIEFING SCREEN (Level 1 only)
   // ========================
   if (gameState === GAME_STATES.BRIEFING) {
     return (
       <Briefing
+        level={1}
         onReady={() => {
           hasSeenBriefingRef.current = true;
           skipBriefing();
@@ -270,14 +258,40 @@ export default function App() {
   }
 
   // ========================
-  // SUMMARY SCREEN
+  // LEVEL INTRO (Levels 2-5)
   // ========================
-  if (gameState === GAME_STATES.SUMMARY) {
-    return <Summary stats={getSummaryStats()} onReset={resetGame} />;
+  if (gameState === GAME_STATES.LEVEL_INTRO) {
+    return (
+      <LevelIntro
+        level={currentLevel}
+        onReady={() => startLevel(currentLevel)}
+      />
+    );
   }
 
   // ========================
-  // STUDY PHASE / ACTIVE GAME / TZEVA ADOM
+  // LEVEL COMPLETE
+  // ========================
+  if (gameState === GAME_STATES.LEVEL_COMPLETE) {
+    return (
+      <LevelComplete
+        levelStats={getLevelStats()}
+        campaignStats={getCampaignStats()}
+        onNextLevel={advanceLevel}
+        onViewResults={finishCampaign}
+      />
+    );
+  }
+
+  // ========================
+  // SUMMARY SCREEN (after all levels)
+  // ========================
+  if (gameState === GAME_STATES.SUMMARY) {
+    return <Summary stats={getCampaignStats()} levelStats={getLevelStats()} onReset={resetGame} />;
+  }
+
+  // ========================
+  // ACTIVE GAME / TZEVA ADOM
   // ========================
   return (
     <div className={`h-screen bg-[#0a0e1a] flex flex-col overflow-hidden relative ${screenShake ? 'screen-shake border-flash-red' : ''}`}>
@@ -288,25 +302,15 @@ export default function App() {
             MISSILE DEFENSE
           </span>
           <span className="text-gray-700 font-mono text-xs">|</span>
-          <span className={`font-mono text-xs tracking-wider ${isStudy ? 'text-yellow-500' : 'text-green-500'}`}>
-            {isStudy ? 'STUDY PHASE' : 'ACTIVE DEFENSE'}
-          </span>
-          <span className="text-gray-700 font-mono text-xs">|</span>
-          <span className="font-mono text-xs text-gray-600">
-            {gameMode === 'SHORT' ? 'SHORT' : 'FULL'}
+          <span className="font-mono text-xs tracking-wider text-green-500">
+            LEVEL {currentLevel}
           </span>
         </div>
         <div className="flex items-center gap-4">
-          {isStudy && (
-            <span className="font-mono text-sm text-yellow-500 tabular-nums animate-pulse">
-              FIRST THREAT IN {formatCountdown(studyTimeLeft)}
-            </span>
-          )}
-          <div
-            className={`w-2 h-2 rounded-full ${
-              gameState === GAME_STATES.ACTIVE ? 'bg-green-500 animate-pulse' : 'bg-yellow-500 animate-pulse'
-            }`}
-          />
+          <span className="font-mono text-xs text-gray-500 tabular-nums">
+            {formatCountdown(sessionTime)}
+          </span>
+          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
         </div>
       </div>
 
@@ -326,61 +330,11 @@ export default function App() {
 
         {/* ZONE B: Threat Panel */}
         <div className="flex-[4] p-4 overflow-hidden">
-          {isStudy ? (
-            <div className="h-full flex flex-col items-center justify-center text-center">
-              <div className="text-green-500/30 font-mono text-6xl mb-6 tabular-nums">
-                {formatCountdown(studyTimeLeft)}
-              </div>
-              <div className="text-green-500/40 font-mono text-sm tracking-widest mb-2">
-                THREATS INCOMING
-              </div>
-              <div className="text-green-500/20 font-mono text-xs tracking-wider max-w-[280px] mb-4">
-                STUDY YOUR DOSSIER. REVIEW INTERCEPTOR SYSTEMS AND THREAT CLASSIFICATIONS.
-              </div>
-              <button
-                onClick={skipStudy}
-                className="px-6 py-2 bg-yellow-900/20 border border-yellow-700/50 text-yellow-500/70
-                  font-mono text-xs tracking-widest rounded
-                  hover:bg-yellow-900/40 hover:text-yellow-400 hover:border-yellow-600
-                  transition-all active:scale-95 cursor-pointer"
-              >
-                SKIP TO ACTION
-              </button>
-
-              {/* Ammo display during study */}
-              <div className="mt-8 w-full max-w-[300px]">
-                <div className="text-xs text-gray-600 font-mono tracking-widest mb-3 text-center">
-                  AMMUNITION STATUS
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  {[
-                    { key: 'iron_dome', label: 'IRON DOME', color: '#22c55e' },
-                    { key: 'davids_sling', label: "DAVID'S SLING", color: '#3b82f6' },
-                    { key: 'arrow_2', label: 'ARROW 2', color: '#a855f7' },
-                    { key: 'arrow_3', label: 'ARROW 3', color: '#ef4444' },
-                  ].map(({ key, label, color }) => (
-                    <div
-                      key={key}
-                      className="flex items-center justify-between p-2 bg-gray-900/50 border border-gray-800 rounded"
-                    >
-                      <span className="text-[10px] font-mono" style={{ color: `${color}80` }}>
-                        {label}
-                      </span>
-                      <span className="text-sm font-bold font-mono" style={{ color }}>
-                        {ammo[key]}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          ) : (
-            <ThreatPanel
-              activeThreats={activeThreats}
-              selectedThreatId={selectedThreatId}
-              onSelectThreat={setSelectedThreatId}
-            />
-          )}
+          <ThreatPanel
+            activeThreats={activeThreats}
+            selectedThreatId={selectedThreatId}
+            onSelectThreat={setSelectedThreatId}
+          />
         </div>
       </div>
 
@@ -394,6 +348,7 @@ export default function App() {
           totalPenaltyTime={totalPenaltyTime}
           feedbackMessage={feedbackMessage}
           streak={streak}
+          availableSystems={config?.available_systems}
         />
       </div>
 

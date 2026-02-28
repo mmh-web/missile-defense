@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { POPULATED_ZONES, IMPACT_POSITIONS } from '../config/threats.js';
+import { POPULATED_ZONES, IMPACT_POSITIONS, COMMAND_CENTER } from '../config/threats.js';
 
 const BLIP_COLOR = '#ffffff';     // Bright white — high contrast against green map
 const DECOY_BLIP_COLOR = '#6b7280'; // Gray for unknown contacts
@@ -17,9 +17,24 @@ const ISRAEL_PATH = `
   Z
 `;
 
+// Easing: ballistic missiles start slow, accelerate on reentry
+// Hypersonics accelerate even more aggressively
+function easeProgress(linearProgress, type) {
+  if (type === 'ballistic') {
+    // Slow launch, fast reentry — cubic ease-in
+    return linearProgress * linearProgress * linearProgress;
+  }
+  if (type === 'hypersonic') {
+    // Even more extreme acceleration
+    return linearProgress * linearProgress * linearProgress * linearProgress;
+  }
+  return linearProgress; // drones + cruise: constant speed
+}
+
 function getBlipPosition(threat) {
   const target = IMPACT_POSITIONS[threat.impact_zone] || { x: 0.5, y: 0.5 };
-  const progress = 1 - threat.timeLeft / threat.countdown;
+  const linearProgress = 1 - threat.timeLeft / threat.countdown;
+  const progress = easeProgress(linearProgress, threat.type);
 
   const cx = 0.5, cy = 0.5;
   const dx = target.x - cx;
@@ -267,6 +282,25 @@ export default function RadarDisplay({
               </g>
             );
           })}
+
+          {/* Command Center HQ marker */}
+          <g>
+            <rect
+              x={COMMAND_CENTER.x * size - 1.5}
+              y={COMMAND_CENTER.y * size - 1.5}
+              width="3" height="3"
+              fill="none" stroke="#22c55e" strokeWidth="0.4" opacity="0.7"
+              transform={`rotate(45, ${COMMAND_CENTER.x * size}, ${COMMAND_CENTER.y * size})`}
+            />
+            <text
+              x={COMMAND_CENTER.x * size}
+              y={COMMAND_CENTER.y * size + 4}
+              fill="#22c55e" fontSize="1.6" fontFamily="monospace"
+              textAnchor="middle" opacity="0.5" fontWeight="bold"
+            >
+              HQ
+            </text>
+          </g>
 
           {/* === Impact Effects Layer === */}
           {impactFlashes.map((flash) => {

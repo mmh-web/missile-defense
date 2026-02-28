@@ -1,23 +1,19 @@
 import { useState, useEffect } from 'react';
 import { getLeaderboard, saveScore, isHighScore } from '../utils/leaderboard.js';
 
-export default function Summary({ stats, onReset }) {
+export default function Summary({ stats, levelStats, onReset }) {
   const {
-    totalThreats,
-    correctIntercepts,
-    populatedThreats,
-    correctHolds,
-    openGroundThreats,
-    wrongIntercepts,
-    timeouts,
-    wastedIntercepts,
-    ammoRemaining,
+    totalScore,
+    levelScores,
+    totalCorrectIntercepts,
+    totalCorrectHolds,
+    totalSirens,
+    totalWrongIntercepts,
+    totalWastedIntercepts,
     totalPenaltyTime,
-    sirenCount,
-    bestStreak,
+    overallBestStreak,
     rating,
-    score,
-    gameMode,
+    levelsCompleted,
   } = stats;
 
   const [callsign, setCallsign] = useState('');
@@ -26,28 +22,29 @@ export default function Summary({ stats, onReset }) {
   const [savedEntryTimestamp, setSavedEntryTimestamp] = useState(null);
 
   useEffect(() => {
-    setLeaderboard(getLeaderboard(gameMode));
-  }, [gameMode]);
+    setLeaderboard(getLeaderboard('CAMPAIGN'));
+  }, []);
 
   const stars = Array.from({ length: 5 }, (_, i) => i < rating.stars);
   const canSave = callsign.length >= 1 && !saved;
-  const madeHighScore = isHighScore(score, gameMode);
+  const madeHighScore = isHighScore(totalScore, 'CAMPAIGN');
 
   const handleSave = () => {
     if (!canSave) return;
     const entry = saveScore({
       name: callsign,
-      score,
+      score: totalScore,
       stars: rating.stars,
       rating: rating.label,
-      gameMode,
-      correctIntercepts,
-      sirenCount,
-      bestStreak,
+      gameMode: 'CAMPAIGN',
+      levelsCompleted,
+      correctIntercepts: totalCorrectIntercepts,
+      sirenCount: totalSirens,
+      bestStreak: overallBestStreak,
     });
     setSaved(true);
     setSavedEntryTimestamp(entry.timestamp);
-    setLeaderboard(getLeaderboard(gameMode));
+    setLeaderboard(getLeaderboard('CAMPAIGN'));
   };
 
   return (
@@ -56,7 +53,7 @@ export default function Summary({ stats, onReset }) {
         {/* Header */}
         <div className="text-center mb-6">
           <div className="text-green-500 font-mono text-sm tracking-[0.3em] mb-2">
-            MISSION COMPLETE
+            CAMPAIGN COMPLETE
           </div>
           <div className="text-4xl font-bold font-mono text-green-400 tracking-wider mb-2">
             ALL CLEAR
@@ -79,82 +76,86 @@ export default function Summary({ stats, onReset }) {
               </span>
             ))}
           </div>
-          <div className="text-xs text-gray-500 font-mono tracking-widest mb-1">SCORE</div>
+          <div className="text-xs text-gray-500 font-mono tracking-widest mb-1">CAMPAIGN SCORE</div>
           <div className="text-4xl font-bold font-mono text-green-400 tabular-nums">
-            {score}
+            {totalScore}
           </div>
         </div>
 
-        {/* Stats grid */}
+        {/* Per-level score breakdown */}
+        {levelScores && levelScores.length > 0 && (
+          <div className="mb-5 p-4 border border-gray-800 rounded-lg bg-gray-900/20">
+            <div className="text-xs text-gray-500 font-mono tracking-widest mb-3 text-center">
+              LEVEL SCORES
+            </div>
+            <div className="space-y-2">
+              {levelScores.map((ls) => {
+                return (
+                  <div key={ls.level} className="flex items-center justify-between p-2 bg-gray-900/30 rounded border border-gray-800/50">
+                    <div className="flex items-center gap-3">
+                      <span className="text-green-500/50 font-mono text-xs w-4 text-right">{ls.level}</span>
+                      <span className="text-gray-400 font-mono text-xs tracking-wider">LEVEL {ls.level}</span>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <span className="text-yellow-400 text-xs">
+                        {'★'.repeat(ls.rating.stars)}{'☆'.repeat(5 - ls.rating.stars)}
+                      </span>
+                      {ls.sirenCount > 0 && (
+                        <span className="text-red-400 font-mono text-[10px]">{ls.sirenCount} SIREN{ls.sirenCount > 1 ? 'S' : ''}</span>
+                      )}
+                      <span className="text-green-400 font-bold font-mono text-sm tabular-nums w-16 text-right">{ls.score}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Campaign stats grid */}
         <div className="grid grid-cols-2 gap-3 mb-5">
-          <StatRow label="TOTAL THREATS FACED" value={totalThreats} />
           <StatRow
             label="CORRECT INTERCEPTIONS"
-            value={`${correctIntercepts} / ${populatedThreats}`}
+            value={totalCorrectIntercepts}
             good
           />
           <StatRow
             label="CORRECT HOLDS"
-            value={`${correctHolds} / ${openGroundThreats}`}
+            value={totalCorrectHolds}
             good
           />
           <StatRow
             label="WRONG INTERCEPTOR"
-            value={wrongIntercepts}
-            bad={wrongIntercepts > 0}
-          />
-          <StatRow
-            label="TIMEOUTS (POPULATED)"
-            value={timeouts}
-            bad={timeouts > 0}
+            value={totalWrongIntercepts}
+            bad={totalWrongIntercepts > 0}
           />
           <StatRow
             label="WASTED INTERCEPTORS"
-            value={wastedIntercepts}
-            bad={wastedIntercepts > 0}
+            value={totalWastedIntercepts}
+            bad={totalWastedIntercepts > 0}
           />
           <StatRow
             label="TOTAL SIRENS"
-            value={sirenCount}
-            bad={sirenCount > 0}
+            value={totalSirens}
+            bad={totalSirens > 0}
           />
           <StatRow
             label="PENALTY TIME"
             value={`${totalPenaltyTime}s`}
             bad={totalPenaltyTime > 0}
           />
-          {bestStreak > 0 && (
+          {overallBestStreak > 0 && (
             <StatRow
               label="BEST STREAK"
-              value={`${bestStreak}`}
+              value={overallBestStreak}
               good
             />
           )}
-        </div>
-
-        {/* Ammo remaining */}
-        <div className="mb-6 p-4 border border-gray-800 rounded-lg bg-gray-900/30">
-          <div className="text-xs text-gray-500 font-mono tracking-widest mb-3">
-            AMMUNITION REMAINING
-          </div>
-          <div className="grid grid-cols-4 gap-3">
-            {[
-              { key: 'iron_dome', label: 'IRON DOME', color: '#22c55e' },
-              { key: 'davids_sling', label: "DAVID'S SLING", color: '#3b82f6' },
-              { key: 'arrow_2', label: 'ARROW 2', color: '#a855f7' },
-              { key: 'arrow_3', label: 'ARROW 3', color: '#ef4444' },
-            ].map(({ key, label, color }) => (
-              <div key={key} className="text-center">
-                <div className="text-[10px] text-gray-500 font-mono mb-1">{label}</div>
-                <div
-                  className="text-2xl font-bold font-mono tabular-nums"
-                  style={{ color }}
-                >
-                  {ammoRemaining[key]}
-                </div>
-              </div>
-            ))}
-          </div>
+          <StatRow
+            label="LEVELS COMPLETED"
+            value={`${levelsCompleted} / 5`}
+            good={levelsCompleted === 5}
+          />
         </div>
 
         {/* Save Score */}
@@ -195,7 +196,7 @@ export default function Summary({ stats, onReset }) {
         {/* Leaderboard */}
         <LeaderboardTable
           entries={leaderboard}
-          gameMode={gameMode}
+          gameMode="CAMPAIGN"
           highlightTimestamp={savedEntryTimestamp}
         />
 
@@ -208,7 +209,7 @@ export default function Summary({ stats, onReset }) {
               hover:bg-green-900/50 hover:border-green-400 transition-all
               active:scale-95 cursor-pointer text-lg"
           >
-            RESET MISSION
+            PLAY AGAIN
           </button>
         </div>
       </div>
@@ -231,12 +232,12 @@ function StatRow({ label, value, good, bad }) {
   );
 }
 
-export function LeaderboardTable({ entries, gameMode, highlightTimestamp = null }) {
+export function LeaderboardTable({ entries, gameMode = 'CAMPAIGN', highlightTimestamp = null }) {
   if (!entries || entries.length === 0) {
     return (
       <div className="p-4 border border-gray-800 rounded-lg bg-gray-900/20 text-center">
         <div className="text-xs text-gray-500 font-mono tracking-widest mb-2">
-          LEADERBOARD — {gameMode} MISSION
+          LEADERBOARD
         </div>
         <div className="text-gray-600 font-mono text-sm py-4">
           NO SCORES RECORDED
@@ -248,7 +249,7 @@ export function LeaderboardTable({ entries, gameMode, highlightTimestamp = null 
   return (
     <div className="p-4 border border-gray-800 rounded-lg bg-gray-900/20">
       <div className="text-xs text-gray-500 font-mono tracking-widest mb-3 text-center">
-        LEADERBOARD — {gameMode} MISSION
+        LEADERBOARD
       </div>
       <table className="w-full font-mono text-sm">
         <thead>
