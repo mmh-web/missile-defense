@@ -233,6 +233,246 @@ input[type="range"]::-moz-range-thumb {
 }
 
 /* ============================================
+   Interception Effects (Success - Green)
+   ============================================
+   Using transform: scale() instead of r animation
+   for cross-browser SVG compatibility.
+   transform-box: fill-box ensures scale from center. */
+
+.intercept-flash-center {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: interceptCenterFlash 0.5s ease-out forwards;
+}
+
+@keyframes interceptCenterFlash {
+  0% { transform: scale(1); opacity: 1; }
+  30% { transform: scale(3); opacity: 0.9; }
+  100% { transform: scale(0.5); opacity: 0; }
+}
+
+.intercept-shockwave {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: interceptShockwave 1.5s ease-out forwards;
+}
+
+@keyframes interceptShockwave {
+  0% { transform: scale(0.5); opacity: 1; stroke-width: 1; }
+  100% { transform: scale(5); opacity: 0; stroke-width: 0.1; }
+}
+
+.intercept-shockwave-secondary {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: interceptShockwave 1.8s ease-out 0.1s forwards;
+  opacity: 0;
+}
+
+.intercept-particle {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: particleScatter 0.8s ease-out forwards;
+}
+
+@keyframes particleScatter {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+  70% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--end-x), var(--end-y)) scale(0.3);
+  }
+}
+
+/* ============================================
+   City Hit Effects (Failure - Red/Orange)
+   ============================================ */
+.city-hit-flash {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: cityHitFlash 0.6s ease-out forwards;
+}
+
+@keyframes cityHitFlash {
+  0% { transform: scale(0.3); opacity: 1; }
+  20% { transform: scale(2.5); opacity: 0.95; }
+  100% { transform: scale(0.8); opacity: 0; }
+}
+
+.city-hit-shockwave {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: cityHitShockwave 2s ease-out forwards;
+}
+
+@keyframes cityHitShockwave {
+  0% { transform: scale(0.5); opacity: 1; stroke-width: 1.2; }
+  100% { transform: scale(7); opacity: 0; stroke-width: 0.05; }
+}
+
+.city-hit-shockwave-secondary {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: cityHitShockwave 2.5s ease-out 0.15s forwards;
+  opacity: 0;
+}
+
+.city-hit-damage-pulse {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: damagePulse 3s ease-in-out forwards;
+}
+
+@keyframes damagePulse {
+  0% { opacity: 0; transform: scale(0.3); }
+  10% { opacity: 0.6; transform: scale(1); }
+  30% { opacity: 0.4; transform: scale(1.1); }
+  50% { opacity: 0.5; transform: scale(1); }
+  70% { opacity: 0.3; transform: scale(1.1); }
+  100% { opacity: 0; transform: scale(1.3); }
+}
+
+.city-hit-crater {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: craterFade 3s ease-out forwards;
+}
+
+@keyframes craterFade {
+  0% { opacity: 0; transform: scale(0); }
+  15% { opacity: 0.8; transform: scale(1); }
+  80% { opacity: 0.4; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1); }
+}
+
+.city-hit-particle {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: cityParticleScatter 1.2s ease-out forwards;
+}
+
+@keyframes cityParticleScatter {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--end-x), var(--end-y)) scale(0.2);
+  }
+}
+
+/* ============================================
+   Ground Impact Effects (Neutral - Amber)
+   ============================================ */
+.ground-puff {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: groundPuff 1.5s ease-out forwards;
+}
+
+@keyframes groundPuff {
+  0% { transform: scale(0.3); opacity: 0.7; }
+  40% { transform: scale(1.5); opacity: 0.4; }
+  100% { transform: scale(2); opacity: 0; }
+}
+
+.ground-ring {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: groundRing 1s ease-out forwards;
+}
+
+@keyframes groundRing {
+  0% { transform: scale(0.5); opacity: 0.6; stroke-width: 0.5; }
+  100% { transform: scale(4); opacity: 0; stroke-width: 0.05; }
+}
+
+.ground-particle {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: particleScatter 0.6s ease-out forwards;
+}
+
+/* ============================================
+   Screen Shake (City Hit)
+   ============================================ */
+.screen-shake {
+  animation: screenShake 0.5s ease-out;
+}
+
+@keyframes screenShake {
+  0%, 100% { transform: translate(0, 0); }
+  10% { transform: translate(-3px, -2px); }
+  20% { transform: translate(4px, 1px); }
+  30% { transform: translate(-2px, 3px); }
+  40% { transform: translate(3px, -1px); }
+  50% { transform: translate(-1px, 2px); }
+  60% { transform: translate(2px, -2px); }
+  70% { transform: translate(-3px, 1px); }
+  80% { transform: translate(1px, -1px); }
+  90% { transform: translate(-1px, 2px); }
+}
+
+/* Border flash for city hit */
+.border-flash-red {
+  animation: borderFlashRed 0.5s ease-out;
+}
+
+@keyframes borderFlashRed {
+  0% { box-shadow: inset 0 0 0 0 transparent; }
+  20% { box-shadow: inset 0 0 30px 10px rgba(239, 68, 68, 0.4); }
+  100% { box-shadow: inset 0 0 0 0 transparent; }
+}
+
+/* ============================================
+   Interceptor Launch Trail
+   ============================================ */
+.trail-warhead {
+  animation: trailMove var(--trail-duration, 600ms) ease-in forwards;
+}
+
+@keyframes trailMove {
+  0%   { transform: translate(0, 0); opacity: 1; }
+  85%  { opacity: 1; }
+  100% { transform: translate(var(--dx), var(--dy)); opacity: 0; }
+}
+
+.trail-line {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: trailDraw var(--trail-duration, 600ms) ease-in forwards,
+             trailFade 0.5s ease-out var(--trail-duration, 600ms) forwards;
+}
+
+@keyframes trailDraw {
+  from { stroke-dashoffset: 100; }
+  to   { stroke-dashoffset: 0; }
+}
+
+@keyframes trailFade {
+  from { opacity: 0.6; }
+  to   { opacity: 0; }
+}
+
+.trail-launch-flash {
+  animation: launchFlash 0.3s ease-out forwards;
+}
+
+@keyframes launchFlash {
+  0%   { r: 0.5; opacity: 0.8; }
+  100% { r: 2.5; opacity: 0; }
+}
+
+/* ============================================
    Button Active States
    ============================================ */
 button:focus-visible {

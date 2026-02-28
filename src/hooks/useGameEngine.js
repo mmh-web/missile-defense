@@ -5,10 +5,19 @@ import {
   GAME_MODES,
   TZEVA_ADOM_DURATION,
   DIMONA_PENALTY_DURATION,
+  IMPACT_POSITIONS,
+  BATTERY_POSITIONS,
+  INTERCEPTOR_COLORS,
 } from '../config/threats.js';
+import {
+  playInterceptSound,
+  playCityHitSound,
+  playGroundImpactSound,
+} from '../utils/soundEffects.js';
 
 export const GAME_STATES = {
   PRE_GAME: 'pre_game',
+  BRIEFING: 'briefing',
   STUDY: 'study',
   ACTIVE: 'active',
   TZEVA_ADOM: 'tzeva_adom',
@@ -32,9 +41,10 @@ export default function useGameEngine() {
   const [wrongInterceptAttempts, setWrongInterceptAttempts] = useState(0);
   const [streak, setStreak] = useState(0);
   const [bestStreak, setBestStreak] = useState(0);
-  const [incomingCount, setIncomingCount] = useState(0);
   const [finalSalvoWarning, setFinalSalvoWarning] = useState(false);
-  const [impactFlashes, setImpactFlashes] = useState([]); // { zone, type:'success'|'fail', id }
+  const [impactFlashes, setImpactFlashes] = useState([]); // { zone, type, id, cx, cy, particles[], threatType }
+  const [activeTrails, setActiveTrails] = useState([]);   // { id, startX, startY, endX, endY, color, duration }
+  const [screenShake, setScreenShake] = useState(false);
 
   // Refs to avoid stale closures in callbacks
   const gameStateRef = useRef(gameState);
@@ -99,14 +109,86 @@ export default function useGameEngine() {
     }, duration);
   }, []);
 
-  // Add impact flash effect
-  const addImpactFlash = useCallback((zone, type) => {
+  // Add impact flash effect with pre-computed particles
+  const addImpactFlash = useCallback((zone, type, threatType = 'ballistic') => {
     const flashId = Date.now() + Math.random();
-    setImpactFlashes((prev) => [...prev, { zone, type, id: flashId }]);
+    const pos = IMPACT_POSITIONS[zone] || { x: 0.5, y: 0.5 };
+    const cx = pos.x * 100;
+    const cy = pos.y * 100;
+
+    // Pre-compute particle positions for render stability
+    let particles = [];
+    if (type === 'intercept') {
+      particles = Array.from({ length: 8 }, (_, i) => {
+        const angle = (i / 8) * Math.PI * 2;
+        return { endX: Math.cos(angle) * 6, endY: Math.sin(angle) * 6, r: 0.4, delay: i * 0.02 };
+      });
+    } else if (type === 'city_hit') {
+      particles = Array.from({ length: 12 }, (_, i) => {
+        const angle = (i / 12) * Math.PI * 2 + (Math.random() * 0.3);
+        const dist = 5 + Math.random() * 4;
+        return {
+          endX: Math.cos(angle) * dist,
+          endY: Math.sin(angle) * dist,
+          r: 0.3 + Math.random() * 0.3,
+          delay: i * 0.015,
+          color: i % 3 === 0 ? '#ef4444' : '#f97316',
+        };
+      });
+    } else {
+      particles = Array.from({ length: 4 }, (_, i) => {
+        const angle = (i / 4) * Math.PI * 2;
+        return { endX: Math.cos(angle) * 3, endY: Math.sin(angle) * 3, r: 0.3, delay: i * 0.03 };
+      });
+    }
+
+    setImpactFlashes((prev) => [...prev, {
+      zone, type, id: flashId, cx, cy, threatType, particles,
+    }]);
+
+    // Screen shake for city hits
+    if (type === 'city_hit') {
+      setScreenShake(true);
+      setTimeout(() => setScreenShake(false), 500);
+    }
+
+    const duration = type === 'city_hit' ? 3000 : type === 'intercept' ? 2000 : 1500;
     setTimeout(() => {
       setImpactFlashes((prev) => prev.filter((f) => f.id !== flashId));
-    }, 2000);
+    }, duration);
   }, []);
+
+  // Launch interceptor trail with delayed impact flash
+  const addTrail = useCallback((action, targetZone, threatType, impactType) => {
+    const battery = BATTERY_POSITIONS[action];
+    if (!battery) return;
+    const target = IMPACT_POSITIONS[targetZone] || { x: 0.5, y: 0.5 };
+    const trailId = Date.now() + Math.random();
+    const duration = 600;
+
+    setActiveTrails((prev) => [...prev, {
+      id: trailId,
+      startX: battery.x * 100,
+      startY: battery.y * 100,
+      endX: target.x * 100,
+      endY: target.y * 100,
+      color: INTERCEPTOR_COLORS[action],
+      duration,
+    }]);
+
+    // Auto-remove trail after animation + linger
+    setTimeout(() => {
+      setActiveTrails((prev) => prev.filter((t) => t.id !== trailId));
+    }, duration + 500);
+
+    // Delay impact flash + sound to sync with trail arrival
+    if (impactType) {
+      setTimeout(() => {
+        addImpactFlash(targetZone, impactType, threatType);
+        if (impactType === 'intercept') playInterceptSound(volumeRef.current);
+      }, duration);
+    }
+  }, [addImpactFlash]);
 
   // Trigger tzeva adom — handles Dimona priority (longer siren)
   const triggerTzevaAdom = useCallback((isPriority = false) => {
@@ -149,11 +231,14 @@ export default function useGameEngine() {
     if (effectivePopulated) {
       setResultLog((prev) => [...prev, { ...threat, result: 'timeout', siren: true }]);
       playSound(failRef);
-      addImpactFlash(threat.impact_zone, 'fail');
+      addImpactFlash(threat.impact_zone, 'city_hit', threat.type);
+      playCityHitSound(volumeRef.current);
       setStreak(0);
       triggerTzevaAdom(threat.priority);
     } else {
       setResultLog((prev) => [...prev, { ...threat, result: 'timeout_open', siren: false }]);
+      addImpactFlash(threat.impact_zone, 'ground_impact', threat.type);
+      playGroundImpactSound(volumeRef.current);
       showFeedback(`Threat landed in ${threat.impact_zone} — no damage.`, 'neutral');
     }
   }, [triggerTzevaAdom, playSound, showFeedback, addImpactFlash]);
@@ -195,7 +280,8 @@ export default function useGameEngine() {
       if (threat.is_populated) {
         setResultLog((prev) => [...prev, { ...threat, result: 'hold_populated', siren: true }]);
         playSound(failRef);
-        addImpactFlash(threat.impact_zone, 'fail');
+        addImpactFlash(threat.impact_zone, 'city_hit', threat.type);
+        playCityHitSound(volumeRef.current);
         setStreak(0);
         triggerTzevaAdom(threat.priority);
       } else {
@@ -223,7 +309,7 @@ export default function useGameEngine() {
       if (threat.is_populated) {
         setResultLog((prev) => [...prev, { ...threat, result: 'correct_intercept', siren: false }]);
         playSound(successRef);
-        addImpactFlash(threat.impact_zone, 'success');
+        addTrail(action, threat.impact_zone, threat.type, 'intercept');
         setStreak((s) => {
           const next = s + 1;
           setBestStreak((b) => Math.max(b, next));
@@ -232,6 +318,7 @@ export default function useGameEngine() {
         showFeedback('INTERCEPTION SUCCESSFUL', 'success');
       } else {
         setResultLog((prev) => [...prev, { ...threat, result: 'wasted_intercept', siren: false }]);
+        addTrail(action, threat.impact_zone, threat.type, 'intercept');
         showFeedback('INTERCEPTION SUCCESSFUL — but threat was headed for open ground. Interceptor wasted.', 'warning');
         // Don't break streak for wasted but still correct
       }
@@ -239,9 +326,10 @@ export default function useGameEngine() {
       setWrongInterceptAttempts((c) => c + 1);
       playSound(failRef);
       setStreak(0);
+      addTrail(action, threat.impact_zone, threat.type, null);
       showFeedback('INTERCEPTION FAILED — wrong system!', 'error');
     }
-  }, [triggerTzevaAdom, playSound, showFeedback, addImpactFlash]);
+  }, [triggerTzevaAdom, playSound, showFeedback, addImpactFlash, addTrail]);
 
   // Main game loop — drives sessionTime via requestAnimationFrame
   const tick = useCallback((timestamp) => {
@@ -293,9 +381,6 @@ export default function useGameEngine() {
         unspawnedCount++;
       }
     });
-
-    // Track incoming count (unspawned threats)
-    setIncomingCount(unspawnedCount);
 
     // Track if all threats have been spawned
     allSpawnedRef.current = unspawnedCount === 0;
@@ -471,7 +556,7 @@ export default function useGameEngine() {
     const selectedMode = mode || gameModeRef.current;
     const config = getConfig(selectedMode);
     setGameMode(selectedMode);
-    setGameState(GAME_STATES.STUDY);
+    setGameState(GAME_STATES.BRIEFING);
     setSessionTime(0);
     setAmmo({ ...config.ammo });
     setActiveThreats([]);
@@ -483,9 +568,10 @@ export default function useGameEngine() {
     setWrongInterceptAttempts(0);
     setStreak(0);
     setBestStreak(0);
-    setIncomingCount(0);
     setFinalSalvoWarning(false);
     setImpactFlashes([]);
+    setActiveTrails([]);
+    setScreenShake(false);
     setPaused(false);
     spawnedIdsRef.current = new Set();
     tzevaAdomQueueRef.current = [];
@@ -495,6 +581,11 @@ export default function useGameEngine() {
       clearTimeout(autoEndTimerRef.current);
       autoEndTimerRef.current = null;
     }
+  }, []);
+
+  const skipBriefing = useCallback(() => {
+    if (gameStateRef.current !== GAME_STATES.BRIEFING) return;
+    setGameState(GAME_STATES.STUDY);
   }, []);
 
   const resetGame = useCallback(() => {
@@ -516,9 +607,10 @@ export default function useGameEngine() {
     setWrongInterceptAttempts(0);
     setStreak(0);
     setBestStreak(0);
-    setIncomingCount(0);
     setFinalSalvoWarning(false);
     setImpactFlashes([]);
+    setActiveTrails([]);
+    setScreenShake(false);
     setPaused(false);
     spawnedIdsRef.current = new Set();
     tzevaAdomQueueRef.current = [];
@@ -554,6 +646,16 @@ export default function useGameEngine() {
     else if (sirenCount <= 5) rating = { label: 'BATTERED BUT STANDING', stars: 2 };
     else rating = { label: 'BREACH', stars: 1 };
 
+    const score = Math.max(0,
+      (correctIntercepts * 100)
+      + (correctHolds * 50)
+      + (bestStreak * 25)
+      - (sirenCount * 200)
+      - (wrongInterceptAttempts * 75)
+      - (wastedIntercepts * 25)
+      - (totalPenaltyTime * 2)
+    );
+
     return {
       totalThreats,
       correctIntercepts,
@@ -568,8 +670,10 @@ export default function useGameEngine() {
       sirenCount,
       bestStreak,
       rating,
+      score,
+      gameMode,
     };
-  }, [resultLog, ammo, totalPenaltyTime, sirenCount, wrongInterceptAttempts, bestStreak]);
+  }, [resultLog, ammo, totalPenaltyTime, sirenCount, wrongInterceptAttempts, bestStreak, gameMode]);
 
   return {
     gameState,
@@ -587,12 +691,14 @@ export default function useGameEngine() {
     sirenCount,
     streak,
     bestStreak,
-    incomingCount,
     finalSalvoWarning,
     impactFlashes,
+    activeTrails,
+    screenShake,
     startGame,
     resetGame,
     togglePause,
+    skipBriefing,
     skipStudy,
     handleAction,
     setSelectedThreatId,

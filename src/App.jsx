@@ -1,12 +1,14 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import useGameEngine from './hooks/useGameEngine.js';
 import RadarDisplay from './components/RadarDisplay.jsx';
 import ThreatPanel from './components/ThreatPanel.jsx';
 import ControlPanel from './components/ControlPanel.jsx';
 import TzevaAdom from './components/TzevaAdom.jsx';
-import Summary from './components/Summary.jsx';
+import Summary, { LeaderboardTable } from './components/Summary.jsx';
+import Briefing from './components/Briefing.jsx';
 import FacilitatorControls from './components/FacilitatorControls.jsx';
 import { GAME_MODES, getConfig } from './config/threats.js';
+import { getLeaderboard } from './utils/leaderboard.js';
 
 function formatCountdown(seconds) {
   const m = Math.floor(seconds / 60);
@@ -17,6 +19,8 @@ function formatCountdown(seconds) {
 export default function App() {
   const game = useGameEngine();
   const [showFacilitator, setShowFacilitator] = useState(false);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const hasSeenBriefingRef = useRef(false);
 
   const {
     gameState,
@@ -31,12 +35,14 @@ export default function App() {
     feedbackMessage,
     totalPenaltyTime,
     streak,
-    incomingCount,
     finalSalvoWarning,
     impactFlashes,
+    activeTrails,
+    screenShake,
     startGame,
     resetGame,
     togglePause,
+    skipBriefing,
     skipStudy,
     handleAction,
     setSelectedThreatId,
@@ -50,11 +56,19 @@ export default function App() {
   const studyTimeLeft = Math.max(0, config.study_duration - sessionTime);
   const isStudy = gameState === GAME_STATES.STUDY;
 
-  // ESC toggles facilitator panel
+  // Auto-skip briefing on replay
+  useEffect(() => {
+    if (gameState === GAME_STATES.BRIEFING && hasSeenBriefingRef.current) {
+      skipBriefing();
+    }
+  }, [gameState, skipBriefing, GAME_STATES]);
+
+  // Keyboard handling: ESC, Ctrl+R, interceptor keys, threat cycling
   useEffect(() => {
     const handleKeyDown = (e) => {
+      // ESC: toggle facilitator panel
       if (e.key === 'Escape') {
-        if (gameState !== GAME_STATES.PRE_GAME) {
+        if (gameState !== GAME_STATES.PRE_GAME && gameState !== GAME_STATES.BRIEFING) {
           setShowFacilitator((prev) => {
             if (!prev) {
               if (!paused) togglePause();
@@ -62,11 +76,56 @@ export default function App() {
             return !prev;
           });
         }
+        return;
+      }
+
+      // Keyboard shortcuts only during ACTIVE, not paused
+      if (gameState !== GAME_STATES.ACTIVE || paused) return;
+
+      // Number keys 1-4 for interceptors
+      const interceptorKeys = {
+        '1': 'iron_dome',
+        '2': 'davids_sling',
+        '3': 'arrow_2',
+        '4': 'arrow_3',
+      };
+
+      if (interceptorKeys[e.key]) {
+        e.preventDefault();
+        handleAction(interceptorKeys[e.key]);
+        return;
+      }
+
+      // 5 or Space for Hold Fire
+      if (e.key === '5' || e.key === ' ') {
+        e.preventDefault();
+        handleAction('hold_fire');
+        return;
+      }
+
+      // Tab / Shift+Tab to cycle through threats
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        if (activeThreats.length === 0) return;
+
+        const sortedThreats = [...activeThreats].sort((a, b) => a.timeLeft - b.timeLeft);
+        const currentIndex = sortedThreats.findIndex((t) => t.id === selectedThreatId);
+
+        let nextIndex;
+        if (e.shiftKey) {
+          nextIndex = currentIndex <= 0 ? sortedThreats.length - 1 : currentIndex - 1;
+        } else {
+          nextIndex = currentIndex >= sortedThreats.length - 1 ? 0 : currentIndex + 1;
+        }
+
+        setSelectedThreatId(sortedThreats[nextIndex].id);
+        return;
       }
     };
+
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [gameState, paused, togglePause, GAME_STATES]);
+  }, [gameState, paused, togglePause, handleAction, activeThreats, selectedThreatId, setSelectedThreatId, GAME_STATES]);
 
   const handleCloseFacilitator = useCallback(() => {
     setShowFacilitator(false);
@@ -142,10 +201,43 @@ export default function App() {
             START MISSION
           </button>
 
+          <button
+            onClick={() => setShowLeaderboard(true)}
+            className="mt-4 px-6 py-2 border border-gray-700 text-gray-500
+              font-mono text-xs tracking-widest rounded
+              hover:border-gray-500 hover:text-gray-400 transition-all
+              active:scale-95 cursor-pointer"
+          >
+            LEADERBOARD
+          </button>
+
           <div className="text-green-900 font-mono text-xs tracking-[1em] mt-8">
             &#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;
           </div>
         </div>
+
+        {/* Leaderboard modal */}
+        {showLeaderboard && (
+          <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+            <div className="max-w-lg w-full mx-4">
+              <LeaderboardTable
+                entries={getLeaderboard(gameMode)}
+                gameMode={gameMode}
+              />
+              <div className="text-center mt-4">
+                <button
+                  onClick={() => setShowLeaderboard(false)}
+                  className="px-6 py-2 border border-gray-700 text-gray-400
+                    font-mono text-xs tracking-widest rounded
+                    hover:border-gray-500 hover:text-gray-300 transition-all
+                    active:scale-95 cursor-pointer"
+                >
+                  CLOSE
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {showFacilitator && (
           <FacilitatorControls
@@ -164,6 +256,20 @@ export default function App() {
   }
 
   // ========================
+  // BRIEFING SCREEN
+  // ========================
+  if (gameState === GAME_STATES.BRIEFING) {
+    return (
+      <Briefing
+        onReady={() => {
+          hasSeenBriefingRef.current = true;
+          skipBriefing();
+        }}
+      />
+    );
+  }
+
+  // ========================
   // SUMMARY SCREEN
   // ========================
   if (gameState === GAME_STATES.SUMMARY) {
@@ -174,7 +280,7 @@ export default function App() {
   // STUDY PHASE / ACTIVE GAME / TZEVA ADOM
   // ========================
   return (
-    <div className="h-screen bg-[#0a0e1a] flex flex-col overflow-hidden relative">
+    <div className={`h-screen bg-[#0a0e1a] flex flex-col overflow-hidden relative ${screenShake ? 'screen-shake border-flash-red' : ''}`}>
       {/* Top bar */}
       <div className="flex items-center justify-between px-4 py-2 border-b border-gray-800/50 bg-[#080c16]">
         <div className="flex items-center gap-4">
@@ -214,6 +320,7 @@ export default function App() {
             onSelectThreat={setSelectedThreatId}
             sessionTime={sessionTime}
             impactFlashes={impactFlashes}
+            activeTrails={activeTrails}
           />
         </div>
 
@@ -287,7 +394,6 @@ export default function App() {
           totalPenaltyTime={totalPenaltyTime}
           feedbackMessage={feedbackMessage}
           streak={streak}
-          incomingCount={incomingCount}
         />
       </div>
 

@@ -40,8 +40,8 @@ export const GAME_MODES = {
   },
 };
 
-export const TZEVA_ADOM_DURATION = 20;
-export const DIMONA_PENALTY_DURATION = 25;
+export const TZEVA_ADOM_DURATION = 15;
+export const DIMONA_PENALTY_DURATION = 20;
 
 export const POPULATED_ZONES = [
   { name: 'Tel Aviv', x: 0.35, y: 0.38 },
@@ -64,6 +64,57 @@ export const THREAT_COLORS = {
   hypersonic: '#a855f7',
   drone: '#eab308',
   decoy: '#6b7280',
+};
+
+// Shared map of all impact zone names to radar coordinates
+export const IMPACT_POSITIONS = {
+  'Tel Aviv': { x: 0.35, y: 0.38 },
+  'Jerusalem': { x: 0.45, y: 0.43 },
+  'Haifa': { x: 0.35, y: 0.18 },
+  'Ashdod': { x: 0.30, y: 0.48 },
+  'Beersheba': { x: 0.40, y: 0.60 },
+  'Eilat': { x: 0.45, y: 0.90 },
+  'Dimona': { x: 0.48, y: 0.65 },
+  'Netanya': { x: 0.33, y: 0.32 },
+  'Ashkelon': { x: 0.28, y: 0.52 },
+  'Teveriah': { x: 0.42, y: 0.22 },
+  'Tzfat': { x: 0.40, y: 0.15 },
+  'Kiryat Shmona': { x: 0.42, y: 0.08 },
+  // Open ground areas
+  'Negev Desert': { x: 0.38, y: 0.72 },
+  'Northern Negev': { x: 0.35, y: 0.58 },
+  'Central Negev': { x: 0.42, y: 0.70 },
+  'Southern Negev': { x: 0.43, y: 0.80 },
+  'Dead Sea Region': { x: 0.50, y: 0.50 },
+  'Golan Heights': { x: 0.48, y: 0.15 },
+  'Jordan Valley': { x: 0.52, y: 0.35 },
+  'Judean Hills': { x: 0.42, y: 0.48 },
+  'Judean Desert': { x: 0.50, y: 0.45 },
+  'Arava Valley': { x: 0.50, y: 0.75 },
+  'Mediterranean (off-coast)': { x: 0.18, y: 0.35 },
+  'Western Galilee': { x: 0.28, y: 0.15 },
+  'Upper Galilee': { x: 0.38, y: 0.10 },
+  'Coastal Plain': { x: 0.25, y: 0.42 },
+  'Sinai Border Region': { x: 0.32, y: 0.78 },
+  'Off-course (Saudi Arabia)': { x: 0.80, y: 0.65 },
+  'Off-course (Red Sea)': { x: 0.55, y: 0.85 },
+  'Off-course (Jordan)': { x: 0.65, y: 0.45 },
+};
+
+// Defense battery launch positions (normalized 0-1 coordinates)
+export const BATTERY_POSITIONS = {
+  iron_dome:     { x: 0.28, y: 0.45 },  // Coastal area near Ashkelon
+  davids_sling:  { x: 0.32, y: 0.30 },  // Central, near Netanya
+  arrow_2:       { x: 0.30, y: 0.50 },  // Palmachim area
+  arrow_3:       { x: 0.30, y: 0.50 },  // Same base as Arrow 2
+};
+
+// Interceptor system colors (matches Briefing/ControlPanel)
+export const INTERCEPTOR_COLORS = {
+  iron_dome:    '#22c55e',
+  davids_sling: '#3b82f6',
+  arrow_2:      '#a855f7',
+  arrow_3:      '#ef4444',
 };
 
 // -----------------------------------------------------------
