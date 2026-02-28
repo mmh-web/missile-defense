@@ -1,8 +1,8 @@
 const INTERCEPTORS = [
-  { key: 'iron_dome', label: 'IRON DOME', color: '#22c55e' },
-  { key: 'davids_sling', label: "DAVID'S SLING", color: '#3b82f6' },
-  { key: 'arrow_2', label: 'ARROW 2', color: '#a855f7' },
-  { key: 'arrow_3', label: 'ARROW 3', color: '#ef4444' },
+  { key: 'iron_dome', label: 'IRON DOME', color: '#22c55e', shortcut: '1' },
+  { key: 'davids_sling', label: "DAVID'S SLING", color: '#3b82f6', shortcut: '2' },
+  { key: 'arrow_2', label: 'ARROW 2', color: '#a855f7', shortcut: '3' },
+  { key: 'arrow_3', label: 'ARROW 3', color: '#ef4444', shortcut: '4' },
 ];
 
 function formatElapsed(seconds) {
@@ -19,9 +19,12 @@ export default function ControlPanel({
   totalPenaltyTime,
   feedbackMessage,
   streak,
-  incomingCount,
+  availableSystems,
 }) {
   const hasSelection = selectedThreatId !== null;
+  const visibleInterceptors = availableSystems
+    ? INTERCEPTORS.filter(({ key }) => availableSystems.includes(key))
+    : INTERCEPTORS;
 
   return (
     <div className="w-full">
@@ -38,12 +41,6 @@ export default function ControlPanel({
               {totalPenaltyTime}s
             </span>
           </div>
-          {incomingCount > 0 && (
-            <div className="font-mono text-xs">
-              <span className="text-gray-500">INCOMING </span>
-              <span className="text-yellow-500 text-sm tabular-nums animate-pulse">{incomingCount}</span>
-            </div>
-          )}
           {streak >= 3 && (
             <div className="font-mono text-xs">
               <span className="text-orange-400 text-sm font-bold">🔥 {streak} STREAK</span>
@@ -74,7 +71,7 @@ export default function ControlPanel({
 
       {/* Interceptor buttons */}
       <div className="flex gap-2">
-        {INTERCEPTORS.map(({ key, label, color }) => {
+        {visibleInterceptors.map(({ key, label, color, shortcut }) => {
           const count = ammo[key];
           const depleted = count <= 0;
           const disabled = depleted || !hasSelection;
@@ -103,6 +100,13 @@ export default function ControlPanel({
                   : {}
               }
             >
+              {/* Shortcut badge */}
+              <div
+                className="absolute top-1 right-1 w-5 h-5 rounded border flex items-center justify-center text-[10px] font-mono opacity-50"
+                style={{ borderColor: disabled ? '#4b5563' : color, color: disabled ? '#4b5563' : color }}
+              >
+                {shortcut}
+              </div>
               <div className="text-xs mb-1">{label}</div>
               <div className="text-lg tabular-nums">
                 {depleted ? 'DEPLETED' : count}
@@ -128,17 +132,26 @@ export default function ControlPanel({
           disabled={!hasSelection}
           className={`
             flex-1 py-4 px-2 rounded-lg font-mono text-sm font-bold tracking-wider
-            border-2 transition-all
+            border-2 transition-all relative
             ${!hasSelection
               ? 'opacity-40 cursor-not-allowed border-gray-700 bg-gray-900 text-gray-600'
               : 'cursor-pointer hover:scale-[1.02] active:scale-95 border-gray-400 bg-gray-800 text-gray-200 hover:bg-gray-700'
             }
           `}
         >
+          {/* Shortcut badge */}
+          <div className="absolute top-1 right-1 w-5 h-5 rounded border border-gray-500 flex items-center justify-center text-[10px] font-mono opacity-50 text-gray-400">
+            5
+          </div>
           <div className="text-xs mb-1">HOLD</div>
           <div className="text-lg">FIRE</div>
           <div className="text-[10px] mt-1 text-gray-500">NO INTERCEPT</div>
         </button>
+      </div>
+
+      {/* Keyboard hint */}
+      <div className="mt-2 text-center text-[10px] text-gray-600 font-mono tracking-wider">
+        KEYS 1-5 SELECT ACTION &#x2022; TAB CYCLES THREATS &#x2022; SPACE = HOLD FIRE
       </div>
     </div>
   );

@@ -1,12 +1,13 @@
-import { THREAT_COLORS } from '../config/threats.js';
-
 function formatTime(seconds) {
   const s = Math.max(0, Math.ceil(seconds));
   return `${s}s`;
 }
 
+const THREAT_COLOR = '#94a3b8';   // Neutral slate — clean and consistent
+const DECOY_COLOR = '#6b7280';    // Gray for unknown contacts
+
 function ThreatCard({ threat, isSelected, onSelect }) {
-  const color = THREAT_COLORS[threat.type] || '#ef4444';
+  const color = threat.is_decoy ? DECOY_COLOR : THREAT_COLOR;
   const urgency = threat.timeLeft < 5 ? 'animate-pulse' : '';
   const isDecoy = threat.is_decoy;
   const intel = threat.intel || 'full';
@@ -15,18 +16,33 @@ function ThreatCard({ threat, isSelected, onSelect }) {
     <div
       onClick={() => onSelect(threat.id)}
       className={`
-        relative cursor-pointer border rounded p-3 mb-2 transition-all
+        relative cursor-pointer rounded p-3 mb-2 transition-all flex gap-3
         ${isSelected
-          ? 'border-white bg-white/10 shadow-lg shadow-white/10'
-          : 'border-gray-700 bg-gray-900/50 hover:border-gray-500'
+          ? 'bg-white/10 shadow-lg shadow-white/10'
+          : 'bg-gray-900/50 hover:border-gray-500'
         }
         ${urgency}
       `}
-      style={isSelected ? { borderColor: color, boxShadow: `0 0 15px ${color}40` } : {}}
+      style={{
+        borderTop: `2px solid ${isSelected ? color : '#374151'}`,
+        borderRight: `2px solid ${isSelected ? color : '#374151'}`,
+        borderBottom: `2px solid ${isSelected ? color : '#374151'}`,
+        borderLeft: `4px solid ${color}`,
+        boxShadow: isSelected ? `0 0 15px ${color}40` : 'none',
+      }}
     >
+      {/* Prominent Threat ID */}
+      <div
+        className="flex-shrink-0 flex items-center justify-center w-12 h-12 rounded font-mono font-bold text-lg"
+        style={{ backgroundColor: `${color}20`, color, border: `1px solid ${color}50` }}
+      >
+        T{threat.id}
+      </div>
+
+      {/* Card content */}
+      <div className="flex-1 min-w-0">
       {/* Type badge + Priority */}
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 mb-2 flex-wrap">
           <span
             className="text-xs font-bold px-2 py-0.5 rounded uppercase tracking-wider"
             style={{ backgroundColor: `${color}30`, color }}
@@ -43,8 +59,6 @@ function ThreatCard({ threat, isSelected, onSelect }) {
               SALVO
             </span>
           )}
-        </div>
-        <span className="text-xs text-gray-500 font-mono">T{threat.id}</span>
       </div>
 
       {/* Threat name */}
@@ -127,6 +141,7 @@ function ThreatCard({ threat, isSelected, onSelect }) {
           }}
         />
       </div>
+      </div>{/* end card content */}
     </div>
   );
 }

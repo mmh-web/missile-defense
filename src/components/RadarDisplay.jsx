@@ -1,5 +1,8 @@
 import { useMemo } from 'react';
-import { POPULATED_ZONES, THREAT_COLORS } from '../config/threats.js';
+import { POPULATED_ZONES, IMPACT_POSITIONS, COMMAND_CENTER } from '../config/threats.js';
+
+const BLIP_COLOR = '#ffffff';     // Bright white — high contrast against green map
+const DECOY_BLIP_COLOR = '#6b7280'; // Gray for unknown contacts
 
 const ISRAEL_PATH = `
   M 0.35,0.10
@@ -14,44 +17,24 @@ const ISRAEL_PATH = `
   Z
 `;
 
-// Map all impact zone names to radar coordinates
-const IMPACT_POSITIONS = {
-  'Tel Aviv': { x: 0.35, y: 0.38 },
-  'Jerusalem': { x: 0.45, y: 0.43 },
-  'Haifa': { x: 0.35, y: 0.18 },
-  'Ashdod': { x: 0.30, y: 0.48 },
-  'Beersheba': { x: 0.40, y: 0.60 },
-  'Eilat': { x: 0.45, y: 0.90 },
-  'Dimona': { x: 0.48, y: 0.65 },
-  'Netanya': { x: 0.33, y: 0.32 },
-  'Ashkelon': { x: 0.28, y: 0.52 },
-  'Teveriah': { x: 0.42, y: 0.22 },
-  'Tzfat': { x: 0.40, y: 0.15 },
-  'Kiryat Shmona': { x: 0.42, y: 0.08 },
-  // Open ground areas
-  'Negev Desert': { x: 0.38, y: 0.72 },
-  'Northern Negev': { x: 0.35, y: 0.58 },
-  'Central Negev': { x: 0.42, y: 0.70 },
-  'Southern Negev': { x: 0.43, y: 0.80 },
-  'Dead Sea Region': { x: 0.50, y: 0.50 },
-  'Golan Heights': { x: 0.48, y: 0.15 },
-  'Jordan Valley': { x: 0.52, y: 0.35 },
-  'Judean Hills': { x: 0.42, y: 0.48 },
-  'Judean Desert': { x: 0.50, y: 0.45 },
-  'Arava Valley': { x: 0.50, y: 0.75 },
-  'Mediterranean (off-coast)': { x: 0.18, y: 0.35 },
-  'Western Galilee': { x: 0.28, y: 0.15 },
-  'Upper Galilee': { x: 0.38, y: 0.10 },
-  'Coastal Plain': { x: 0.25, y: 0.42 },
-  'Sinai Border Region': { x: 0.32, y: 0.78 },
-  'Off-course (Saudi Arabia)': { x: 0.80, y: 0.65 },
-  'Off-course (Red Sea)': { x: 0.55, y: 0.85 },
-  'Off-course (Jordan)': { x: 0.65, y: 0.45 },
-};
+// Easing: ballistic missiles start slow, accelerate on reentry
+// Hypersonics accelerate even more aggressively
+function easeProgress(linearProgress, type) {
+  if (type === 'ballistic') {
+    // Slow launch, fast reentry — cubic ease-in
+    return linearProgress * linearProgress * linearProgress;
+  }
+  if (type === 'hypersonic') {
+    // Even more extreme acceleration
+    return linearProgress * linearProgress * linearProgress * linearProgress;
+  }
+  return linearProgress; // drones + cruise: constant speed
+}
 
 function getBlipPosition(threat) {
   const target = IMPACT_POSITIONS[threat.impact_zone] || { x: 0.5, y: 0.5 };
-  const progress = 1 - threat.timeLeft / threat.countdown;
+  const linearProgress = 1 - threat.timeLeft / threat.countdown;
+  const progress = easeProgress(linearProgress, threat.type);
 
   const cx = 0.5, cy = 0.5;
   const dx = target.x - cx;
@@ -65,7 +48,157 @@ function getBlipPosition(threat) {
   return {
     x: startX + (target.x - startX) * progress,
     y: startY + (target.y - startY) * progress,
+    originX: startX,
+    originY: startY,
   };
+}
+
+// ============================================
+// Impact Effect Renderers
+// ============================================
+
+function InterceptEffect({ flash }) {
+  const { cx, cy, particles } = flash;
+  return (
+    <g>
+      {/* Bright white center flash */}
+      <circle cx={cx} cy={cy} r="2" fill="white" className="intercept-flash-center" />
+
+      {/* Green shockwave ring */}
+      <circle cx={cx} cy={cy} r="3"
+        fill="none" stroke="#22c55e" strokeWidth="1"
+        className="intercept-shockwave" />
+
+      {/* Secondary ring (delayed) */}
+      <circle cx={cx} cy={cy} r="3"
+        fill="none" stroke="rgba(34, 197, 94, 0.5)" strokeWidth="0.5"
+        className="intercept-shockwave-secondary" />
+
+      {/* Particle debris */}
+      {particles.map((p, i) => (
+        <circle key={i} cx={cx} cy={cy} r={0.6}
+          fill="#22c55e"
+          className="intercept-particle"
+          style={{
+            '--end-x': `${p.endX}px`,
+            '--end-y': `${p.endY}px`,
+            animationDelay: `${p.delay}s`,
+          }}
+        />
+      ))}
+    </g>
+  );
+}
+
+function CityHitEffect({ flash }) {
+  const { cx, cy, particles } = flash;
+  return (
+    <g>
+      {/* Bright orange flash */}
+      <circle cx={cx} cy={cy} r="3" fill="rgba(255,100,50,0.9)"
+        className="city-hit-flash" />
+
+      {/* Red shockwave (larger) */}
+      <circle cx={cx} cy={cy} r="3"
+        fill="none" stroke="#ef4444" strokeWidth="1.2"
+        className="city-hit-shockwave" />
+
+      {/* Secondary orange shockwave */}
+      <circle cx={cx} cy={cy} r="3"
+        fill="none" stroke="#f97316" strokeWidth="0.6"
+        className="city-hit-shockwave-secondary" />
+
+      {/* Pulsing damage indicator (lingers) */}
+      <circle cx={cx} cy={cy} r="4"
+        fill="rgba(239, 68, 68, 0.2)"
+        stroke="#ef4444" strokeWidth="0.4"
+        className="city-hit-damage-pulse" />
+
+      {/* Crater marker */}
+      <circle cx={cx} cy={cy} r="2"
+        fill="none" stroke="#ef4444" strokeWidth="0.4"
+        strokeDasharray="0.5 0.5"
+        className="city-hit-crater" />
+
+      {/* Debris particles */}
+      {particles.map((p, i) => (
+        <circle key={i} cx={cx} cy={cy}
+          r={0.5}
+          fill={p.color || '#f97316'}
+          className="city-hit-particle"
+          style={{
+            '--end-x': `${p.endX}px`,
+            '--end-y': `${p.endY}px`,
+            animationDelay: `${p.delay}s`,
+          }}
+        />
+      ))}
+    </g>
+  );
+}
+
+function GroundImpactEffect({ flash }) {
+  const { cx, cy, particles } = flash;
+  return (
+    <g>
+      {/* Amber puff */}
+      <circle cx={cx} cy={cy} r="2"
+        fill="rgba(217, 169, 78, 0.5)"
+        className="ground-puff" />
+
+      {/* Expanding ring */}
+      <circle cx={cx} cy={cy} r="1.5"
+        fill="none" stroke="#d9a94e" strokeWidth="0.5"
+        className="ground-ring" />
+
+      {/* Dust particles */}
+      {particles.map((p, i) => (
+        <circle key={i} cx={cx} cy={cy} r={0.5}
+          fill="#d9a94e"
+          className="ground-particle"
+          style={{
+            '--end-x': `${p.endX}px`,
+            '--end-y': `${p.endY}px`,
+            animationDelay: `${p.delay}s`,
+          }}
+        />
+      ))}
+    </g>
+  );
+}
+
+function TrailEffect({ trail }) {
+  const { startX, startY, endX, endY, color, duration } = trail;
+  return (
+    <g>
+      {/* Trail line — draws from start to end */}
+      <line
+        x1={startX} y1={startY} x2={endX} y2={endY}
+        stroke={color} strokeWidth="0.4" opacity="0.6"
+        className="trail-line"
+        style={{ '--trail-duration': `${duration}ms` }}
+      />
+
+      {/* Bright warhead dot — moves from start to end */}
+      <circle
+        cx={startX} cy={startY} r="0.8"
+        fill="white"
+        className="trail-warhead"
+        style={{
+          '--dx': `${endX - startX}px`,
+          '--dy': `${endY - startY}px`,
+          '--trail-duration': `${duration}ms`,
+        }}
+      />
+
+      {/* Exhaust glow at launch point */}
+      <circle
+        cx={startX} cy={startY} r="1.5"
+        fill={color} opacity="0.5"
+        className="trail-launch-flash"
+      />
+    </g>
+  );
 }
 
 export default function RadarDisplay({
@@ -75,6 +208,7 @@ export default function RadarDisplay({
   sessionTime,
   showSweep = true,
   impactFlashes = [],
+  activeTrails = [],
 }) {
   const size = 100;
   const rings = useMemo(() => [20, 40, 60, 80, 100], []);
@@ -114,29 +248,33 @@ export default function RadarDisplay({
           {POPULATED_ZONES.map((zone) => {
             // Check if any impact flash is active for this zone
             const flash = impactFlashes.find((f) => f.zone === zone.name);
-            const flashColor = flash
-              ? flash.type === 'success' ? 'rgba(34, 197, 94, 0.8)' : 'rgba(239, 68, 68, 0.8)'
-              : null;
+            let dotColor = 'rgba(0, 255, 136, 0.3)';
+            let strokeColor = 'rgba(0, 255, 136, 0.7)';
+            let labelColor = 'rgba(0, 255, 136, 0.7)';
+
+            if (flash) {
+              if (flash.type === 'intercept') {
+                dotColor = 'rgba(34, 197, 94, 0.8)';
+                strokeColor = 'rgba(34, 197, 94, 1)';
+                labelColor = 'rgba(34, 197, 94, 1)';
+              } else if (flash.type === 'city_hit') {
+                dotColor = 'rgba(239, 68, 68, 0.8)';
+                strokeColor = 'rgba(239, 68, 68, 1)';
+                labelColor = 'rgba(239, 68, 68, 1)';
+              }
+            }
 
             return (
               <g key={zone.name}>
-                {/* Flash ring effect */}
-                {flashColor && (
-                  <circle
-                    cx={zone.x * size} cy={zone.y * size} r="4"
-                    fill="none" stroke={flashColor} strokeWidth="0.5"
-                    className="impact-flash-ring"
-                  />
-                )}
                 <circle
                   cx={zone.x * size} cy={zone.y * size} r="1.2"
-                  fill={flashColor || 'rgba(0, 255, 136, 0.3)'}
-                  stroke={flashColor || 'rgba(0, 255, 136, 0.7)'}
+                  fill={dotColor}
+                  stroke={strokeColor}
                   strokeWidth="0.3"
                 />
                 <text
                   x={zone.x * size + 2} y={zone.y * size + 0.5}
-                  fill={flashColor || 'rgba(0, 255, 136, 0.7)'}
+                  fill={labelColor}
                   fontSize="1.8" fontFamily="monospace"
                 >
                   {zone.name}
@@ -145,11 +283,69 @@ export default function RadarDisplay({
             );
           })}
 
-          {/* Threat blips */}
+          {/* Command Center HQ marker */}
+          <g>
+            <rect
+              x={COMMAND_CENTER.x * size - 1.5}
+              y={COMMAND_CENTER.y * size - 1.5}
+              width="3" height="3"
+              fill="none" stroke="#22c55e" strokeWidth="0.4" opacity="0.7"
+              transform={`rotate(45, ${COMMAND_CENTER.x * size}, ${COMMAND_CENTER.y * size})`}
+            />
+            <text
+              x={COMMAND_CENTER.x * size}
+              y={COMMAND_CENTER.y * size + 4}
+              fill="#22c55e" fontSize="1.6" fontFamily="monospace"
+              textAnchor="middle" opacity="0.5" fontWeight="bold"
+            >
+              HQ
+            </text>
+          </g>
+
+          {/* === Impact Effects Layer === */}
+          {impactFlashes.map((flash) => {
+            if (flash.type === 'intercept') {
+              return <InterceptEffect key={flash.id} flash={flash} />;
+            }
+            if (flash.type === 'city_hit') {
+              return <CityHitEffect key={flash.id} flash={flash} />;
+            }
+            if (flash.type === 'ground_impact') {
+              return <GroundImpactEffect key={flash.id} flash={flash} />;
+            }
+            return null;
+          })}
+
+          {/* Interceptor trails */}
+          {activeTrails.map((trail) => (
+            <TrailEffect key={trail.id} trail={trail} />
+          ))}
+
+          {/* Threat trajectory trail gradients */}
+          <defs>
+            {activeThreats.map((threat) => {
+              const pos = getBlipPosition(threat);
+              const color = threat.is_decoy ? DECOY_BLIP_COLOR : BLIP_COLOR;
+              return (
+                <linearGradient
+                  key={`trail-grad-${threat.id}`}
+                  id={`trail-grad-${threat.id}`}
+                  x1={pos.originX * size} y1={pos.originY * size}
+                  x2={pos.x * size} y2={pos.y * size}
+                  gradientUnits="userSpaceOnUse"
+                >
+                  <stop offset="0%" stopColor={color} stopOpacity="0" />
+                  <stop offset="100%" stopColor={color} stopOpacity="0.6" />
+                </linearGradient>
+              );
+            })}
+          </defs>
+
+          {/* Threat blips with trajectory trails */}
           {activeThreats.map((threat) => {
             const pos = getBlipPosition(threat);
             const isDecoy = threat.is_decoy;
-            const color = isDecoy ? THREAT_COLORS.decoy : (THREAT_COLORS[threat.type] || '#ef4444');
+            const color = isDecoy ? DECOY_BLIP_COLOR : BLIP_COLOR;
             const isSelected = threat.id === selectedThreatId;
 
             return (
@@ -158,6 +354,14 @@ export default function RadarDisplay({
                 onClick={() => onSelectThreat(threat.id)}
                 style={{ cursor: 'pointer' }}
               >
+                {/* Trajectory trail — fading line from entry point to current position */}
+                <line
+                  x1={pos.originX * size} y1={pos.originY * size}
+                  x2={pos.x * size} y2={pos.y * size}
+                  stroke={`url(#trail-grad-${threat.id})`}
+                  strokeWidth={isDecoy ? '0.3' : '0.5'}
+                  strokeDasharray={isDecoy ? '0.8 0.6' : 'none'}
+                />
                 {/* Pulse ring */}
                 <circle
                   cx={pos.x * size} cy={pos.y * size} r="2.5"
