@@ -21,8 +21,8 @@ export const CITIES = {
   'Sderot':         { x: 0.212, y: 0.467, region: 'otef_aza', tier: 1, revealLevel: 1, labelDir: 'e' },
   'Ashkelon':       { x: 0.202, y: 0.436, region: 'otef_aza', tier: 1, revealLevel: 1, labelDir: 'ne' },
   "Be'eri":         { x: 0.175, y: 0.490, region: 'otef_aza', tier: 2, revealLevel: 1, labelDir: 'se' },
-  'Kfar Aza':       { x: 0.191, y: 0.477, region: 'otef_aza', tier: 2, revealLevel: 1, labelDir: 'ne' },
-  "Re'im":          { x: 0.162, y: 0.498, region: 'otef_aza', tier: 2, revealLevel: 1, labelDir: 'e' },
+  'Kfar Aza':       { x: 0.191, y: 0.477, region: 'otef_aza', tier: 2, revealLevel: 1, labelDir: 'n' },
+  "Re'im":          { x: 0.162, y: 0.498, region: 'otef_aza', tier: 2, revealLevel: 1, labelDir: 's' },
   'Netivot':        { x: 0.211, y: 0.490, region: 'otef_aza', tier: 2, revealLevel: 1, labelDir: 'e' },
 
   // === L2: Galil + Golan Heights ===
@@ -57,7 +57,7 @@ export const CITIES = {
 
 export const LEVEL_VIEWPORTS = [
   null, // index 0 unused (levels are 1-indexed)
-  { centerX: 0.18, centerY: 0.48, scale: 2.5 },   // L1: tight on Otef Aza + Gaza (shifted west)
+  { centerX: 0.27, centerY: 0.48, scale: 2.5 },   // L1: tight on Otef Aza, cities near Gaza arc on left
   { centerX: 0.48, centerY: 0.15, scale: 1.8 },   // L2: Galil/Golan + battery (slightly wider)
   { centerX: 0.35, centerY: 0.30, scale: 1.1 },   // L3: zoom out — center + both fronts
   { centerX: 0.35, centerY: 0.38, scale: 0.95 },  // L4: includes Negev
@@ -72,7 +72,7 @@ export const LEVEL_VIEWPORTS = [
 
 export const LEVEL_BATTERIES = [
   null,
-  { x: 0.21, y: 0.46, label: 'Iron Dome' },    // L1: near Sderot (Otef Aza front)
+  { x: 0.27, y: 0.46, label: 'Iron Dome' },    // L1: east of Otef Aza cluster, near radar center
   { x: 0.38, y: 0.20, label: 'Iron Dome' },    // L2: near Haifa (northern front)
   { x: 0.30, y: 0.38, label: 'Defense HQ' },   // L3: central Israel (David's Sling)
   { x: 0.30, y: 0.38, label: 'Defense HQ' },   // L4: central (Arrow 2)
@@ -89,12 +89,12 @@ export const REGIONS = [
   {
     name: 'Otef Aza',
     revealLevel: 1,
-    color: 'rgba(0, 255, 136, 0.20)',
+    color: 'rgba(0, 255, 136, 0.06)',
     polygon: [
       [0.15, 0.44], [0.22, 0.44], [0.23, 0.47],
       [0.23, 0.51], [0.15, 0.51], [0.14, 0.47],
     ],
-    labelPos: { x: 0.19, y: 0.53 },
+    labelPos: { x: 0.195, y: 0.52 },
   },
   {
     name: 'Galil',
@@ -104,7 +104,7 @@ export const REGIONS = [
       [0.35, 0.11], [0.52, 0.08], [0.55, 0.12],
       [0.55, 0.21], [0.36, 0.23], [0.33, 0.18],
     ],
-    labelPos: { x: 0.44, y: 0.24 },
+    labelPos: { x: 0.45, y: 0.22 },
   },
   {
     name: 'Golan Heights',
@@ -114,7 +114,7 @@ export const REGIONS = [
       [0.56, 0.06], [0.65, 0.07], [0.65, 0.19],
       [0.57, 0.22], [0.55, 0.18], [0.55, 0.10],
     ],
-    labelPos: { x: 0.61, y: 0.22 },
+    labelPos: { x: 0.62, y: 0.14 },
   },
   {
     name: 'Gush Dan',
@@ -174,7 +174,7 @@ export const KINNERET = {
 // Shown only in levels where Gaza threats are active (not L2).
 
 export const GAZA_STRIP = {
-  activeLevels: [1, 3, 4, 5, 6, 7],
+  activeLevels: [3, 4, 5, 6, 7],
   polygon: [
     [0.178, 0.453],  // NE corner (Beit Hanoun area)
     [0.155, 0.453],  // NW corner (coast)
@@ -193,8 +193,8 @@ export const GAZA_STRIP = {
 
 export const THREAT_ORIGINS = [
   { name: 'Gaza',    angle: 270, arcSpan: 20, activeLevels: [1, 3, 4, 5, 6, 7] },    // W (verified: ~270°)
-  { name: 'Lebanon', angle: 16,  arcSpan: 20, activeLevels: [2, 3, 4, 5, 6, 7] },    // NNE (verified: ~16°)
-  { name: 'Syria',   angle: 37,  arcSpan: 25, activeLevels: [2, 3, 4, 5, 6, 7] },    // NNE (verified: ~37°)
+  { name: 'Lebanon', angle: 0,   arcSpan: 35, activeLevels: [2, 3, 4, 5, 6, 7] },    // N — spans northern border (~342.5° to 17.5°)
+  { name: 'Syria',   angle: 52,  arcSpan: 50, activeLevels: [2, 3, 4, 5, 6, 7] },    // NE-E — spans Golan/eastern border (~27° to 77°)
   { name: 'Iran',    angle: 76,  arcSpan: 25, activeLevels: [3, 4, 5, 6, 7] },        // ENE (verified: ~76°)
   { name: 'Yemen',   angle: 150, arcSpan: 25, activeLevels: [3, 4, 5, 6, 7] },        // SSE (verified: ~150°)
 ];
@@ -225,14 +225,16 @@ export const ISRAEL_OUTLINE = [
   [0.43, 0.82],   // Southern Arava
   [0.37, 0.92],   // Eilat tip (east)
   [0.33, 0.92],   // Eilat tip (west)
-  // -- Western Negev, north to coast --
+  // -- Western Negev (Egypt-Israel border heading NW toward Gaza) --
   [0.28, 0.68],   // Western Negev
   [0.23, 0.55],   // Northern Negev
-  [0.22, 0.52],   // South of Gaza
-  // -- Gaza indentation (Israel border goes EAST around Gaza) --
-  [0.19, 0.52],   // SE of Gaza (Kerem Shalom area)
-  [0.18, 0.45],   // NE of Gaza border
-  // -- Western coast north --
+  [0.16, 0.54],   // Egypt border approaching Gaza
+  // -- Gaza cutout: Israel's border traces AROUND Gaza --
+  [0.10, 0.535],  // Kerem Shalom — SE corner of Gaza
+  [0.155, 0.50],  // Eastern fence mid-point (heading north)
+  [0.198, 0.465], // NE corner of Gaza fence (near Erez)
+  [0.165, 0.462], // Northern fence meets coast (NW corner)
+  // -- Mediterranean coast north of Gaza --
   [0.20, 0.43],   // Ashkelon coast
   [0.22, 0.40],   // Ashdod coast
   [0.25, 0.35],   // Tel Aviv coast

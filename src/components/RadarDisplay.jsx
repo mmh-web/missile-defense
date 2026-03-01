@@ -43,16 +43,16 @@ function easeProgress(linearProgress, type) {
   return linearProgress;
 }
 
-// Entry direction vectors for threat origins (GPS-verified bearings)
+// Entry direction vectors for threat origins
 // x = 0.48 * sin(bearing), y = -0.48 * cos(bearing) where 0°=north clockwise
 const ENTRY_DIRS = {
-  gaza:      { x: -0.48, y: 0.0 },    // due west (270°) — Gaza is west of Israel
-  north:     { x: 0.13, y: -0.46 },    // NNE ~16° — Lebanon
-  northeast: { x: 0.29, y: -0.38 },    // NNE ~37° — Syria
+  gaza:      { x: -0.48, y: 0.0 },     // due west (270°) — Gaza
+  north:     { x: 0.0, y: -0.48 },     // due north (0°) — Lebanon
+  northeast: { x: 0.38, y: -0.30 },    // NE ~52° — Syria
   east:      { x: 0.46, y: -0.12 },    // ENE ~76° — Iran
   southeast: { x: 0.24, y: 0.42 },     // SSE ~150° — Yemen
-  south:     { x: 0.0, y: 0.48 },      // due south
-  southwest: { x: -0.34, y: 0.34 },    // southwest
+  south:     { x: 0.0, y: 0.48 },
+  southwest: { x: -0.34, y: 0.34 },
 };
 
 function getBlipPosition(threat) {
@@ -161,44 +161,50 @@ function TrailEffect({ trail, viewport }) {
 // ============================================
 // Threat Origin Arc Renderer
 // ============================================
-function ThreatOriginArc({ origin, viewport }) {
-  // Draw an arc segment at the radar perimeter
-  const radius = 47; // just inside the radar border
+function ThreatOriginArc({ origin }) {
+  // Draw a gradient wedge zone at the radar perimeter
   const cx = 50, cy = 50;
+  const outerR = 49;
+  const innerR = 36;  // gradient zone starts here
   const startAngle = (origin.angle - origin.arcSpan / 2) * Math.PI / 180;
   const endAngle = (origin.angle + origin.arcSpan / 2) * Math.PI / 180;
   const midAngle = origin.angle * Math.PI / 180;
 
-  // SVG arc coordinates (in SVG space, not map space — these sit on the radar ring)
-  const x1 = cx + radius * Math.sin(startAngle);
-  const y1 = cy - radius * Math.cos(startAngle);
-  const x2 = cx + radius * Math.sin(endAngle);
-  const y2 = cy - radius * Math.cos(endAngle);
+  // Outer arc
+  const x1o = cx + outerR * Math.sin(startAngle);
+  const y1o = cy - outerR * Math.cos(startAngle);
+  const x2o = cx + outerR * Math.sin(endAngle);
+  const y2o = cy - outerR * Math.cos(endAngle);
 
-  // Label position — slightly inside the arc
-  const labelR = radius - 3;
+  // Inner arc
+  const x1i = cx + innerR * Math.sin(startAngle);
+  const y1i = cy - innerR * Math.cos(startAngle);
+  const x2i = cx + innerR * Math.sin(endAngle);
+  const y2i = cy - innerR * Math.cos(endAngle);
+
+  const largeArc = origin.arcSpan > 180 ? 1 : 0;
+
+  // Annular sector (donut wedge) for the gradient zone
+  const zonePath = `M ${x1o} ${y1o} A ${outerR} ${outerR} 0 ${largeArc} 1 ${x2o} ${y2o} L ${x2i} ${y2i} A ${innerR} ${innerR} 0 ${largeArc} 0 ${x1i} ${y1i} Z`;
+
+  // Label position
+  const labelR = outerR - 4;
   const lx = cx + labelR * Math.sin(midAngle);
   const ly = cy - labelR * Math.cos(midAngle);
 
-  const largeArcFlag = origin.arcSpan > 180 ? 1 : 0;
-
   return (
     <g>
-      {/* Arc segment */}
+      {/* Gradient zone — subtle fill indicating hostile territory */}
+      <path d={zonePath} fill="rgba(255, 100, 50, 0.06)" stroke="none" />
+      {/* Perimeter arc */}
       <path
-        d={`M ${x1} ${y1} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`}
-        fill="none"
-        stroke="rgba(255, 160, 60, 0.5)"
-        strokeWidth="2"
-        strokeLinecap="round"
+        d={`M ${x1o} ${y1o} A ${outerR} ${outerR} 0 ${largeArc} 1 ${x2o} ${y2o}`}
+        fill="none" stroke="rgba(255, 160, 60, 0.4)" strokeWidth="1.5" strokeLinecap="round"
       />
-      {/* Glow behind the arc */}
+      {/* Glow behind arc */}
       <path
-        d={`M ${x1} ${y1} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`}
-        fill="none"
-        stroke="rgba(255, 80, 40, 0.15)"
-        strokeWidth="5"
-        strokeLinecap="round"
+        d={`M ${x1o} ${y1o} A ${outerR} ${outerR} 0 ${largeArc} 1 ${x2o} ${y2o}`}
+        fill="none" stroke="rgba(255, 80, 40, 0.1)" strokeWidth="4" strokeLinecap="round"
       />
       {/* Label */}
       <text
@@ -294,32 +300,21 @@ export default function RadarDisplay({
               strokeWidth="0.4"
             />
 
-            {/* Region outlines — filled polygons with dashed borders */}
+            {/* Region labels — subtle map-style annotations, no polygons */}
             {visibleRegions.map((region) => {
-              const points = region.polygon.map(([x, y]) => {
-                const p = mapToSVG(x, y, viewport);
-                return `${p.x},${p.y}`;
-              }).join(' ');
               const labelP = mapToSVG(region.labelPos.x, region.labelPos.y, viewport);
               return (
-                <g key={region.name}>
-                  <polygon
-                    points={points}
-                    fill={region.color}
-                    stroke={region.color.replace(/[\d.]+\)$/, '0.6)')}
-                    strokeWidth="0.5"
-                    strokeDasharray="2 2"
-                  />
-                  <text
-                    x={labelP.x} y={labelP.y}
-                    fill={region.color.replace(/[\d.]+\)$/, '0.7)')}
-                    fontSize="2.2" fontFamily="monospace"
-                    textAnchor="middle"
-                    fontWeight="bold"
-                  >
-                    {region.name}
-                  </text>
-                </g>
+                <text
+                  key={region.name}
+                  x={labelP.x} y={labelP.y}
+                  fill={region.color.replace(/[\d.]+\)$/, '0.35)')}
+                  fontSize="2.8" fontFamily="monospace"
+                  textAnchor="middle"
+                  fontWeight="bold"
+                  letterSpacing="1.5"
+                >
+                  {region.name}
+                </text>
               );
             })}
 

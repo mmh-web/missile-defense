@@ -176,8 +176,8 @@ export default function useGameEngine() {
   // Compute where a threat blip currently IS on the radar
   // Entry direction vectors (GPS-verified bearings, must match RadarDisplay.jsx)
   const ENTRY_DIRS = {
-    gaza: { x: -0.48, y: 0.0 }, north: { x: 0.13, y: -0.46 },
-    northeast: { x: 0.29, y: -0.38 }, east: { x: 0.46, y: -0.12 },
+    gaza: { x: -0.48, y: 0.0 }, north: { x: 0.0, y: -0.48 },
+    northeast: { x: 0.38, y: -0.30 }, east: { x: 0.46, y: -0.12 },
     southeast: { x: 0.24, y: 0.42 }, south: { x: 0.0, y: 0.48 },
     southwest: { x: -0.34, y: 0.34 },
   };
