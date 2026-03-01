@@ -199,49 +199,45 @@ export const THREAT_ORIGINS = [
   { name: 'Yemen',   angle: 150, arcSpan: 25, activeLevels: [3, 4, 5, 6, 7] },        // SSE (verified: ~150°)
 ];
 
-// --- Israel outline vertices ---
+// --- Israel outline vertices (GPS-verified) ---
+// All points computed via x = 0.28 + (lon-34.78)*0.3636, y = 0.90 - (lat-29.56)*0.22
 // Includes West Bank + Golan Heights, EXCLUDES Gaza.
 // Recognizable shape: Golan finger NE, eastern Jordan River/Dead Sea border,
 // Negev triangle to Eilat, Gaza indentation on SW coast.
 
 export const ISRAEL_OUTLINE = [
   // -- Northern border, west to east --
-  [0.37, 0.11],   // Rosh Hanikra (NW coast)
-  [0.42, 0.09],   // Lebanese border
-  [0.52, 0.07],   // Metula area
+  [0.396, 0.123],  // Rosh Hanikra (NW coast, Lebanon border) — 33.09°N, 35.10°E
+  [0.571, 0.082],  // Metula (northern tip) — 33.28°N, 35.58°E
   // -- Golan Heights finger --
-  [0.56, 0.06],   // Northern Golan
-  [0.65, 0.07],   // NE Golan
-  [0.65, 0.18],   // Eastern Golan
-  [0.57, 0.22],   // Southern Golan (Kinneret area)
+  [0.669, 0.088],  // Northern Golan border — 33.25°N, 35.85°E
+  [0.705, 0.110],  // NE Golan (Quneitra area) — 33.15°N, 35.95°E
+  [0.687, 0.194],  // Eastern Golan (ceasefire line) — 32.77°N, 35.90°E
+  [0.589, 0.209],  // Southern Golan (Kinneret outflow) — 32.70°N, 35.63°E
   // -- Eastern border (Jordan River / West Bank) --
-  [0.56, 0.30],   // Beit She'an / Jordan Valley
-  [0.53, 0.40],   // West Bank eastern edge
-  [0.52, 0.48],   // Dead Sea north
-  [0.50, 0.55],   // Dead Sea south
+  [0.549, 0.253],  // Beit She'an / Jordan Valley — 32.50°N, 35.52°E
+  [0.560, 0.341],  // West Bank eastern edge — 32.10°N, 35.55°E
+  [0.542, 0.407],  // Dead Sea north — 31.80°N, 35.50°E
+  [0.505, 0.539],  // Dead Sea south — 31.20°N, 35.40°E
   // -- Negev / Arava to Eilat --
-  [0.48, 0.62],   // Northern Negev east
-  [0.46, 0.72],   // Arava
-  [0.43, 0.82],   // Southern Arava
-  [0.37, 0.92],   // Eilat tip (east)
-  [0.33, 0.92],   // Eilat tip (west)
-  // -- Western Negev (Egypt-Israel border heading NW toward Gaza) --
-  [0.28, 0.68],   // Western Negev
-  [0.23, 0.55],   // Northern Negev
-  [0.16, 0.54],   // Egypt border approaching Gaza
+  [0.415, 0.671],  // Southern Negev / Arava — 30.60°N, 35.15°E
+  [0.353, 0.900],  // Eilat east — 29.56°N, 34.98°E
+  [0.320, 0.915],  // Eilat west (Taba border) — 29.49°N, 34.89°E
+  // -- Egypt-Israel border heading NW toward Gaza --
+  [0.135, 0.610],  // Nitzana area — 30.88°N, 34.38°E
+  [0.095, 0.535],  // Kerem Shalom (SE corner of Gaza) — 31.22°N, 34.27°E
   // -- Gaza cutout: Israel's border traces AROUND Gaza --
-  [0.10, 0.535],  // Kerem Shalom — SE corner of Gaza
-  [0.155, 0.50],  // Eastern fence mid-point (heading north)
-  [0.198, 0.465], // NE corner of Gaza fence (near Erez)
-  [0.165, 0.462], // Northern fence meets coast (NW corner)
+  [0.124, 0.502],  // Eastern fence mid-point (Kissufim) — 31.37°N, 34.35°E
+  [0.200, 0.462],  // NE corner of Gaza fence (Erez crossing) — 31.55°N, 34.56°E
+  [0.167, 0.462],  // NW corner — Gaza coast (Beit Lahia) — 31.55°N, 34.47°E
   // -- Mediterranean coast north of Gaza --
-  [0.20, 0.43],   // Ashkelon coast
-  [0.22, 0.40],   // Ashdod coast
-  [0.25, 0.35],   // Tel Aviv coast
-  [0.28, 0.30],   // Netanya coast
-  [0.32, 0.22],   // Hadera
-  [0.35, 0.17],   // Haifa coast
-  [0.37, 0.11],   // Close loop
+  [0.189, 0.434],  // Ashkelon coast — 31.68°N, 34.53°E
+  [0.225, 0.407],  // Ashdod coast — 31.80°N, 34.63°E
+  [0.269, 0.350],  // Tel Aviv coast — 32.06°N, 34.75°E
+  [0.309, 0.291],  // Netanya coast — 32.33°N, 34.86°E
+  [0.324, 0.264],  // Hadera coast — 32.45°N, 34.90°E
+  [0.353, 0.187],  // Haifa coast — 32.80°N, 34.98°E
+  [0.396, 0.123],  // Close loop at Rosh Hanikra
 ];
 
 // --- Helper Functions ---

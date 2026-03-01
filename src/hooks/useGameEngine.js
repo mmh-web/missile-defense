@@ -68,6 +68,7 @@ export default function useGameEngine() {
   const feedbackTimerRef = useRef(null);
   const tzevaAdomTimerRef = useRef(null);
   const allSpawnedRef = useRef(false);
+  const interceptedIdsRef = useRef(new Set());  // Synchronous guard against race conditions
 
   // Campaign stats — accumulated across all levels
   const campaignStatsRef = useRef({
@@ -254,6 +255,11 @@ export default function useGameEngine() {
 
   // Handle threat timeout (countdown reached 0) — covers both unactioned timeouts and held threats
   const handleThreatTimeout = useCallback((threat) => {
+    // Guard: if threat was intercepted between timeout scheduling and execution, skip entirely.
+    // This prevents the race condition where the countdown interval schedules a timeout
+    // in the same frame that the player successfully intercepts.
+    if (interceptedIdsRef.current.has(threat.id)) return;
+
     setActiveThreats((prev) => prev.filter((t) => t.id !== threat.id));
 
     if (selectedThreatIdRef.current === threat.id) {
@@ -316,6 +322,11 @@ export default function useGameEngine() {
     const isCorrect = action === threat.correct_action;
 
     if (isCorrect) {
+      // Synchronously mark as intercepted BEFORE any async state updates
+      // This guards against the race condition where the countdown interval
+      // reaches timeLeft=0 and schedules handleThreatTimeout in the same frame
+      interceptedIdsRef.current.add(threat.id);
+
       // Mark threat as intercepted (stays visible while trail animates) instead of removing immediately
       setActiveThreats((prev) => prev.map((t) =>
         t.id === threat.id ? { ...t, intercepted: true, frozenTimeLeft: t.timeLeft } : t
@@ -493,6 +504,7 @@ export default function useGameEngine() {
 
         const timedOut = updated.filter(
           (t) => t.timeLeft <= 0 && !t.intercepted && !processedTimeouts.has(t.id)
+            && !interceptedIdsRef.current.has(t.id)
         );
 
         if (timedOut.length > 0) {
@@ -655,6 +667,7 @@ export default function useGameEngine() {
     setScreenShake(false);
     setPaused(false);
     spawnedIdsRef.current = new Set();
+    interceptedIdsRef.current.clear();
     allSpawnedRef.current = false;
     lastTickRef.current = null;
     if (tzevaAdomTimerRef.current) clearTimeout(tzevaAdomTimerRef.current);
@@ -687,6 +700,7 @@ export default function useGameEngine() {
     setScreenShake(false);
     setPaused(false);
     spawnedIdsRef.current = new Set();
+    interceptedIdsRef.current.clear();
     allSpawnedRef.current = false;
     lastTickRef.current = null;
     if (tzevaAdomTimerRef.current) clearTimeout(tzevaAdomTimerRef.current);
@@ -760,6 +774,7 @@ export default function useGameEngine() {
     setScreenShake(false);
     setPaused(false);
     spawnedIdsRef.current = new Set();
+    interceptedIdsRef.current.clear();
     allSpawnedRef.current = false;
     lastTickRef.current = null;
     // All levels go through Briefing first
@@ -795,6 +810,7 @@ export default function useGameEngine() {
     setScreenShake(false);
     setPaused(false);
     spawnedIdsRef.current = new Set();
+    interceptedIdsRef.current.clear();
     allSpawnedRef.current = false;
     lastTickRef.current = null;
   }, [stopSiren, escapeRoomStartTime]);

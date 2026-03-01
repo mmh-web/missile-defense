@@ -2,7 +2,6 @@ import { useMemo } from 'react';
 import { IMPACT_POSITIONS, THREAT_COLORS } from '../config/threats.js';
 import {
   CITIES,
-  ISRAEL_OUTLINE,
   KINNERET,
   GAZA_STRIP,
   getVisibleCities,
@@ -248,15 +247,6 @@ export default function RadarDisplay({
     return targets;
   }, [activeThreats]);
 
-  // Transform Israel outline through viewport
-  const israelPath = useMemo(() => {
-    const points = ISRAEL_OUTLINE.map(([x, y]) => {
-      const p = mapToSVG(x, y, viewport);
-      return `${p.x},${p.y}`;
-    });
-    return `M ${points[0]} L ${points.slice(1).join(' L ')} Z`;
-  }, [viewport]);
-
   const rings = useMemo(() => [20, 40, 60, 80, 100], []);
 
   return (
@@ -291,14 +281,6 @@ export default function RadarDisplay({
 
           {/* === All map content clipped to radar circle === */}
           <g clipPath="url(#radar-clip)">
-
-            {/* Israel outline — viewport-transformed */}
-            <path
-              d={israelPath}
-              fill="rgba(0, 255, 136, 0.05)"
-              stroke="rgba(0, 255, 136, 0.3)"
-              strokeWidth="0.4"
-            />
 
             {/* Region labels — subtle map-style annotations, no polygons */}
             {visibleRegions.map((region) => {
