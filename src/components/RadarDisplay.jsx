@@ -3,13 +3,11 @@ import { IMPACT_POSITIONS, THREAT_COLORS } from '../config/threats.js';
 import {
   CITIES,
   KINNERET,
-  GAZA_STRIP,
   getVisibleCities,
   getViewportForLevel,
   getBatteryForLevel,
   getVisibleRegions,
   getVisibleThreatOrigins,
-  isGazaVisible,
   isKinneretVisible,
 } from '../config/mapLayers.js';
 
@@ -299,34 +297,6 @@ export default function RadarDisplay({
                 </text>
               );
             })}
-
-            {/* Gaza Strip zone — hostile territory on the map */}
-            {isGazaVisible(currentLevel) && (() => {
-              const gazaPoints = GAZA_STRIP.polygon.map(([x, y]) => {
-                const p = mapToSVG(x, y, viewport);
-                return `${p.x},${p.y}`;
-              }).join(' ');
-              const gazaLabel = mapToSVG(GAZA_STRIP.labelPos.x, GAZA_STRIP.labelPos.y, viewport);
-              return (
-                <g>
-                  <polygon
-                    points={gazaPoints}
-                    fill={GAZA_STRIP.color}
-                    stroke={GAZA_STRIP.borderColor}
-                    strokeWidth="0.5"
-                  />
-                  <text
-                    x={gazaLabel.x} y={gazaLabel.y}
-                    fill="rgba(255, 120, 60, 0.8)"
-                    fontSize="2" fontFamily="monospace"
-                    textAnchor="middle"
-                    fontWeight="bold"
-                  >
-                    Gaza
-                  </text>
-                </g>
-              );
-            })()}
 
             {/* Kinneret (Sea of Galilee) */}
             {showKinneret && (() => {
