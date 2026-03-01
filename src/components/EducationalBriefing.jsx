@@ -59,12 +59,10 @@ const BRIEFING_CONTENT = {
     },
     defense: null,
     exerciseConfig: {
-      threatType: 'rocket',
-      systemKey: 'iron_dome',
-      systemName: 'IRON DOME',
-      shortcut: '1',
-      threatLabel: 'ROCKET',
-      threatColor: '#f97316',
+      exerciseThreats: [
+        { systemName: 'IRON DOME', shortcut: '1', threatLabel: 'ROCKET', threatColor: '#f97316', startX: 30, startY: 55 },
+        { systemName: 'IRON DOME', shortcut: '1', threatLabel: 'DRONE', threatColor: '#eab308', startX: 260, startY: 15 },
+      ],
     },
   },
 
@@ -96,11 +94,10 @@ const BRIEFING_CONTENT = {
       animation: 'davids_sling',
     },
     exerciseConfig: {
-      threatType: 'cruise',
-      systemKey: 'davids_sling',
-      shortcut: '2',
-      threatLabel: 'CRUISE',
-      threatColor: '#3b82f6',
+      exerciseThreats: [
+        { systemName: "DAVID'S SLING", shortcut: '2', threatLabel: 'CRUISE', threatColor: '#3b82f6', startX: 30, startY: 55 },
+        { systemName: 'IRON DOME', shortcut: '1', threatLabel: 'ROCKET', threatColor: '#f97316', startX: 260, startY: 15 },
+      ],
     },
   },
 
@@ -133,11 +130,10 @@ const BRIEFING_CONTENT = {
       animation: 'arrow_2',
     },
     exerciseConfig: {
-      threatType: 'ballistic',
-      systemName: 'ARROW 2',
-      shortcut: '3',
-      threatLabel: 'BALLISTIC',
-      threatColor: '#ef4444',
+      exerciseThreats: [
+        { systemName: 'ARROW 2', shortcut: '3', threatLabel: 'BALLISTIC', threatColor: '#ef4444', startX: 30, startY: 55 },
+        { systemName: "DAVID'S SLING", shortcut: '2', threatLabel: 'CRUISE', threatColor: '#3b82f6', startX: 260, startY: 15 },
+      ],
     },
   },
 
@@ -169,12 +165,10 @@ const BRIEFING_CONTENT = {
       animation: 'arrow_3',
     },
     exerciseConfig: {
-      threatType: 'hypersonic',
-      systemKey: 'arrow_3',
-      systemName: 'ARROW 3',
-      shortcut: '4',
-      threatLabel: 'HYPERSONIC',
-      threatColor: '#a855f7',
+      exerciseThreats: [
+        { systemName: 'ARROW 3', shortcut: '4', threatLabel: 'HYPERSONIC', threatColor: '#a855f7', startX: 30, startY: 55 },
+        { systemName: 'ARROW 2', shortcut: '3', threatLabel: 'BALLISTIC', threatColor: '#ef4444', startX: 260, startY: 15 },
+      ],
     },
   },
 
@@ -1106,33 +1100,55 @@ function IntelCheckPhase({ level, onComplete }) {
 // Mimics actual game controls to orient the player
 // ============================================================
 function FieldExercisePhase({ config, onComplete }) {
-  // State machine: waiting → selected → fired → intercepted → complete
+  // Build threats array — backwards compat with single-threat configs
+  const threats = config.exerciseThreats || [{
+    systemName: config.systemName || 'IRON DOME',
+    shortcut: config.shortcut || '1',
+    threatLabel: config.threatLabel || 'DRONE',
+    threatColor: config.threatColor || '#eab308',
+    startX: 30,
+    startY: 55,
+  }];
+  const isMultiThreat = threats.length > 1;
+
+  // State machine: waiting → selected → fired → intercepted → (next or complete)
+  const [threatIndex, setThreatIndex] = useState(0);
   const [step, setStep] = useState('waiting');
   const [threatProgress, setThreatProgress] = useState(0);
   const [trailProgress, setTrailProgress] = useState(0);
   const [showStepFlash, setShowStepFlash] = useState(false);
   const animRef = useRef(null);
   const stepRef = useRef('waiting');
+  const threatIndexRef = useRef(0);
 
+  // Current threat config
+  const current = threats[threatIndex];
   const {
     systemName = 'IRON DOME',
     shortcut = '1',
     threatLabel = 'DRONE',
     threatColor = '#eab308',
-  } = config;
+    startX = 30,
+    startY = 55,
+  } = current;
 
-  // Keep ref in sync
+  // City target for trajectory
+  const cityX = 250;
+  const cityY = 55;
+
+  // Keep refs in sync
   useEffect(() => { stepRef.current = step; }, [step]);
+  useEffect(() => { threatIndexRef.current = threatIndex; }, [threatIndex]);
 
-  // Threat flies from left toward city — stops when fired
+  // Threat flies toward city — stops when fired
   const threatStopped = step === 'fired' || step === 'intercepted' || step === 'complete';
   useEffect(() => {
     if (threatStopped) return;
-    const start = performance.now();
+    const startTime = performance.now();
     const duration = 25000;
 
     const animate = () => {
-      const elapsed = performance.now() - start;
+      const elapsed = performance.now() - startTime;
       const p = Math.min(1, elapsed / duration);
       setThreatProgress(p);
 
@@ -1144,25 +1160,35 @@ function FieldExercisePhase({ config, onComplete }) {
     };
     animRef.current = requestAnimationFrame(animate);
     return () => { if (animRef.current) cancelAnimationFrame(animRef.current); };
-  }, [threatStopped]);
+  }, [threatStopped, threatIndex]);
 
   // Trail animation after firing
   const isFired = step === 'fired';
   useEffect(() => {
     if (!isFired) return;
-    const start = performance.now();
+    const startTime = performance.now();
     const duration = 600;
 
     const animate = () => {
-      const elapsed = performance.now() - start;
+      const elapsed = performance.now() - startTime;
       const p = Math.min(1, elapsed / duration);
       setTrailProgress(p);
 
       if (p >= 1) {
         setStep('intercepted');
         setTimeout(() => {
-          setStep('complete');
-          setTimeout(() => onComplete(), 2500);
+          const idx = threatIndexRef.current;
+          if (idx < threats.length - 1) {
+            // More threats — advance to next
+            setThreatIndex(idx + 1);
+            setStep('waiting');
+            setThreatProgress(0);
+            setTrailProgress(0);
+          } else {
+            // All done
+            setStep('complete');
+            setTimeout(() => onComplete(), 2500);
+          }
         }, 800);
         return;
       }
@@ -1174,14 +1200,15 @@ function FieldExercisePhase({ config, onComplete }) {
   // Listen for keyboard shortcut to fire (only when threat is selected)
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === shortcut && stepRef.current === 'selected') {
+      const cur = threats[threatIndexRef.current];
+      if (cur && e.key === cur.shortcut && stepRef.current === 'selected') {
         e.preventDefault();
         setStep('fired');
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [shortcut]);
+  }, []);
 
   // Click on threat to select it
   const handleSelectThreat = useCallback(() => {
@@ -1197,9 +1224,9 @@ function FieldExercisePhase({ config, onComplete }) {
     setStep('fired');
   }, [step]);
 
-  // Threat position
-  const threatX = 30 + threatProgress * 200;
-  const threatY = 55;
+  // Threat position — interpolate from start toward city
+  const threatX = startX + threatProgress * (cityX - startX);
+  const threatY = startY + threatProgress * (cityY - startY);
 
   // Battery position
   const batteryX = 130;
@@ -1215,6 +1242,8 @@ function FieldExercisePhase({ config, onComplete }) {
   const interceptorColor = threatColor === '#eab308' ? '#22c55e' : threatColor;
   const batteryColor = interceptorColor;
 
+  const threatId = `T${threatIndex + 1}`;
+
   return (
     <div>
       <div className="text-center mb-3">
@@ -1222,6 +1251,15 @@ function FieldExercisePhase({ config, onComplete }) {
         <h2 className="text-xl font-bold font-mono text-green-400 tracking-wider">WEAPONS TRAINING</h2>
         <div className="text-xs text-gray-600 font-mono mt-1">Practice the two-step intercept procedure</div>
       </div>
+
+      {/* Threat counter for multi-threat exercises */}
+      {isMultiThreat && (
+        <div className="text-center mb-2">
+          <span className="text-xs font-mono text-gray-500 tracking-widest">
+            THREAT {threatIndex + 1} OF {threats.length}
+          </span>
+        </div>
+      )}
 
       {/* Step indicator */}
       <div className="flex gap-2 mb-4 max-w-sm mx-auto">
@@ -1284,7 +1322,10 @@ function FieldExercisePhase({ config, onComplete }) {
               ✓ TARGET DESTROYED
             </div>
             <div className="text-xs text-gray-500 mt-1 tracking-widest">
-              {systemName} INTERCEPTION SUCCESSFUL
+              {threatIndex < threats.length - 1
+                ? 'NEXT THREAT INCOMING...'
+                : `${systemName} INTERCEPTION SUCCESSFUL`
+              }
             </div>
           </>
         )}
@@ -1346,14 +1387,14 @@ function FieldExercisePhase({ config, onComplete }) {
 
               {/* Threat label with threat ID (like real game) */}
               <text x={threatX} y={threatY - 14} fill={threatColor} fontSize="7" fontFamily="monospace" opacity="0.8" textAnchor="middle" fontWeight="bold">
-                T1
+                {threatId}
               </text>
               <text x={threatX} y={threatY - 22} fill={threatColor} fontSize="5" fontFamily="monospace" opacity="0.5" textAnchor="middle">
                 {threatLabel}
               </text>
 
               {/* Trajectory line */}
-              <line x1={threatX} y1={threatY} x2="260" y2="50" stroke={threatColor} strokeWidth="0.3" opacity="0.3" strokeDasharray="3,3" />
+              <line x1={threatX} y1={threatY} x2={cityX} y2={cityY} stroke={threatColor} strokeWidth="0.3" opacity="0.3" strokeDasharray="3,3" />
 
               {/* Click prompt arrow (only in waiting step) */}
               {step === 'waiting' && threatProgress > 0.05 && (
@@ -1366,17 +1407,46 @@ function FieldExercisePhase({ config, onComplete }) {
             </g>
           )}
 
-          {/* Interceptor trail */}
+          {/* Interceptor trail — rocket projectile with warhead */}
           {step === 'fired' && (
-            <line
-              x1={batteryX}
-              y1={batteryY - 15}
-              x2={trailEndX}
-              y2={trailEndY}
-              stroke={batteryColor}
-              strokeWidth="2"
-              opacity="0.8"
-            />
+            <g>
+              {/* Fading trail line from battery to warhead */}
+              <line
+                x1={batteryX}
+                y1={batteryY - 15}
+                x2={trailEndX}
+                y2={trailEndY}
+                stroke={batteryColor}
+                strokeWidth="1"
+                opacity="0.4"
+              />
+              {/* Bright warhead dot — the projectile */}
+              <circle
+                cx={trailEndX}
+                cy={trailEndY}
+                r="3"
+                fill="white"
+                opacity="0.95"
+              />
+              {/* Warhead glow */}
+              <circle
+                cx={trailEndX}
+                cy={trailEndY}
+                r="5"
+                fill={batteryColor}
+                opacity="0.4"
+              />
+              {/* Launch flash at battery (only at start) */}
+              {trailProgress < 0.3 && (
+                <circle
+                  cx={batteryX}
+                  cy={batteryY - 15}
+                  r={4 + (1 - trailProgress / 0.3) * 6}
+                  fill={batteryColor}
+                  opacity={(1 - trailProgress / 0.3) * 0.6}
+                />
+              )}
+            </g>
           )}
 
           {/* Intercept flash */}
@@ -1450,7 +1520,7 @@ function FieldExercisePhase({ config, onComplete }) {
         CLICK TARGET &#x2022; PRESS {shortcut} TO FIRE
       </div>
 
-      <CountdownBar duration={35} onComplete={onComplete} paused={step === 'complete'} />
+      <CountdownBar duration={isMultiThreat ? 50 : 35} onComplete={onComplete} paused={step === 'complete'} />
     </div>
   );
 }

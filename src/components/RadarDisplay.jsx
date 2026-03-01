@@ -31,7 +31,8 @@ function easeProgress(linearProgress, type) {
 // Entry direction vectors for threat origins
 const ENTRY_DIRS = {
   south:     { x: 0.0, y: 0.48 },    // Yemen — from bottom
-  southwest: { x: -0.34, y: 0.34 },  // Gaza — from bottom-left
+  southwest: { x: -0.34, y: 0.34 },  // Sinai — from bottom-left
+  gaza:      { x: -0.15, y: 0.15 },  // Gaza — very close to coast (5km from Ashkelon)
   southeast: { x: 0.34, y: 0.34 },   // Yemen/Iran — from bottom-right
   east:      { x: 0.48, y: 0.0 },    // Iran/Iraq — from right
   north:     { x: 0.0, y: -0.48 },   // Hezbollah/Lebanon — from top

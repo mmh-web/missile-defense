@@ -172,8 +172,9 @@ export default function useGameEngine() {
   // Compute where a threat blip currently IS on the radar
   const ENTRY_DIRS = {
     south: { x: 0.0, y: 0.48 }, southwest: { x: -0.34, y: 0.34 },
-    southeast: { x: 0.34, y: 0.34 }, east: { x: 0.48, y: 0.0 },
-    north: { x: 0.0, y: -0.48 }, northeast: { x: 0.34, y: -0.34 },
+    gaza: { x: -0.15, y: 0.15 }, southeast: { x: 0.34, y: 0.34 },
+    east: { x: 0.48, y: 0.0 }, north: { x: 0.0, y: -0.48 },
+    northeast: { x: 0.34, y: -0.34 },
   };
   const getBlipPosition = useCallback((threat) => {
     const target = IMPACT_POSITIONS[threat.impact_zone] || { x: 0.5, y: 0.5 };
