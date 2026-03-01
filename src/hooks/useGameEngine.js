@@ -7,6 +7,7 @@ import {
   COMMAND_CENTER,
   INTERCEPTOR_COLORS,
 } from '../config/threats.js';
+import { getBatteryForLevel } from '../config/mapLayers.js';
 import {
   playInterceptSound,
   playCityHitSound,
@@ -125,11 +126,12 @@ export default function useGameEngine() {
 
   // Add impact flash effect with pre-computed particles
   // overridePos: optional { x, y } in 0-1 coords to place the flash at a custom position (e.g. blip location for intercepts)
+  // Stores mapX/mapY in 0-1 normalized space (RadarDisplay transforms to SVG via mapToSVG)
   const addImpactFlash = useCallback((zone, type, threatType = 'ballistic', overridePos = null) => {
     const flashId = Date.now() + Math.random();
     const pos = overridePos || IMPACT_POSITIONS[zone] || { x: 0.5, y: 0.5 };
-    const cx = pos.x * 100;
-    const cy = pos.y * 100;
+    const cx = pos.x;
+    const cy = pos.y;
 
     let particles = [];
     if (type === 'intercept') {
@@ -172,11 +174,12 @@ export default function useGameEngine() {
   }, []);
 
   // Compute where a threat blip currently IS on the radar
+  // Entry direction vectors (GPS-verified bearings, must match RadarDisplay.jsx)
   const ENTRY_DIRS = {
-    south: { x: 0.0, y: 0.48 }, southwest: { x: -0.34, y: 0.34 },
-    gaza: { x: -0.15, y: 0.15 }, southeast: { x: 0.34, y: 0.34 },
-    east: { x: 0.48, y: 0.0 }, north: { x: 0.0, y: -0.48 },
-    northeast: { x: 0.34, y: -0.34 },
+    gaza: { x: -0.48, y: 0.0 }, north: { x: 0.13, y: -0.46 },
+    northeast: { x: 0.29, y: -0.38 }, east: { x: 0.46, y: -0.12 },
+    southeast: { x: 0.24, y: 0.42 }, south: { x: 0.0, y: 0.48 },
+    southwest: { x: -0.34, y: 0.34 },
   };
   const getBlipPosition = useCallback((threat) => {
     const target = IMPACT_POSITIONS[threat.impact_zone] || { x: 0.5, y: 0.5 };
@@ -193,7 +196,7 @@ export default function useGameEngine() {
 
   // Launch interceptor trail with delayed impact flash
   const addTrail = useCallback((action, threat, impactType) => {
-    const battery = COMMAND_CENTER;
+    const battery = getBatteryForLevel(currentLevelRef.current) || COMMAND_CENTER;
     if (!battery) return;
 
     const { x: blipX, y: blipY } = getBlipPosition(threat);
@@ -206,10 +209,10 @@ export default function useGameEngine() {
 
     setActiveTrails((prev) => [...prev, {
       id: trailId,
-      startX: battery.x * 100,
-      startY: battery.y * 100,
-      endX: blipX * 100,
-      endY: blipY * 100,
+      startX: battery.x,
+      startY: battery.y,
+      endX: blipX,
+      endY: blipY,
       color: INTERCEPTOR_COLORS[action],
       duration,
     }]);

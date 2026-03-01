@@ -407,6 +407,7 @@ export default function App() {
             sessionTime={sessionTime}
             impactFlashes={impactFlashes}
             activeTrails={activeTrails}
+            currentLevel={currentLevel}
           />
         </div>
 

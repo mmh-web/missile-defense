@@ -10,7 +10,7 @@
 // ============================================================
 
 export const QUIZ_DATA = {
-  // ─── LEVEL 1: Drones + Iron Dome ──────────────────────────
+  // ─── LEVEL 1: Rockets from Gaza + Iron Dome ──────────────
   1: {
     questionsPerQuiz: 2,
     timePerQuestion: 15,
@@ -39,10 +39,10 @@ export const QUIZ_DATA = {
       },
       {
         id: 'l1q4',
-        question: 'Which Israeli company developed Iron Dome?',
-        options: ['Elbit Systems', 'Israel Aerospace Industries', 'Israel Military Industries', 'Rafael Advanced Defense Systems'],
-        correctIndex: 3,
-        explanation: 'Rafael Advanced Defense Systems developed Iron Dome.',
+        question: 'Where are Qassam rockets primarily manufactured?',
+        options: ['Iran', 'Lebanon', 'Gaza', 'Syria'],
+        correctIndex: 2,
+        explanation: 'Qassam rockets are built in Gaza using basic materials like sugar and fertilizer.',
       },
       {
         id: 'l1q5',
@@ -53,62 +53,13 @@ export const QUIZ_DATA = {
       },
       {
         id: 'l1q6',
-        question: "What is Iron Dome's reported success rate against rockets?",
-        options: ['About 50%', 'About 75%', 'Over 90%', '100%'],
+        question: 'Which Israeli city near Gaza has been most targeted by Qassam rockets?',
+        options: ['Tel Aviv', 'Haifa', 'Sderot', 'Eilat'],
         correctIndex: 2,
-        explanation: 'Iron Dome has a reported success rate of over 90%.',
+        explanation: 'Sderot, located just 1 km from the Gaza border, has been the most frequently targeted city.',
       },
       {
         id: 'l1q7',
-        question: 'The Shahed-136 kamikaze drone is manufactured by which country?',
-        options: ['China', 'Iran', 'Russia', 'Syria'],
-        correctIndex: 1,
-        explanation: 'The Shahed-136 is manufactured by Iran.',
-      },
-      {
-        id: 'l1q8',
-        question: 'What makes kamikaze drones different from traditional drones?',
-        options: [
-          'They are controlled by AI',
-          'They carry multiple warheads',
-          'They crash directly into the target',
-          'They fly at higher altitudes',
-        ],
-        correctIndex: 2,
-        explanation: 'Kamikaze drones ARE the weapon \u2014 they crash directly into their target.',
-      },
-    ],
-  },
-
-  // ─── LEVEL 2: Short-Range Rockets ─────────────────────────
-  2: {
-    questionsPerQuiz: 2,
-    timePerQuestion: 15,
-    pointsPerCorrect: 50,
-    questions: [
-      {
-        id: 'l2q1',
-        question: 'Where are Qassam rockets primarily manufactured?',
-        options: ['Iran', 'Lebanon', 'Gaza', 'Syria'],
-        correctIndex: 2,
-        explanation: 'Qassam rockets are built in Gaza using basic materials like sugar and fertilizer.',
-      },
-      {
-        id: 'l2q2',
-        question: 'What is the approximate range of Qassam rockets?',
-        options: ['1-3 km', '5-45 km', '100-200 km', '500+ km'],
-        correctIndex: 1,
-        explanation: 'Qassam rockets have a range of 5-45 km, designed to strike nearby Israeli cities.',
-      },
-      {
-        id: 'l2q3',
-        question: 'The Grad rocket was originally designed by which country?',
-        options: ['Iran', 'China', 'Soviet Union', 'North Korea'],
-        correctIndex: 2,
-        explanation: 'Grad rockets are Soviet-designed and were smuggled into Gaza.',
-      },
-      {
-        id: 'l2q4',
         question: 'What makes short-range rockets different from cruise missiles?',
         options: [
           'They are faster',
@@ -120,37 +71,86 @@ export const QUIZ_DATA = {
         explanation: 'Short-range rockets are unguided \u2014 they cannot steer after launch.',
       },
       {
-        id: 'l2q5',
-        question: 'Which Israeli city near Gaza has been most targeted by Qassam rockets?',
-        options: ['Tel Aviv', 'Haifa', 'Sderot', 'Eilat'],
+        id: 'l1q8',
+        question: 'A Qassam costs ~$800 to build. How much does the Tamir interceptor that destroys it cost?',
+        options: ['~$800', '~$5,000', '~$50,000', '~$500,000'],
         correctIndex: 2,
-        explanation: 'Sderot, located just 1 km from the Gaza border, has been the most frequently targeted city.',
+        explanation: 'The Tamir costs approximately $50,000 \u2014 this cost imbalance is a strategic weapon.',
+      },
+    ],
+  },
+
+  // ─── LEVEL 2: Attack Drones from Lebanon/Syria ──────────
+  2: {
+    questionsPerQuiz: 2,
+    timePerQuestion: 15,
+    pointsPerCorrect: 50,
+    questions: [
+      {
+        id: 'l2q1',
+        question: 'The Shahed-136 kamikaze drone is manufactured by which country?',
+        options: ['China', 'Iran', 'Russia', 'Syria'],
+        correctIndex: 1,
+        explanation: 'The Shahed-136 is manufactured by Iran and supplied to groups like Hezbollah.',
+      },
+      {
+        id: 'l2q2',
+        question: 'What makes kamikaze drones different from traditional drones?',
+        options: [
+          'They are controlled by AI',
+          'They carry multiple warheads',
+          'They crash directly into the target',
+          'They fly at higher altitudes',
+        ],
+        correctIndex: 2,
+        explanation: 'Kamikaze drones ARE the weapon \u2014 they crash directly into their target.',
+      },
+      {
+        id: 'l2q3',
+        question: 'At what altitude do attack drones typically fly?',
+        options: ['High altitude (30+ km)', 'Medium altitude (10-20 km)', 'Low altitude (under 5 km)', 'Exo-atmospheric'],
+        correctIndex: 2,
+        explanation: 'Attack drones fly at low altitude, making them hard to detect on radar.',
+      },
+      {
+        id: 'l2q4',
+        question: 'Approximately how much does a Shahed-136 drone cost to produce?',
+        options: ['~$2,000', '~$20,000', '~$200,000', '~$2,000,000'],
+        correctIndex: 1,
+        explanation: 'Shahed-136 drones cost roughly $20,000 each, cheap enough to launch in swarms.',
+      },
+      {
+        id: 'l2q5',
+        question: 'Which defense system intercepts attack drones?',
+        options: ['Arrow 2', "David's Sling", 'Iron Dome', 'Arrow 3'],
+        correctIndex: 2,
+        explanation: 'Iron Dome intercepts both drones and short-range rockets.',
       },
       {
         id: 'l2q6',
-        question: 'Which defense system intercepts short-range rockets?',
-        options: ['Arrow 2', "David's Sling", 'Iron Dome', 'Arrow 3'],
+        question: 'How do attack drones compare to rockets in speed?',
+        options: ['Much faster', 'About the same', 'Much slower', 'Depends on altitude'],
         correctIndex: 2,
-        explanation: 'Iron Dome intercepts short-range rockets as well as drones.',
+        explanation: 'Drones fly at Mach 0.2-0.5, much slower than rockets which travel at Mach 1-2.',
       },
       {
         id: 'l2q7',
-        question: 'Approximately how much does a single Qassam rocket cost to build?',
-        options: ['~$200-800', '~$5,000', '~$50,000', '~$500,000'],
-        correctIndex: 0,
-        explanation: 'Qassam rockets are extremely cheap \u2014 roughly $200-800 each, making them cost-effective for attackers.',
+        question: 'Which Lebanese group uses Iranian-made drones against Israel?',
+        options: ['Hamas', 'Hezbollah', 'Islamic Jihad', 'Fatah'],
+        correctIndex: 1,
+        explanation: 'Hezbollah in Lebanon has received Shahed-136 and other Iranian drones.',
       },
       {
         id: 'l2q8',
-        question: 'How are Grad rockets different from Qassam rockets?',
+        question: 'Why are drone swarms considered a strategic challenge?',
         options: [
-          'Grads are guided, Qassams are not',
-          'Grads are faster and have longer range',
-          'Grads are built locally, Qassams are imported',
-          'There is no difference',
+          'They are invisible to radar',
+          'They can overwhelm defenses through sheer numbers',
+          'They carry nuclear warheads',
+          'They cannot be intercepted',
         ],
         correctIndex: 1,
-        explanation: 'Grad rockets are faster and have a longer range than Qassams, though both are unguided.',
+        explanation: 'At ~$20,000 each, drones are cheap enough to overwhelm expensive interceptors through numbers.',
       },
     ],
   },
