@@ -2,13 +2,11 @@ import { useMemo } from 'react';
 import { IMPACT_POSITIONS, THREAT_COLORS } from '../config/threats.js';
 import {
   CITIES,
-  KINNERET,
   getVisibleCities,
   getViewportForLevel,
   getBatteryForLevel,
   getVisibleRegions,
   getVisibleThreatOrigins,
-  isKinneretVisible,
 } from '../config/mapLayers.js';
 
 // Per-city label offset directions
@@ -261,7 +259,6 @@ export default function RadarDisplay({
   const visibleCities = useMemo(() => getVisibleCities(currentLevel), [currentLevel]);
   const visibleRegions = useMemo(() => getVisibleRegions(currentLevel), [currentLevel]);
   const visibleOrigins = useMemo(() => getVisibleThreatOrigins(currentLevel), [currentLevel]);
-  const showKinneret = isKinneretVisible(currentLevel);
 
   // Build set of cities currently targeted by active threats (for tier-2 label pop-up)
   const activeThreatTargets = useMemo(() => {
@@ -324,21 +321,6 @@ export default function RadarDisplay({
                 </text>
               );
             })}
-
-            {/* Kinneret (Sea of Galilee) */}
-            {showKinneret && (() => {
-              const kp = mapToSVG(KINNERET.cx, KINNERET.cy, viewport);
-              const rx = KINNERET.rx * viewport.scale * 100;
-              const ry = KINNERET.ry * viewport.scale * 100;
-              return (
-                <ellipse
-                  cx={kp.x} cy={kp.y} rx={rx} ry={ry}
-                  fill="rgba(60, 130, 246, 0.15)"
-                  stroke="rgba(60, 130, 246, 0.4)"
-                  strokeWidth="0.3"
-                />
-              );
-            })()}
 
             {/* Cities — progressive reveal with tier-based labels */}
             {(() => {
