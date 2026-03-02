@@ -217,7 +217,7 @@ export default function useGameEngine() {
     if (impactType) {
       setTimeout(() => {
         addImpactFlash(threat.impact_zone, impactType, threat.type, { x: blipX, y: blipY });
-        if (impactType === 'intercept') playInterceptSound(volumeRef.current);
+        if (impactType === 'intercept') playInterceptSound(volumeRef.current, threat.type);
       }, duration);
     }
   }, [addImpactFlash, getBlipPosition]);

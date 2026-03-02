@@ -84,6 +84,69 @@ function InterceptEffect({ flash, viewport }) {
   );
 }
 
+function HypersonicInterceptEffect({ flash, viewport }) {
+  const { cx, cy } = flash;
+  const p = mapToSVG(cx, cy, viewport);
+  // Electric arc directions — 6 lightning bolts radiating outward
+  const arcs = Array.from({ length: 6 }, (_, i) => {
+    const angle = (i / 6) * Math.PI * 2;
+    const len = 8 + Math.random() * 4;
+    const midLen = len * 0.5;
+    const jitter = (Math.random() - 0.5) * 3;
+    const perpX = -Math.sin(angle);
+    const perpY = Math.cos(angle);
+    return {
+      x1: p.x + Math.cos(angle) * midLen + perpX * jitter,
+      y1: p.y + Math.sin(angle) * midLen + perpY * jitter,
+      x2: p.x + Math.cos(angle) * len,
+      y2: p.y + Math.sin(angle) * len,
+      delay: i * 0.04,
+    };
+  });
+  // Particle ring — 12 particles in a burst pattern
+  const particles = Array.from({ length: 12 }, (_, i) => {
+    const angle = (i / 12) * Math.PI * 2 + (Math.random() * 0.3);
+    const dist = 6 + Math.random() * 5;
+    return {
+      endX: Math.cos(angle) * dist,
+      endY: Math.sin(angle) * dist,
+      delay: i * 0.02,
+    };
+  });
+  return (
+    <g>
+      {/* Core flash — bright white/cyan */}
+      <circle cx={p.x} cy={p.y} r={3} fill="white" className="hyper-flash-core" />
+      {/* Inner plasma glow — purple */}
+      <circle cx={p.x} cy={p.y} r={4} fill="rgba(168, 85, 247, 0.6)" className="hyper-plasma-glow" />
+      {/* Triple expanding shockwaves — cyan, purple, white at staggered timing */}
+      <circle cx={p.x} cy={p.y} r={3} fill="none" stroke="#06b6d4" strokeWidth="1.2" className="hyper-shockwave-1" />
+      <circle cx={p.x} cy={p.y} r={3} fill="none" stroke="#a855f7" strokeWidth="0.8" className="hyper-shockwave-2" />
+      <circle cx={p.x} cy={p.y} r={3} fill="none" stroke="rgba(255,255,255,0.6)" strokeWidth="0.5" className="hyper-shockwave-3" />
+      {/* Electric arcs — lightning bolts radiating from center */}
+      {arcs.map((arc, i) => (
+        <g key={`arc-${i}`}>
+          <line x1={p.x} y1={p.y} x2={arc.x1} y2={arc.y1}
+            stroke="#06b6d4" strokeWidth="0.6" className="hyper-arc"
+            style={{ animationDelay: `${arc.delay}s` }} />
+          <line x1={arc.x1} y1={arc.y1} x2={arc.x2} y2={arc.y2}
+            stroke="#a855f7" strokeWidth="0.4" className="hyper-arc"
+            style={{ animationDelay: `${arc.delay + 0.02}s` }} />
+        </g>
+      ))}
+      {/* Particle burst — cyan + purple alternating */}
+      {particles.map((pt, i) => (
+        <circle key={`pt-${i}`} cx={p.x} cy={p.y} r={0.5}
+          fill={i % 2 === 0 ? '#06b6d4' : '#a855f7'}
+          className="hyper-particle"
+          style={{ '--end-x': `${pt.endX}px`, '--end-y': `${pt.endY}px`, animationDelay: `${pt.delay}s` }} />
+      ))}
+      {/* Energy dissipation ring — slow expanding outer ring */}
+      <circle cx={p.x} cy={p.y} r={2} fill="none" stroke="rgba(6, 182, 212, 0.3)" strokeWidth="0.3" className="hyper-dissipation" />
+    </g>
+  );
+}
+
 function CityHitEffect({ flash, viewport }) {
   const { cx, cy, particles } = flash;
   const p = mapToSVG(cx, cy, viewport);
@@ -277,11 +340,29 @@ export default function RadarDisplay({
             {/* Region labels — subtle map-style annotations, no polygons */}
             {visibleRegions.map((region) => {
               const labelP = mapToSVG(region.labelPos.x, region.labelPos.y, viewport);
+              const fillColor = region.color.replace(/[\d.]+\)$/, '0.35)');
+              // Stack "Otef Aza" vertically to save horizontal space
+              if (region.name === 'Otef Aza') {
+                return (
+                  <text
+                    key={region.name}
+                    x={labelP.x} y={labelP.y}
+                    fill={fillColor}
+                    fontSize="2.8" fontFamily="monospace"
+                    textAnchor="middle"
+                    fontWeight="bold"
+                    letterSpacing="1.5"
+                  >
+                    <tspan x={labelP.x} dy="0">Otef</tspan>
+                    <tspan x={labelP.x} dy="3.2">Aza</tspan>
+                  </text>
+                );
+              }
               return (
                 <text
                   key={region.name}
                   x={labelP.x} y={labelP.y}
-                  fill={region.color.replace(/[\d.]+\)$/, '0.35)')}
+                  fill={fillColor}
                   fontSize="2.8" fontFamily="monospace"
                   textAnchor="middle"
                   fontWeight="bold"
@@ -368,19 +449,14 @@ export default function RadarDisplay({
                     fill="none" stroke="#22c55e" strokeWidth="0.4" opacity="0.7"
                     transform={`rotate(45, ${hq.x}, ${hq.y})`}
                   />
-                  <text
-                    x={hq.x} y={hq.y + 4}
-                    fill="#22c55e" fontSize="1.4" fontFamily="monospace"
-                    textAnchor="middle" opacity="0.6" fontWeight="bold"
-                  >
-                    {battery.label}
-                  </text>
+                  {/* Label removed — diamond icon is sufficient, reduces map clutter */}
                 </g>
               );
             })()}
 
             {/* === Impact Effects Layer === */}
             {impactFlashes.map((flash) => {
+              if (flash.type === 'intercept' && flash.threatType === 'hypersonic') return <HypersonicInterceptEffect key={flash.id} flash={flash} viewport={viewport} />;
               if (flash.type === 'intercept') return <InterceptEffect key={flash.id} flash={flash} viewport={viewport} />;
               if (flash.type === 'city_hit') return <CityHitEffect key={flash.id} flash={flash} viewport={viewport} />;
               if (flash.type === 'ground_impact') return <GroundImpactEffect key={flash.id} flash={flash} viewport={viewport} />;

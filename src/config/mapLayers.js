@@ -41,7 +41,7 @@ export const CITIES = {
   'Jerusalem':      { x: 0.44, y: 0.42, region: 'gush_dan', tier: 1, revealLevel: 3, labelDir: 'e' },
   'Netanya':        { x: 0.31, y: 0.30, region: 'gush_dan', tier: 1, revealLevel: 3, labelDir: 'e' },
   'Rishon LeZion':  { x: 0.27, y: 0.39, region: 'gush_dan', tier: 1, revealLevel: 3, labelDir: 'se' },
-  'Petah Tikva':    { x: 0.33, y: 0.34, region: 'gush_dan', tier: 1, revealLevel: 3, labelDir: 'ne' },
+  'Petah Tikva':    { x: 0.33, y: 0.34, region: 'gush_dan', tier: 1, revealLevel: 3, labelDir: 'e' },
   'Holon':          { x: 0.27, y: 0.37, region: 'gush_dan', tier: 2, revealLevel: 3, labelDir: 'e' },
 
   // === L4: Negev === (pushed south for spacing from Otef Aza / Jerusalem)
@@ -148,16 +148,7 @@ export const REGIONS = [
     ],
     labelPos: { x: 0.45, y: 0.72 },
   },
-  {
-    name: 'Judean Desert',
-    revealLevel: 5,
-    color: 'rgba(180, 150, 80, 0.12)',
-    polygon: [
-      [0.44, 0.38], [0.53, 0.38], [0.52, 0.52],
-      [0.44, 0.55], [0.40, 0.48],
-    ],
-    labelPos: { x: 0.48, y: 0.48 },
-  },
+  // Judean Desert removed — label caused clutter on zoomed-out views
 ];
 
 
