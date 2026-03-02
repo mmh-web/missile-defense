@@ -340,7 +340,7 @@ export default function RadarDisplay({
             {/* Region labels — subtle map-style annotations, no polygons */}
             {visibleRegions.map((region) => {
               const labelP = mapToSVG(region.labelPos.x, region.labelPos.y, viewport);
-              const fillColor = region.color.replace(/[\d.]+\)$/, '0.35)');
+              const fillColor = 'rgba(0, 200, 255, 0.35)';
               // Stack "Otef Aza" vertically to save horizontal space
               if (region.name === 'Otef Aza') {
                 return (
