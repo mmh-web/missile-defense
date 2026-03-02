@@ -213,8 +213,8 @@ function RocketAnimation() {
 
 // Level-specific subtitles
 const LEVEL_TITLES = {
-  1: 'ROCKET BARRAGE',
-  2: 'DRONE DEFENSE',
+  1: 'SOUTHERN FRONT',
+  2: 'NORTHERN FRONT',
   3: 'CRUISE THREAT',
   4: 'BALLISTIC ARC',
   5: 'HYPERSONIC STRIKE',

@@ -73,15 +73,12 @@ export default function LevelComplete({ levelStats, campaignStats, onNextLevel, 
           )}
         </div>
 
-        {/* Campaign running total */}
-        {campaignStats && campaignStats.levelScores.length > 0 && (
-          <div className="border border-gray-800 rounded-lg p-4 mb-6 bg-gray-900/10">
+        {/* Campaign running total — always visible */}
+        {campaignStats && (
+          <div className="border border-green-900/50 rounded-lg p-5 mb-6 bg-green-950/20 text-center">
             <div className="text-xs text-gray-500 font-mono tracking-widest mb-2">CAMPAIGN TOTAL</div>
-            <div className="flex justify-between items-center">
-              <span className="text-xs text-gray-500 font-mono">SCORE</span>
-              <span className="text-lg font-bold font-mono text-green-400 tabular-nums">
-                {campaignStats.totalScore + levelStats.score}
-              </span>
+            <div className="text-5xl font-bold font-mono text-green-400 tabular-nums">
+              {campaignStats.totalScore + levelStats.score}
             </div>
           </div>
         )}

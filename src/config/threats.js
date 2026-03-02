@@ -154,91 +154,102 @@ function threat(id, time, type, zone, populated, cdn, intel, reveal, extra = {})
 
 // ============================================================
 // LEVEL 1: Otef Aza — Short-range ROCKETS only, Iron Dome
-// Duration: 120s | 24 threats | Teaches: intercept + hold fire
+// Duration: 120s | 29 threats | Teaches: intercept + hold fire
 // Geography: Gaza border communities. Viewport zoomed tight on south.
 // All threats from Gaza. Only Otef Aza cities targeted.
 // ============================================================
 const THREATS_L1 = [
-  // Opening: gentle intro — 6s gaps, learn the basics
+  // Opening: gentle intro — 5s gaps, learn the basics
   threat(1,  3,  'rocket', 'Sderot',          true,  8, 'full', 1.0, { origin: 'gaza' }),
-  threat(2,  9,  'rocket', 'Northern Negev',  false, 8, 'full', 1.0, { origin: 'gaza' }),    // hold fire
-  threat(3,  15, 'rocket', 'Ashkelon',        true,  8, 'full', 1.0, { origin: 'gaza' }),
-  threat(4,  21, 'rocket', 'Northern Negev',  false, 8, 'full', 1.0, { origin: 'gaza' }),    // hold fire
+  threat(2,  8,  'rocket', 'Northern Negev',  false, 8, 'full', 1.0, { origin: 'gaza' }),    // hold fire
+  threat(3,  13, 'rocket', 'Ashkelon',        true,  8, 'full', 1.0, { origin: 'gaza' }),
+  threat(4,  18, 'rocket', 'Northern Negev',  false, 8, 'full', 1.0, { origin: 'gaza' }),    // hold fire
   // Pairs begin — first overlap
-  threat(5,  28, 'rocket', "Be'eri",          true,  7, 'full', 1.0, { origin: 'gaza' }),
-  threat(6,  30, 'rocket', 'Northern Negev',  false, 7, 'full', 1.0, { origin: 'gaza' }),    // hold fire
-  // Tempo up — 5s gaps
-  threat(7,  37, 'rocket', 'Kfar Aza',        true,  7, 'full', 1.0, { origin: 'gaza' }),
-  threat(8,  42, 'rocket', 'Ashkelon',        true,  7, 'full', 1.0, { origin: 'gaza' }),
-  threat(9,  47, 'rocket', 'Sderot',          true,  7, 'full', 1.0, { origin: 'gaza' }),
-  threat(10, 49, 'rocket', 'Northern Negev',  false, 7, 'full', 1.0, { origin: 'gaza' }),    // hold fire
+  threat(5,  24, 'rocket', "Be'eri",          true,  7, 'full', 1.0, { origin: 'gaza' }),
+  threat(6,  26, 'rocket', 'Northern Negev',  false, 7, 'full', 1.0, { origin: 'gaza' }),    // hold fire
+  // Tempo up — 4s gaps
+  threat(7,  32, 'rocket', 'Kfar Aza',        true,  7, 'full', 1.0, { origin: 'gaza' }),
+  threat(8,  36, 'rocket', 'Ashkelon',        true,  7, 'full', 1.0, { origin: 'gaza' }),
+  threat(9,  40, 'rocket', 'Sderot',          true,  7, 'full', 1.0, { origin: 'gaza' }),
+  threat(10, 42, 'rocket', 'Northern Negev',  false, 7, 'full', 1.0, { origin: 'gaza' }),    // hold fire
   // Simultaneous pair
-  threat(11, 56, 'rocket', "Re'im",           true,  7, 'full', 1.0, { origin: 'gaza' }),
-  threat(12, 56, 'rocket', 'Netivot',         true,  7, 'full', 1.0, { origin: 'gaza' }),
-  // Building pressure
-  threat(13, 63, 'rocket', 'Ashkelon',        true,  7, 'full', 1.0, { origin: 'gaza' }),
-  threat(14, 65, 'rocket', 'Northern Negev',  false, 7, 'full', 1.0, { origin: 'gaza' }),    // hold fire
-  threat(15, 70, 'rocket', 'Sderot',          true,  6, 'full', 1.0, { origin: 'gaza' }),
-  threat(16, 75, 'rocket', "Be'eri",          true,  6, 'full', 1.0, { origin: 'gaza' }),
+  threat(11, 48, 'rocket', "Re'im",           true,  7, 'full', 1.0, { origin: 'gaza' }),
+  threat(12, 48, 'rocket', 'Netivot',         true,  7, 'full', 1.0, { origin: 'gaza' }),
+  // Building pressure — 3-4s gaps
+  threat(13, 54, 'rocket', 'Ashkelon',        true,  6, 'full', 1.0, { origin: 'gaza' }),
+  threat(14, 56, 'rocket', 'Northern Negev',  false, 6, 'full', 1.0, { origin: 'gaza' }),    // hold fire
+  threat(15, 60, 'rocket', 'Sderot',          true,  6, 'full', 1.0, { origin: 'gaza' }),
+  threat(16, 64, 'rocket', "Be'eri",          true,  6, 'full', 1.0, { origin: 'gaza' }),
   // Mid-section pairs
-  threat(17, 82, 'rocket', 'Kfar Aza',        true,  6, 'full', 1.0, { origin: 'gaza' }),
-  threat(18, 84, 'rocket', 'Northern Negev',  false, 6, 'full', 1.0, { origin: 'gaza' }),    // hold fire
-  // === FLURRY — last 30s, rapid fire, 3-4s gaps ===
-  threat(19, 90, 'rocket', 'Ashkelon',        true,  6, 'full', 1.0, { origin: 'gaza' }),
-  threat(20, 93, 'rocket', 'Netivot',         true,  6, 'full', 1.0, { origin: 'gaza' }),
-  threat(21, 96, 'rocket', 'Sderot',          true,  6, 'full', 1.0, { origin: 'gaza' }),
-  threat(22, 99, 'rocket', "Re'im",           true,  6, 'full', 1.0, { origin: 'gaza' }),
-  threat(23, 103,'rocket', 'Ashkelon',        true,  6, 'full', 1.0, { origin: 'gaza' }),
-  threat(24, 107,'rocket', 'Sderot',          true,  6, 'full', 1.0, { origin: 'gaza' }),
+  threat(17, 69, 'rocket', 'Kfar Aza',        true,  6, 'full', 1.0, { origin: 'gaza' }),
+  threat(18, 71, 'rocket', 'Northern Negev',  false, 6, 'full', 1.0, { origin: 'gaza' }),    // hold fire
+  threat(19, 75, 'rocket', 'Netivot',         true,  6, 'full', 1.0, { origin: 'gaza' }),
+  // === FLURRY — last 30s, rapid fire, 3s gaps ===
+  threat(20, 80, 'rocket', 'Ashkelon',        true,  5, 'full', 1.0, { origin: 'gaza' }),
+  threat(21, 83, 'rocket', 'Sderot',          true,  5, 'full', 1.0, { origin: 'gaza' }),
+  threat(22, 86, 'rocket', "Re'im",           true,  5, 'full', 1.0, { origin: 'gaza' }),
+  threat(23, 89, 'rocket', 'Kfar Aza',        true,  5, 'full', 1.0, { origin: 'gaza' }),
+  threat(24, 92, 'rocket', 'Ashkelon',        true,  5, 'full', 1.0, { origin: 'gaza' }),
+  threat(25, 95, 'rocket', 'Netivot',         true,  5, 'full', 1.0, { origin: 'gaza' }),
+  threat(26, 98, 'rocket', 'Sderot',          true,  5, 'full', 1.0, { origin: 'gaza' }),
+  threat(27, 101,'rocket', "Be'eri",          true,  5, 'full', 1.0, { origin: 'gaza' }),
+  threat(28, 104,'rocket', 'Northern Negev',  false, 5, 'full', 1.0, { origin: 'gaza' }),    // hold fire
+  threat(29, 107,'rocket', 'Ashkelon',        true,  5, 'full', 1.0, { origin: 'gaza' }),
 ];
 
 // ============================================================
 // LEVEL 2: Galil, Haifa & Golan — Drones + Rockets, Iron Dome
-// Duration: 120s | 28 threats | Introduces: drones
+// Duration: 120s | 34 threats | Introduces: drones
 // Geography: Northern Israel. Viewport zoomed tight on north.
 // Threats from Lebanon (north) and Syria (northeast). No Gaza threats.
 // ============================================================
 const THREATS_L2 = [
   // Opening: familiar rockets from the north, then first drone
   threat(1,  3,  'rocket', 'Haifa',            true,  8, 'full', 1.0, { origin: 'north' }),         // Lebanon
-  threat(2,  9,  'rocket', 'Western Galilee',  false, 8, 'full', 1.0, { origin: 'north' }),         // hold fire, Lebanon
-  threat(3,  15, 'drone',  'Nahariya',         true,  13, 'full', 1.0, { origin: 'north' }),        // First drone! Lebanon
-  threat(4,  21, 'rocket', 'Kiryat Shmona',    true,  7, 'full', 1.0, { origin: 'north' }),         // Lebanon
+  threat(2,  8,  'rocket', 'Western Galilee',  false, 8, 'full', 1.0, { origin: 'north' }),         // hold fire, Lebanon
+  threat(3,  13, 'drone',  'Nahariya',         true,  12, 'full', 1.0, { origin: 'north' }),        // First drone! Lebanon
+  threat(4,  18, 'rocket', 'Kiryat Shmona',    true,  7, 'full', 1.0, { origin: 'north' }),         // Lebanon
   // Pairs — mixed drones and rockets
-  threat(5,  27, 'drone',  'Akko',             true,  12, 'full', 1.0, { origin: 'north' }),        // Lebanon
-  threat(6,  29, 'rocket', 'Upper Galilee',    false, 7,  'full', 1.0, { origin: 'north' }),        // hold fire, Lebanon
-  threat(7,  34, 'rocket', 'Teveriah',         true,  7,  'full', 1.0, { origin: 'northeast' }),    // Syria
-  threat(8,  38, 'drone',  'Golan Heights',    false, 12, 'full', 1.0, { origin: 'northeast' }),    // hold fire, Syria
-  // Tempo up — 4-5s gaps
-  threat(9,  43, 'rocket', 'Tzfat',            true,  7,  'full', 1.0, { origin: 'north' }),        // Lebanon
-  threat(10, 47, 'drone',  'Haifa',            true,  11, 'full', 1.0, { origin: 'north' }),        // Lebanon
-  threat(11, 51, 'rocket', 'Katzrin',          true,  7,  'full', 1.0, { origin: 'northeast' }),    // Syria
-  threat(12, 55, 'drone',  'Nahariya',         true,  11, 'full', 1.0, { origin: 'north' }),        // Lebanon
+  threat(5,  24, 'drone',  'Akko',             true,  11, 'full', 1.0, { origin: 'north' }),        // Lebanon
+  threat(6,  26, 'rocket', 'Upper Galilee',    false, 7,  'full', 1.0, { origin: 'north' }),        // hold fire, Lebanon
+  threat(7,  30, 'rocket', 'Teveriah',         true,  7,  'full', 1.0, { origin: 'northeast' }),    // Syria
+  threat(8,  34, 'drone',  'Golan Heights',    false, 11, 'full', 1.0, { origin: 'northeast' }),    // hold fire, Syria
+  // Tempo up — 3-4s gaps
+  threat(9,  38, 'rocket', 'Tzfat',            true,  7,  'full', 1.0, { origin: 'north' }),        // Lebanon
+  threat(10, 42, 'drone',  'Haifa',            true,  10, 'full', 1.0, { origin: 'north' }),        // Lebanon
+  threat(11, 45, 'rocket', 'Katzrin',          true,  7,  'full', 1.0, { origin: 'northeast' }),    // Syria
+  threat(12, 48, 'drone',  'Nahariya',         true,  10, 'full', 1.0, { origin: 'north' }),        // Lebanon
+  threat(13, 51, 'rocket', 'Akko',             true,  7,  'full', 1.0, { origin: 'north' }),        // Lebanon
   // Triple overlap
-  threat(13, 60, 'rocket', 'Kiryat Shmona',    true,  7,  'full', 1.0, { origin: 'north' }),       // Lebanon
-  threat(14, 60, 'drone',  'Majdal Shams',     true,  11, 'full', 1.0, { origin: 'northeast' }),   // Syria
-  threat(15, 63, 'rocket', 'Western Galilee',  false, 7,  'full', 1.0, { origin: 'north' }),       // hold fire, Lebanon
-  // Escalation
-  threat(16, 68, 'drone',  'Teveriah',         true,  10, 'full', 1.0, { origin: 'northeast' }),   // Syria
-  threat(17, 72, 'rocket', 'Haifa',            true,  7,  'full', 1.0, { origin: 'north' }),       // Lebanon
-  threat(18, 76, 'drone',  'Upper Galilee',    false, 10, 'full', 1.0, { origin: 'north' }),       // hold fire, Lebanon
-  threat(19, 80, 'rocket', 'Akko',             true,  7,  'full', 1.0, { origin: 'north' }),       // Lebanon
-  threat(20, 84, 'drone',  'Katzrin',          true,  10, 'full', 1.0, { origin: 'northeast' }),   // Syria
+  threat(14, 55, 'rocket', 'Kiryat Shmona',    true,  7,  'full', 1.0, { origin: 'north' }),       // Lebanon
+  threat(15, 55, 'drone',  'Majdal Shams',     true,  10, 'full', 1.0, { origin: 'northeast' }),   // Syria
+  threat(16, 57, 'rocket', 'Western Galilee',  false, 7,  'full', 1.0, { origin: 'north' }),       // hold fire, Lebanon
+  // Escalation — tighter 3-4s gaps
+  threat(17, 61, 'drone',  'Teveriah',         true,  10, 'full', 1.0, { origin: 'northeast' }),   // Syria
+  threat(18, 64, 'rocket', 'Haifa',            true,  6,  'full', 1.0, { origin: 'north' }),       // Lebanon
+  threat(19, 67, 'drone',  'Upper Galilee',    false, 10, 'full', 1.0, { origin: 'north' }),       // hold fire, Lebanon
+  threat(20, 70, 'rocket', 'Akko',             true,  6,  'full', 1.0, { origin: 'north' }),       // Lebanon
+  threat(21, 73, 'drone',  'Katzrin',          true,  10, 'full', 1.0, { origin: 'northeast' }),   // Syria
+  threat(22, 76, 'rocket', 'Nahariya',         true,  6,  'full', 1.0, { origin: 'north' }),       // Lebanon
   // Heavy pairs
-  threat(21, 88, 'rocket', 'Tzfat',            true,  6,  'full', 1.0, { origin: 'north' }),       // Lebanon
-  threat(22, 88, 'drone',  'Kiryat Shmona',    true,  10, 'full', 1.0, { origin: 'north' }),       // Lebanon
+  threat(23, 80, 'rocket', 'Tzfat',            true,  6,  'full', 1.0, { origin: 'north' }),       // Lebanon
+  threat(24, 80, 'drone',  'Kiryat Shmona',    true,  9,  'full', 1.0, { origin: 'north' }),       // Lebanon
+  threat(25, 83, 'drone',  'Haifa',            true,  9,  'full', 1.0, { origin: 'north' }),       // Lebanon
   // === CLOSING SALVO — relentless ===
-  threat(23, 94, 'rocket', 'Haifa',            true,  6,  'full', 1.0, { origin: 'north' }),       // Lebanon
-  threat(24, 97, 'drone',  'Nahariya',         true,  10, 'full', 1.0, { origin: 'north' }),       // Lebanon
-  threat(25, 100,'rocket', 'Majdal Shams',     true,  7,  'full', 1.0, { origin: 'northeast' }),   // Syria
-  threat(26, 103,'drone',  'Teveriah',         true,  10, 'full', 1.0, { origin: 'northeast' }),   // Syria
-  threat(27, 107,'rocket', 'Akko',             true,  6,  'full', 1.0, { origin: 'north' }),       // Lebanon
-  threat(28, 110,'rocket', 'Golan Heights',    false, 7,  'full', 1.0, { origin: 'northeast' }),   // hold fire, Syria
+  threat(26, 87, 'rocket', 'Haifa',            true,  5,  'full', 1.0, { origin: 'north' }),       // Lebanon
+  threat(27, 90, 'drone',  'Nahariya',         true,  9,  'full', 1.0, { origin: 'north' }),       // Lebanon
+  threat(28, 92, 'rocket', 'Majdal Shams',     true,  6,  'full', 1.0, { origin: 'northeast' }),   // Syria
+  threat(29, 95, 'drone',  'Teveriah',         true,  9,  'full', 1.0, { origin: 'northeast' }),   // Syria
+  threat(30, 97, 'rocket', 'Akko',             true,  5,  'full', 1.0, { origin: 'north' }),       // Lebanon
+  threat(31, 99, 'rocket', 'Kiryat Shmona',    true,  5,  'full', 1.0, { origin: 'north' }),       // Lebanon
+  threat(32, 102,'drone',  'Tzfat',            true,  9,  'full', 1.0, { origin: 'north' }),       // Lebanon
+  threat(33, 105,'rocket', 'Golan Heights',    false, 6,  'full', 1.0, { origin: 'northeast' }),   // hold fire, Syria
+  threat(34, 108,'drone',  'Haifa',            true,  9,  'full', 1.0, { origin: 'north' }),       // Lebanon
 ];
 
 // ============================================================
 // LEVEL 3: Gush Dan & Jerusalem — Cruise Missiles + all previous
-// Duration: 150s | 26 threats | Introduces: David's Sling + cruise missiles
+// Duration: 120s | 26 threats | Introduces: David's Sling + cruise missiles
 // Geography: Big zoom-out — center + both fronts visible.
 // Gaza rockets resume (south), Lebanon drones continue (north),
 // NEW: cruise missiles from Iran (east) and Yemen (southeast).
@@ -246,238 +257,248 @@ const THREATS_L2 = [
 const THREATS_L3 = [
   // Warm-up with known types — remind player of both fronts
   threat(1,  4,  'rocket', 'Sderot',          true,  7,  'full', 1.0, { origin: 'gaza' }),         // Gaza
-  threat(2,  11, 'drone',  'Haifa',           true,  12, 'full', 1.0, { origin: 'north' }),        // Lebanon
+  threat(2,  9,  'drone',  'Haifa',           true,  11, 'full', 1.0, { origin: 'north' }),        // Lebanon
   // First cruise missile! From Iran — the teaching moment
-  threat(3,  19, 'cruise', 'Tel Aviv',        true,  12, 'full', 1.0, { origin: 'east' }),         // Iran
-  threat(4,  27, 'rocket', 'Northern Negev',  false, 7,  'full', 1.0, { origin: 'gaza' }),         // hold fire
-  threat(5,  34, 'cruise', 'Jerusalem',       true,  11, 'full', 1.0, { origin: 'east' }),         // Iran
-  threat(6,  41, 'rocket', 'Ashkelon',        true,  7,  'full', 1.0, { origin: 'gaza' }),         // Gaza
+  threat(3,  15, 'cruise', 'Tel Aviv',        true,  11, 'full', 1.0, { origin: 'east' }),         // Iran
+  threat(4,  22, 'rocket', 'Northern Negev',  false, 7,  'full', 1.0, { origin: 'gaza' }),         // hold fire
+  threat(5,  27, 'cruise', 'Jerusalem',       true,  10, 'full', 1.0, { origin: 'east' }),         // Iran
+  threat(6,  32, 'rocket', 'Ashkelon',        true,  7,  'full', 1.0, { origin: 'gaza' }),         // Gaza
   // Mixed pair — both fronts + cruise
-  threat(7,  49, 'cruise', 'Haifa',           true,  11, 'full', 1.0, { origin: 'east' }),         // Iran
-  threat(8,  51, 'drone',  'Coastal Plain',   false, 12, 'full', 1.0, { origin: 'north' }),        // hold fire, Lebanon
-  // Tempo up — 6s gaps, introduce Gush Dan cities
-  threat(9,  59, 'rocket', 'Ashdod',          true,  7,  'full', 1.0, { origin: 'gaza' }),         // Gaza
-  threat(10, 66, 'cruise', 'Netanya',         true,  10, 'full', 1.0, { origin: 'east' }),         // Iran
-  threat(11, 73, 'drone',  'Kiryat Shmona',   true,  11, 'full', 1.0, { origin: 'north' }),        // Lebanon
-  // Pairs overlap — 5s gaps
-  threat(12, 81, 'cruise', 'Tel Aviv',        true,  10, 'full', 1.0, { origin: 'east' }),         // Iran
-  threat(13, 83, 'rocket', 'Sderot',          true,  7,  'full', 1.0, { origin: 'gaza' }),         // Gaza
+  threat(7,  38, 'cruise', 'Haifa',           true,  10, 'full', 1.0, { origin: 'east' }),         // Iran
+  threat(8,  40, 'drone',  'Coastal Plain',   false, 11, 'full', 1.0, { origin: 'north' }),        // hold fire, Lebanon
+  // Tempo up — tighter gaps, introduce Gush Dan cities
+  threat(9,  46, 'rocket', 'Ashdod',          true,  7,  'full', 1.0, { origin: 'gaza' }),         // Gaza
+  threat(10, 51, 'cruise', 'Netanya',         true,  9,  'full', 1.0, { origin: 'east' }),         // Iran
+  threat(11, 57, 'drone',  'Kiryat Shmona',   true,  10, 'full', 1.0, { origin: 'north' }),        // Lebanon
+  // Pairs overlap
+  threat(12, 63, 'cruise', 'Tel Aviv',        true,  9,  'full', 1.0, { origin: 'east' }),         // Iran
+  threat(13, 64, 'rocket', 'Sderot',          true,  7,  'full', 1.0, { origin: 'gaza' }),         // Gaza
   // Bridge
-  threat(14, 93, 'drone',  'Rishon LeZion',   true,  11, 'full', 1.0, { origin: 'north' }),        // Lebanon
-  // Closing triple — 5s gaps
-  threat(15, 103,'cruise', 'Jerusalem',       true,  10, 'full', 1.0, { origin: 'east' }),         // Iran
-  threat(16, 105,'drone',  'Nahariya',        true,  11, 'full', 1.0, { origin: 'north' }),        // Lebanon
-  threat(17, 107,'rocket', 'Ashkelon',        true,  7,  'full', 1.0, { origin: 'gaza' }),         // Gaza
+  threat(14, 72, 'drone',  'Rishon LeZion',   true,  10, 'full', 1.0, { origin: 'north' }),        // Lebanon
+  // Closing triple
+  threat(15, 80, 'cruise', 'Jerusalem',       true,  9,  'full', 1.0, { origin: 'east' }),         // Iran
+  threat(16, 81, 'drone',  'Nahariya',        true,  10, 'full', 1.0, { origin: 'north' }),        // Lebanon
+  threat(17, 83, 'rocket', 'Ashkelon',        true,  6,  'full', 1.0, { origin: 'gaza' }),         // Gaza
   // Final pairs
-  threat(18, 117,'cruise', 'Judean Hills',    false, 10, 'full', 1.0, { origin: 'east' }),         // hold fire, Iran
-  threat(19, 119,'drone',  'Petah Tikva',     true,  11, 'full', 1.0, { origin: 'north' }),        // Lebanon
-  // Extended tail
-  threat(20, 125,'rocket', 'Sderot',          true,  7,  'full', 1.0, { origin: 'gaza' }),         // Gaza
-  threat(21, 127,'cruise', 'Holon',           true,  10, 'full', 1.0, { origin: 'east' }),         // Iran (Yemen route)
-  threat(22, 131,'drone',  'Haifa',           true,  10, 'full', 1.0, { origin: 'north' }),        // Lebanon
-  threat(23, 133,'rocket', 'Ashdod',          true,  7,  'full', 1.0, { origin: 'gaza' }),         // Gaza
-  threat(24, 137,'cruise', 'Tel Aviv',        true,  10, 'full', 1.0, { origin: 'east' }),         // Iran
-  threat(25, 140,'drone',  'Western Galilee', false, 10, 'full', 1.0, { origin: 'north' }),        // hold fire, Lebanon
-  threat(26, 143,'rocket', 'Ashkelon',        true,  7,  'full', 1.0, { origin: 'gaza' }),         // Gaza
+  threat(18, 90, 'cruise', 'Judean Hills',    false, 9,  'full', 1.0, { origin: 'east' }),         // hold fire, Iran
+  threat(19, 92, 'drone',  'Petah Tikva',     true,  10, 'full', 1.0, { origin: 'north' }),        // Lebanon
+  // Compressed tail — rapid fire
+  threat(20, 96, 'rocket', 'Sderot',          true,  6,  'full', 1.0, { origin: 'gaza' }),         // Gaza
+  threat(21, 98, 'cruise', 'Holon',           true,  9,  'full', 1.0, { origin: 'east' }),         // Iran
+  threat(22, 101,'drone',  'Haifa',           true,  9,  'full', 1.0, { origin: 'north' }),        // Lebanon
+  threat(23, 102,'rocket', 'Ashdod',          true,  6,  'full', 1.0, { origin: 'gaza' }),         // Gaza
+  threat(24, 106,'cruise', 'Tel Aviv',        true,  9,  'full', 1.0, { origin: 'east' }),         // Iran
+  threat(25, 108,'drone',  'Western Galilee', false, 9,  'full', 1.0, { origin: 'north' }),        // hold fire, Lebanon
+  threat(26, 110,'rocket', 'Ashkelon',        true,  6,  'full', 1.0, { origin: 'gaza' }),         // Gaza
 ];
 
 // ============================================================
 // LEVEL 4: Negev — Ballistic + all previous, introduces Arrow 2
-// Duration: 150s | 25 threats
+// Duration: 150s | 30 threats
 // Geography: Zooms out to include Negev. All previous fronts active.
 // NEW: ballistic missiles from Iran (east).
 // ============================================================
 const THREATS_L4 = [
-  // Warm-up with known types — 7s gaps
-  threat(1,  4,  'drone',     'Haifa',           true,  12, 'full', 1.0, { origin: 'north' }),       // Lebanon
-  threat(2,  11, 'cruise',    'Tel Aviv',        true,  11, 'full', 1.0, { origin: 'east' }),        // Iran
-  threat(3,  18, 'rocket',    'Sderot',          true,  7,  'full', 1.0, { origin: 'gaza' }),        // Gaza
+  // Warm-up with known types — 6s gaps
+  threat(1,  4,  'drone',     'Haifa',           true,  11, 'full', 1.0, { origin: 'north' }),       // Lebanon
+  threat(2,  10, 'cruise',    'Tel Aviv',        true,  10, 'full', 1.0, { origin: 'east' }),        // Iran
+  threat(3,  16, 'rocket',    'Sderot',          true,  7,  'full', 1.0, { origin: 'gaza' }),        // Gaza
   // First ballistic! From Iran — the teaching moment
-  threat(4,  27, 'ballistic', 'Tel Aviv',        true,  13, 'full', 0.40, { origin: 'east' }),       // Iran
-  threat(5,  35, 'drone',     'Negev Desert',    false, 12, 'full', 1.0, { origin: 'north' }),       // hold fire
-  threat(6,  42, 'ballistic', 'Jerusalem',       true,  12, 'full', 0.40, { origin: 'east' }),       // Iran
+  threat(4,  24, 'ballistic', 'Tel Aviv',        true,  12, 'full', 0.40, { origin: 'east' }),       // Iran
+  threat(5,  32, 'drone',     'Negev Desert',    false, 11, 'full', 1.0, { origin: 'north' }),       // hold fire
+  threat(6,  38, 'ballistic', 'Jerusalem',       true,  11, 'full', 0.40, { origin: 'east' }),       // Iran
   // Mixed pairs — introduce Negev cities
-  threat(7,  50, 'cruise',    'Netanya',         true,  10, 'full', 1.0, { origin: 'east' }),        // Iran
-  threat(8,  52, 'rocket',    'Ashkelon',        true,  7,  'full', 1.0, { origin: 'gaza' }),        // Gaza
-  threat(9,  60, 'ballistic', 'Beersheba',       true,  12, 'full', 0.40, { origin: 'east' }),       // Iran
-  threat(10, 67, 'drone',     'Golan Heights',   false, 12, 'full', 1.0, { origin: 'northeast' }),   // hold fire, Syria
-  // Triple — 5s gaps
-  threat(11, 75, 'ballistic', 'Dimona',          true,  12, 'full', 0.35, { origin: 'east', priority: true }),  // Iran
-  threat(12, 77, 'cruise',    'Ashdod',          true,  10, 'full', 1.0, { origin: 'east' }),        // Iran
-  threat(13, 79, 'rocket',    'Sderot',          true,  7,  'full', 1.0, { origin: 'gaza' }),        // Gaza
-  // Tempo up
-  threat(14, 89, 'drone',     'Arad',            true,  11, 'full', 1.0, { origin: 'northeast' }),   // Syria
-  threat(15, 96, 'ballistic', 'Haifa',           true,  11, 'full', 0.40, { origin: 'east' }),       // Iran
-  threat(16, 103,'cruise',    'Arava Valley',    false, 10, 'full', 1.0, { origin: 'east' }),        // hold fire, Iran
-  threat(17, 112,'rocket',    'Ashkelon',        true,  7,  'full', 1.0, { origin: 'gaza' }),        // Gaza
-  // Closing quad — tight 2s gaps
-  threat(18, 121,'ballistic', 'Jerusalem',       true,  11, 'full', 0.35, { origin: 'east' }),       // Iran
-  threat(19, 123,'cruise',    'Netanya',         true,  10, 'full', 1.0, { origin: 'east' }),        // Iran
-  threat(20, 125,'rocket',    'Beersheba',       true,  7,  'full', 1.0, { origin: 'gaza' }),        // Gaza (long range)
-  threat(21, 127,'drone',     'Northern Negev',  false, 12, 'full', 1.0, { origin: 'north' }),       // hold fire
-  // Extended tail
-  threat(22, 131,'ballistic', 'Tel Aviv',        true,  12, 'full', 0.40, { origin: 'east' }),       // Iran
-  threat(23, 136,'rocket',    'Sderot',          true,  7,  'full', 1.0, { origin: 'gaza' }),        // Gaza
-  threat(24, 140,'cruise',    'Haifa',           true,  10, 'full', 1.0, { origin: 'east' }),        // Iran
-  threat(25, 143,'drone',     'Ashkelon',        true,  10, 'full', 1.0, { origin: 'north' }),       // Lebanon
+  threat(7,  45, 'cruise',    'Netanya',         true,  10, 'full', 1.0, { origin: 'east' }),        // Iran
+  threat(8,  47, 'rocket',    'Ashkelon',        true,  7,  'full', 1.0, { origin: 'gaza' }),        // Gaza
+  threat(9,  53, 'ballistic', 'Beersheba',       true,  11, 'full', 0.40, { origin: 'east' }),       // Iran
+  threat(10, 58, 'drone',     'Golan Heights',   false, 11, 'full', 1.0, { origin: 'northeast' }),   // hold fire, Syria
+  threat(11, 63, 'cruise',    'Haifa',           true,  10, 'full', 1.0, { origin: 'east' }),        // Iran
+  // Triple — 3s gaps
+  threat(12, 69, 'ballistic', 'Dimona',          true,  11, 'full', 0.35, { origin: 'east', priority: true }),  // Iran
+  threat(13, 71, 'cruise',    'Ashdod',          true,  9,  'full', 1.0, { origin: 'east' }),        // Iran
+  threat(14, 73, 'rocket',    'Sderot',          true,  6,  'full', 1.0, { origin: 'gaza' }),        // Gaza
+  // Sustained pressure
+  threat(15, 80, 'drone',     'Arad',            true,  10, 'full', 1.0, { origin: 'northeast' }),   // Syria
+  threat(16, 85, 'ballistic', 'Haifa',           true,  11, 'full', 0.40, { origin: 'east' }),       // Iran
+  threat(17, 90, 'cruise',    'Arava Valley',    false, 9,  'full', 1.0, { origin: 'east' }),        // hold fire, Iran
+  threat(18, 95, 'rocket',    'Ashkelon',        true,  6,  'full', 1.0, { origin: 'gaza' }),        // Gaza
+  threat(19, 99, 'drone',     'Beersheba',       true,  10, 'full', 1.0, { origin: 'north' }),       // Lebanon
+  // Closing quad — tight 2-3s gaps
+  threat(20, 105,'ballistic', 'Jerusalem',       true,  10, 'full', 0.35, { origin: 'east' }),       // Iran
+  threat(21, 107,'cruise',    'Netanya',         true,  9,  'full', 1.0, { origin: 'east' }),        // Iran
+  threat(22, 109,'rocket',    'Beersheba',       true,  6,  'full', 1.0, { origin: 'gaza' }),        // Gaza (long range)
+  threat(23, 111,'drone',     'Northern Negev',  false, 10, 'full', 1.0, { origin: 'north' }),       // hold fire
+  // Extended tail — relentless
+  threat(24, 117,'ballistic', 'Tel Aviv',        true,  11, 'full', 0.40, { origin: 'east' }),       // Iran
+  threat(25, 121,'rocket',    'Sderot',          true,  6,  'full', 1.0, { origin: 'gaza' }),        // Gaza
+  threat(26, 125,'cruise',    'Haifa',           true,  9,  'full', 1.0, { origin: 'east' }),        // Iran
+  threat(27, 129,'drone',     'Ashkelon',        true,  9,  'full', 1.0, { origin: 'north' }),       // Lebanon
+  threat(28, 133,'ballistic', 'Beersheba',       true,  10, 'full', 0.40, { origin: 'east' }),       // Iran
+  threat(29, 137,'rocket',    'Netivot',         true,  6,  'full', 1.0, { origin: 'gaza' }),        // Gaza
+  threat(30, 141,'cruise',    'Jerusalem',       true,  9,  'full', 1.0, { origin: 'east' }),        // Iran
 ];
 
 // ============================================================
 // LEVEL 5: Full Country — Hypersonic + all types, introduces Arrow 3
-// Duration: 150s | 26 threats
+// Duration: 150s | 31 threats
 // Geography: Full country view. Unpopulated region outlines added.
 // NEW: hypersonic glide vehicles from Iran.
 // All directions, all cities targetable.
 // ============================================================
 const THREATS_L5 = [
-  // Warm-up — 6s gaps
-  threat(1,  4,  'drone',      'Beersheba',       true,  12, 'full', 1.0, { origin: 'north' }),       // Lebanon
-  threat(2,  10, 'cruise',     'Haifa',           true,  10, 'full', 1.0, { origin: 'east' }),        // Iran
-  threat(3,  17, 'ballistic',  'Negev Desert',    false, 12, 'full', 0.45, { origin: 'east' }),       // hold fire, Iran
+  // Warm-up — 5s gaps
+  threat(1,  4,  'drone',      'Beersheba',       true,  11, 'full', 1.0, { origin: 'north' }),       // Lebanon
+  threat(2,  9,  'cruise',     'Haifa',           true,  10, 'full', 1.0, { origin: 'east' }),        // Iran
+  threat(3,  15, 'ballistic',  'Negev Desert',    false, 11, 'full', 0.45, { origin: 'east' }),       // hold fire, Iran
   // First hypersonic! From Iran — the teaching moment
-  threat(4,  26, 'hypersonic', 'Tel Aviv',        true,  10, 'full', 0.40, { origin: 'east' }),       // Iran
-  threat(5,  34, 'rocket',     'Sderot',          true,  7,  'full', 1.0, { origin: 'gaza' }),        // Gaza
-  threat(6,  40, 'hypersonic', 'Jerusalem',       true,   9, 'full', 0.35, { origin: 'east' }),       // Iran
-  // Mixed pairs — 5s gaps
-  threat(7,  48, 'cruise',     'Netanya',         true,  10, 'full', 1.0, { origin: 'east' }),        // Iran
-  threat(8,  50, 'ballistic',  'Beersheba',       true,  11, 'full', 0.40, { origin: 'east' }),       // Iran
-  threat(9,  58, 'hypersonic', 'Dead Sea Region', false,  9, 'full', 0.50, { origin: 'east' }),       // hold fire, Iran
-  threat(10, 64, 'drone',      'Ashkelon',        true,  11, 'full', 1.0, { origin: 'north' }),       // Lebanon
+  threat(4,  22, 'hypersonic', 'Tel Aviv',        true,  10, 'full', 0.40, { origin: 'east' }),       // Iran
+  threat(5,  29, 'rocket',     'Sderot',          true,  7,  'full', 1.0, { origin: 'gaza' }),        // Gaza
+  threat(6,  35, 'hypersonic', 'Jerusalem',       true,   9, 'full', 0.35, { origin: 'east' }),       // Iran
+  // Mixed pairs — 4s gaps
+  threat(7,  42, 'cruise',     'Netanya',         true,  10, 'full', 1.0, { origin: 'east' }),        // Iran
+  threat(8,  44, 'ballistic',  'Beersheba',       true,  11, 'full', 0.40, { origin: 'east' }),       // Iran
+  threat(9,  50, 'hypersonic', 'Dead Sea Region', false,  9, 'full', 0.50, { origin: 'east' }),       // hold fire, Iran
+  threat(10, 55, 'drone',      'Ashkelon',        true,  10, 'full', 1.0, { origin: 'north' }),       // Lebanon
+  threat(11, 59, 'cruise',     'Tel Aviv',        true,   9, 'full', 1.0, { origin: 'east' }),        // Iran
   // Escalation — triple
-  threat(11, 73, 'ballistic',  'Dimona',          true,  11, 'full', 0.35, { origin: 'east', priority: true }),  // Iran
-  threat(12, 75, 'hypersonic', 'Haifa',           true,   9, 'full', 0.35, { origin: 'east' }),       // Iran
-  threat(13, 77, 'rocket',     'Ashdod',          true,  7,  'full', 1.0, { origin: 'gaza' }),        // Gaza
-  // More mixed
-  threat(14, 86, 'cruise',     'Tel Aviv',        true,  10, 'full', 1.0, { origin: 'east' }),        // Iran
-  threat(15, 92, 'drone',      'Golan Heights',   false, 12, 'full', 1.0, { origin: 'northeast' }),   // hold fire, Syria
-  threat(16, 100,'rocket',     'Sderot',          true,  7,  'full', 1.0, { origin: 'gaza' }),        // Gaza
-  threat(17, 107,'hypersonic', 'Jerusalem',       true,   9, 'full', 0.35, { origin: 'east' }),       // Iran
-  threat(18, 114,'ballistic',  'Eilat',           true,  11, 'full', 0.40, { origin: 'east' }),       // Iran
-  threat(19, 123,'cruise',     'Netanya',         true,  10, 'full', 1.0, { origin: 'east' }),        // Iran
+  threat(12, 65, 'ballistic',  'Dimona',          true,  11, 'full', 0.35, { origin: 'east', priority: true }),  // Iran
+  threat(13, 67, 'hypersonic', 'Haifa',           true,   9, 'full', 0.35, { origin: 'east' }),       // Iran
+  threat(14, 69, 'rocket',     'Ashdod',          true,  6,  'full', 1.0, { origin: 'gaza' }),        // Gaza
+  // More mixed — compressed
+  threat(15, 76, 'cruise',     'Tel Aviv',        true,   9, 'full', 1.0, { origin: 'east' }),        // Iran
+  threat(16, 81, 'drone',      'Golan Heights',   false, 11, 'full', 1.0, { origin: 'northeast' }),   // hold fire, Syria
+  threat(17, 86, 'rocket',     'Sderot',          true,  6,  'full', 1.0, { origin: 'gaza' }),        // Gaza
+  threat(18, 91, 'hypersonic', 'Jerusalem',       true,   8, 'full', 0.35, { origin: 'east' }),       // Iran
+  threat(19, 96, 'ballistic',  'Eilat',           true,  10, 'full', 0.40, { origin: 'east' }),       // Iran
+  threat(20, 101,'drone',      'Beersheba',       true,  10, 'full', 1.0, { origin: 'southeast' }),   // Yemen
+  threat(21, 106,'cruise',     'Netanya',         true,   9, 'full', 1.0, { origin: 'east' }),        // Iran
+  threat(22, 111,'ballistic',  'Haifa',           true,  10, 'full', 0.40, { origin: 'east' }),       // Iran
   // Closing quad — tight 2s gaps
-  threat(20, 132,'hypersonic', 'Tel Aviv',        true,   9, 'full', 0.35, { origin: 'east' }),       // Iran
-  threat(21, 134,'cruise',     'Haifa',           true,  10, 'full', 1.0, { origin: 'east' }),        // Iran
-  threat(22, 136,'ballistic',  'Beersheba',       true,  11, 'full', 0.40, { origin: 'east' }),       // Iran
-  threat(23, 138,'rocket',     'Sderot',          true,  7,  'full', 1.0, { origin: 'gaza' }),        // Gaza
-  threat(24, 140,'drone',      'Northern Negev',  false, 12, 'full', 1.0, { origin: 'north' }),       // hold fire
-  // Extended tail
-  threat(25, 142,'hypersonic', 'Dimona',          true,   8, 'full', 0.35, { origin: 'east', priority: true }),  // Iran
-  threat(26, 143,'rocket',     'Ashkelon',        true,  7,  'full', 1.0, { origin: 'gaza' }),        // Gaza
+  threat(23, 117,'hypersonic', 'Tel Aviv',        true,   8, 'full', 0.35, { origin: 'east' }),       // Iran
+  threat(24, 119,'cruise',     'Haifa',           true,   9, 'full', 1.0, { origin: 'east' }),        // Iran
+  threat(25, 121,'ballistic',  'Beersheba',       true,  10, 'full', 0.40, { origin: 'east' }),       // Iran
+  threat(26, 123,'rocket',     'Sderot',          true,   6, 'full', 1.0, { origin: 'gaza' }),        // Gaza
+  threat(27, 126,'drone',      'Northern Negev',  false, 10, 'full', 1.0, { origin: 'north' }),       // hold fire
+  // Extended tail — compressed
+  threat(28, 131,'hypersonic', 'Dimona',          true,   8, 'full', 0.35, { origin: 'east', priority: true }),  // Iran
+  threat(29, 135,'rocket',     'Ashkelon',        true,   6, 'full', 1.0, { origin: 'gaza' }),        // Gaza
+  threat(30, 139,'hypersonic', 'Jerusalem',       true,   8, 'full', 0.35, { origin: 'east' }),       // Iran
+  threat(31, 142,'rocket',     'Netivot',         true,   6, 'full', 1.0, { origin: 'gaza' }),        // Gaza
 ];
 
 // ============================================================
 // LEVEL 6: Wave-based assault — all types, all systems
-// Duration: 180s | 25 threats in clear waves (added 1 filler)
+// Duration: 150s | 37 threats in clear waves
 // Wave gaps: 10-12s, tightening to near-overlap at end
 // ============================================================
 const THREATS_L6 = [
   // WAVE 1: Easy warm-up pair
-  threat(1,  4,  'drone',      'Arad',            true,  14, 'full', 1.0, { origin: 'southeast' }),   // Yemen — new city
+  threat(1,  4,  'drone',      'Arad',            true,  13, 'full', 1.0, { origin: 'southeast' }),   // Yemen — new city
   threat(2,  6,  'rocket',     'Be\'eri',         true,  7,  'full', 1.0, { origin: 'gaza' }),        // Gaza — new city
   // WAVE 2: Add cruise + hold fire
-  threat(3,  16, 'cruise',     'Tel Aviv',        true,  11, 'full', 1.0, { origin: 'east' }),        // Iran
-  threat(4,  18, 'drone',      'Negev Desert',    false, 13, 'full', 1.0, { origin: 'southeast' }),   // hold fire
+  threat(3,  14, 'cruise',     'Tel Aviv',        true,  10, 'full', 1.0, { origin: 'east' }),        // Iran
+  threat(4,  16, 'drone',      'Negev Desert',    false, 12, 'full', 1.0, { origin: 'southeast' }),   // hold fire
   // WAVE 3: All types mixed
-  threat(5,  30, 'ballistic',  'Jerusalem',       true,  12, 'full', 0.40, { origin: 'east' }),       // Iran
-  threat(6,  32, 'cruise',     'Akko',            true,  10, 'full', 1.0, { origin: 'north' }),       // Lebanon — new city
-  threat(7,  34, 'rocket',     'Kfar Aza',        true,  7,  'full', 1.0, { origin: 'gaza' }),        // Gaza — new city
+  threat(5,  26, 'ballistic',  'Jerusalem',       true,  11, 'full', 0.40, { origin: 'east' }),       // Iran
+  threat(6,  28, 'cruise',     'Akko',            true,  9,  'full', 1.0, { origin: 'north' }),       // Lebanon — new city
+  threat(7,  29, 'rocket',     'Kfar Aza',        true,  7,  'full', 1.0, { origin: 'gaza' }),        // Gaza — new city
   // WAVE 4: Hypersonic + ballistic
-  threat(8,  46, 'hypersonic', 'Tel Aviv',        true,  10, 'full', 0.40, { origin: 'east' }),       // Iran
-  threat(9,  48, 'ballistic',  'Beersheba',       true,  11, 'full', 0.40, { origin: 'east' }),       // Iran
-  threat(10, 50, 'drone',      'Arava Valley',    false, 12, 'full', 1.0, { origin: 'southeast' }),   // hold fire
+  threat(8,  40, 'hypersonic', 'Tel Aviv',        true,   9, 'full', 0.40, { origin: 'east' }),       // Iran
+  threat(9,  41, 'ballistic',  'Beersheba',       true,  10, 'full', 0.40, { origin: 'east' }),       // Iran
+  threat(10, 43, 'drone',      'Arava Valley',    false, 11, 'full', 1.0, { origin: 'southeast' }),   // hold fire
   // WAVE 5: Heavy pressure — 4 simultaneous
-  threat(11, 62, 'cruise',     'Petah Tikva',     true,  10, 'full', 1.0, { origin: 'north' }),       // Lebanon — new city
-  threat(12, 62, 'rocket',     'Sderot',          true,  7,  'full', 1.0, { origin: 'gaza' }),        // Gaza
-  threat(13, 64, 'ballistic',  'Dimona',          true,  11, 'full', 0.35, { origin: 'east', priority: true }),  // Iran
-  threat(14, 64, 'hypersonic', 'Haifa',           true,   9, 'full', 0.35, { origin: 'east' }),       // Iran
+  threat(11, 53, 'cruise',     'Petah Tikva',     true,   9, 'full', 1.0, { origin: 'north' }),       // Lebanon — new city
+  threat(12, 53, 'rocket',     'Sderot',          true,   6, 'full', 1.0, { origin: 'gaza' }),        // Gaza
+  threat(13, 55, 'ballistic',  'Dimona',          true,  10, 'full', 0.35, { origin: 'east', priority: true }),  // Iran
+  threat(14, 55, 'hypersonic', 'Haifa',           true,   8, 'full', 0.35, { origin: 'east' }),       // Iran
   // WAVE 6: Mixed with hold fires
-  threat(15, 78, 'drone',      'Rishon LeZion',   true,  12, 'full', 1.0, { origin: 'east' }),        // new city
-  threat(16, 78, 'cruise',     'Dead Sea Region', false, 10, 'full', 1.0, { origin: 'east' }),        // hold fire, Iran
-  threat(17, 80, 'ballistic',  'Jerusalem',       true,  11, 'full', 0.40, { origin: 'east' }),       // Iran
-  threat(18, 80, 'rocket',     'Ashkelon',        true,  7,  'full', 1.0, { origin: 'gaza' }),        // Gaza
+  threat(15, 67, 'drone',      'Rishon LeZion',   true,  11, 'full', 1.0, { origin: 'east' }),        // new city
+  threat(16, 67, 'cruise',     'Dead Sea Region', false,  9, 'full', 1.0, { origin: 'east' }),        // hold fire, Iran
+  threat(17, 68, 'ballistic',  'Jerusalem',       true,  10, 'full', 0.40, { origin: 'east' }),       // Iran
+  threat(18, 68, 'rocket',     'Ashkelon',        true,   6, 'full', 1.0, { origin: 'gaza' }),        // Gaza
   // WAVE 7: Escalation
-  threat(19, 95, 'hypersonic', 'Beersheba',       true,   9, 'full', 0.40, { origin: 'east' }),       // Iran
-  threat(20, 97, 'cruise',     'Holon',           true,  10, 'full', 1.0, { origin: 'east' }),        // Iran — new city
-  threat(21, 99, 'rocket',     'Netivot',         true,  7,  'full', 1.0, { origin: 'gaza' }),        // Gaza — new city
+  threat(19, 81, 'hypersonic', 'Beersheba',       true,   8, 'full', 0.40, { origin: 'east' }),       // Iran
+  threat(20, 83, 'cruise',     'Holon',           true,   9, 'full', 1.0, { origin: 'east' }),        // Iran — new city
+  threat(21, 84, 'rocket',     'Netivot',         true,   6, 'full', 1.0, { origin: 'gaza' }),        // Gaza — new city
   // WAVE 8: Sustained pressure
-  threat(22, 110,'ballistic',  'Haifa',           true,  11, 'full', 0.40, { origin: 'east' }),       // Iran
-  threat(23, 112,'drone',      'Katzrin',         true,  11, 'full', 1.0, { origin: 'northeast' }),   // Syria — new city
-  threat(24, 114,'hypersonic', 'Jerusalem',       true,   9, 'full', 0.35, { origin: 'east' }),       // Iran
-  threat(25, 114,'rocket',     'Ashdod',          true,  7,  'full', 1.0, { origin: 'gaza' }),        // Gaza
+  threat(22, 94, 'ballistic',  'Haifa',           true,  10, 'full', 0.40, { origin: 'east' }),       // Iran
+  threat(23, 95, 'drone',      'Katzrin',         true,  10, 'full', 1.0, { origin: 'northeast' }),   // Syria — new city
+  threat(24, 97, 'hypersonic', 'Jerusalem',       true,   8, 'full', 0.35, { origin: 'east' }),       // Iran
+  threat(25, 97, 'rocket',     'Ashdod',          true,   6, 'full', 1.0, { origin: 'gaza' }),        // Gaza
   // WAVE 9: Heavy quad
-  threat(26, 128,'cruise',     'Netanya',         true,  10, 'full', 1.0, { origin: 'north' }),       // Lebanon
-  threat(27, 128,'ballistic',  'Tel Aviv',        true,  11, 'full', 0.40, { origin: 'east' }),       // Iran
-  threat(28, 130,'hypersonic', 'Dimona',          true,   9, 'full', 0.35, { origin: 'east', priority: true }),  // Iran
-  threat(29, 130,'rocket',     'Majdal Shams',    true,  7,  'full', 1.0, { origin: 'northeast' }),   // Syria — new city
+  threat(26, 109,'cruise',     'Netanya',         true,   9, 'full', 1.0, { origin: 'north' }),       // Lebanon
+  threat(27, 109,'ballistic',  'Tel Aviv',        true,  10, 'full', 0.40, { origin: 'east' }),       // Iran
+  threat(28, 111,'hypersonic', 'Dimona',          true,   8, 'full', 0.35, { origin: 'east', priority: true }),  // Iran
+  threat(29, 111,'rocket',     'Majdal Shams',    true,   6, 'full', 1.0, { origin: 'northeast' }),   // Syria — new city
   // WAVE 10: Final massive wave
-  threat(30, 145,'hypersonic', 'Tel Aviv',        true,   9, 'full', 0.35, { origin: 'east' }),       // Iran
-  threat(31, 145,'ballistic',  'Haifa',           true,  11, 'full', 0.40, { origin: 'east' }),       // Iran
-  threat(32, 147,'cruise',     'Beersheba',       true,  10, 'full', 1.0, { origin: 'east' }),        // Iran
-  threat(33, 147,'drone',      'Nahariya',        true,  12, 'full', 1.0, { origin: 'north' }),       // Lebanon
-  threat(34, 149,'rocket',     'Re\'im',          true,  7,  'full', 1.0, { origin: 'gaza' }),        // Gaza — new city
-  threat(35, 149,'hypersonic', 'Central Negev',   false,  9, 'full', 0.50, { origin: 'east' }),       // hold fire, Iran
+  threat(30, 123,'hypersonic', 'Tel Aviv',        true,   8, 'full', 0.35, { origin: 'east' }),       // Iran
+  threat(31, 123,'ballistic',  'Haifa',           true,  10, 'full', 0.40, { origin: 'east' }),       // Iran
+  threat(32, 125,'cruise',     'Beersheba',       true,   9, 'full', 1.0, { origin: 'east' }),        // Iran
+  threat(33, 125,'drone',      'Nahariya',        true,  11, 'full', 1.0, { origin: 'north' }),       // Lebanon
+  threat(34, 127,'rocket',     'Re\'im',          true,   6, 'full', 1.0, { origin: 'gaza' }),        // Gaza — new city
+  threat(35, 127,'hypersonic', 'Central Negev',   false,  8, 'full', 0.50, { origin: 'east' }),       // hold fire, Iran
   // Trailing threats
-  threat(36, 160,'ballistic',  'Jerusalem',       true,  11, 'full', 0.35, { origin: 'east' }),       // Iran
-  threat(37, 165,'rocket',     'Sderot',          true,  7,  'full', 1.0, { origin: 'gaza' }),        // Gaza
+  threat(36, 136,'ballistic',  'Jerusalem',       true,  10, 'full', 0.35, { origin: 'east' }),       // Iran
+  threat(37, 140,'rocket',     'Sderot',          true,   6, 'full', 1.0, { origin: 'gaza' }),        // Gaza
 ];
 
 // ============================================================
 // LEVEL 7: Final Stand — massive salvos, limited ammo
-// Duration: 180s | 31 threats (added 3 fillers), tight ammo
+// Duration: 150s | 40 threats, tight ammo
 // Gaps: 2-4s, relentless pressure
 // ============================================================
 const THREATS_L7 = [
-  // Opening — deceptively calm, 4s gaps
-  threat(1,  4,  'drone',      'Arad',            true,  13, 'full', 1.0, { origin: 'southeast' }),   // Yemen — new city
-  threat(2,  8,  'rocket',     'Northern Negev',  false, 12, 'full', 1.0, { origin: 'gaza' }),        // hold fire, Gaza
-  threat(3,  14, 'cruise',     'Akko',            true,  10, 'full', 1.0, { origin: 'north' }),       // Lebanon — new city
-  threat(4,  20, 'ballistic',  'Negev Desert',    false, 12, 'full', 0.45, { origin: 'east' }),       // hold fire, Iran
+  // Opening — deceptively calm
+  threat(1,  4,  'drone',      'Arad',            true,  12, 'full', 1.0, { origin: 'southeast' }),   // Yemen — new city
+  threat(2,  8,  'rocket',     'Northern Negev',  false, 11, 'full', 1.0, { origin: 'gaza' }),        // hold fire, Gaza
+  threat(3,  13, 'cruise',     'Akko',            true,   9, 'full', 1.0, { origin: 'north' }),       // Lebanon — new city
+  threat(4,  18, 'ballistic',  'Negev Desert',    false, 11, 'full', 0.45, { origin: 'east' }),       // hold fire, Iran
   // Pressure builds — 3s gaps, must be selective
-  threat(5,  28, 'hypersonic', 'Tel Aviv',        true,  10, 'full', 0.40, { origin: 'east' }),       // Iran
-  threat(6,  30, 'rocket',     'Kfar Aza',        true,  7,  'full', 1.0, { origin: 'gaza' }),        // Gaza — new city
-  threat(7,  33, 'drone',      'Arava Valley',    false, 12, 'full', 1.0, { origin: 'southeast' }),   // hold fire
+  threat(5,  25, 'hypersonic', 'Tel Aviv',        true,   9, 'full', 0.40, { origin: 'east' }),       // Iran
+  threat(6,  27, 'rocket',     'Kfar Aza',        true,   6, 'full', 1.0, { origin: 'gaza' }),        // Gaza — new city
+  threat(7,  30, 'drone',      'Arava Valley',    false, 11, 'full', 1.0, { origin: 'southeast' }),   // hold fire
   // Salvos start — 3 at once
-  threat(8,  40, 'ballistic',  'Jerusalem',       true,  11, 'full', 0.40, { origin: 'east' }),       // Iran
-  threat(9,  40, 'cruise',     'Rishon LeZion',   true,  10, 'full', 1.0, { origin: 'east' }),        // Iran — new city
-  threat(10, 42, 'rocket',     'Ashkelon',        true,  7,  'full', 1.0, { origin: 'gaza' }),        // Gaza
+  threat(8,  36, 'ballistic',  'Jerusalem',       true,  10, 'full', 0.40, { origin: 'east' }),       // Iran
+  threat(9,  36, 'cruise',     'Rishon LeZion',   true,   9, 'full', 1.0, { origin: 'east' }),        // Iran — new city
+  threat(10, 38, 'rocket',     'Ashkelon',        true,   6, 'full', 1.0, { origin: 'gaza' }),        // Gaza
   // Bridge
-  threat(11, 51, 'drone',      'Petah Tikva',     true,  12, 'full', 1.0, { origin: 'east' }),        // new city
+  threat(11, 46, 'drone',      'Petah Tikva',     true,  11, 'full', 1.0, { origin: 'east' }),        // new city
   // More salvos — 4 at once
-  threat(12, 56, 'hypersonic', 'Haifa',           true,   9, 'full', 0.35, { origin: 'east' }),       // Iran
-  threat(13, 56, 'drone',      'Beersheba',       true,  12, 'full', 1.0, { origin: 'southeast' }),   // Yemen
-  threat(14, 58, 'ballistic',  'Dimona',          true,  11, 'full', 0.35, { origin: 'east', priority: true }),  // Iran
-  threat(15, 58, 'cruise',     'Central Negev',   false, 10, 'full', 1.0, { origin: 'east' }),        // hold fire, Iran
+  threat(12, 51, 'hypersonic', 'Haifa',           true,   8, 'full', 0.35, { origin: 'east' }),       // Iran
+  threat(13, 51, 'drone',      'Beersheba',       true,  11, 'full', 1.0, { origin: 'southeast' }),   // Yemen
+  threat(14, 52, 'ballistic',  'Dimona',          true,  10, 'full', 0.35, { origin: 'east', priority: true }),  // Iran
+  threat(15, 52, 'cruise',     'Central Negev',   false,  9, 'full', 1.0, { origin: 'east' }),        // hold fire, Iran
   // Relentless — 4 at once
-  threat(16, 68, 'hypersonic', 'Jerusalem',       true,   9, 'full', 0.35, { origin: 'east' }),       // Iran
-  threat(17, 68, 'ballistic',  'Netanya',         true,  11, 'full', 0.40, { origin: 'east' }),       // Iran
-  threat(18, 70, 'cruise',     'Holon',           true,  10, 'full', 1.0, { origin: 'east' }),        // Iran — new city
-  threat(19, 70, 'rocket',     'Be\'eri',         true,  7,  'full', 1.0, { origin: 'gaza' }),        // Gaza — new city
+  threat(16, 61, 'hypersonic', 'Jerusalem',       true,   8, 'full', 0.35, { origin: 'east' }),       // Iran
+  threat(17, 61, 'ballistic',  'Netanya',         true,  10, 'full', 0.40, { origin: 'east' }),       // Iran
+  threat(18, 63, 'cruise',     'Holon',           true,   9, 'full', 1.0, { origin: 'east' }),        // Iran — new city
+  threat(19, 63, 'rocket',     'Be\'eri',         true,   6, 'full', 1.0, { origin: 'gaza' }),        // Gaza — new city
   // Brief breather with hold fires
-  threat(20, 80, 'drone',      'Judean Hills',    false, 12, 'full', 1.0, { origin: 'east' }),        // hold fire
-  threat(21, 82, 'ballistic',  'Southern Negev',  false, 12, 'full', 0.45, { origin: 'east' }),       // hold fire, Iran
+  threat(20, 72, 'drone',      'Judean Hills',    false, 11, 'full', 1.0, { origin: 'east' }),        // hold fire
+  threat(21, 74, 'ballistic',  'Southern Negev',  false, 11, 'full', 0.45, { origin: 'east' }),       // hold fire, Iran
   // Sustained assault
-  threat(22, 92, 'cruise',     'Tel Aviv',        true,  10, 'full', 1.0, { origin: 'east' }),        // Iran
-  threat(23, 95, 'rocket',     'Netivot',         true,  7,  'full', 1.0, { origin: 'gaza' }),        // Gaza — new city
-  threat(24, 100,'hypersonic', 'Nahariya',        true,   9, 'full', 0.35, { origin: 'north' }),      // Lebanon — new city
-  threat(25, 103,'ballistic',  'Beersheba',       true,  11, 'full', 0.40, { origin: 'east' }),       // Iran
+  threat(22, 83, 'cruise',     'Tel Aviv',        true,   9, 'full', 1.0, { origin: 'east' }),        // Iran
+  threat(23, 85, 'rocket',     'Netivot',         true,   6, 'full', 1.0, { origin: 'gaza' }),        // Gaza — new city
+  threat(24, 90, 'hypersonic', 'Nahariya',        true,   8, 'full', 0.35, { origin: 'north' }),      // Lebanon — new city
+  threat(25, 93, 'ballistic',  'Beersheba',       true,  10, 'full', 0.40, { origin: 'east' }),       // Iran
   // More pressure
-  threat(26, 112,'cruise',     'Jerusalem',       true,  10, 'full', 1.0, { origin: 'east' }),        // Iran
-  threat(27, 115,'rocket',     'Sderot',          true,  7,  'full', 1.0, { origin: 'gaza' }),        // Gaza
-  threat(28, 118,'drone',      'Katzrin',         true,  11, 'full', 1.0, { origin: 'northeast' }),   // Syria — new city
-  threat(29, 122,'hypersonic', 'Dimona',          true,   9, 'full', 0.35, { origin: 'east', priority: true }),  // Iran
+  threat(26, 101,'cruise',     'Jerusalem',       true,   9, 'full', 1.0, { origin: 'east' }),        // Iran
+  threat(27, 103,'rocket',     'Sderot',          true,   6, 'full', 1.0, { origin: 'gaza' }),        // Gaza
+  threat(28, 106,'drone',      'Katzrin',         true,  10, 'full', 1.0, { origin: 'northeast' }),   // Syria — new city
+  threat(29, 110,'hypersonic', 'Dimona',          true,   8, 'full', 0.35, { origin: 'east', priority: true }),  // Iran
   // Build to final salvo
-  threat(30, 130,'ballistic',  'Haifa',           true,  11, 'full', 0.40, { origin: 'east' }),       // Iran
-  threat(31, 133,'rocket',     'Majdal Shams',    true,  7,  'full', 1.0, { origin: 'northeast' }),   // Syria — new city
-  threat(32, 137,'cruise',     'Netanya',         true,  10, 'full', 1.0, { origin: 'north' }),       // Lebanon
+  threat(30, 117,'ballistic',  'Haifa',           true,  10, 'full', 0.40, { origin: 'east' }),       // Iran
+  threat(31, 119,'rocket',     'Majdal Shams',    true,   6, 'full', 1.0, { origin: 'northeast' }),   // Syria — new city
+  threat(32, 123,'cruise',     'Netanya',         true,   9, 'full', 1.0, { origin: 'north' }),       // Lebanon
   // FINAL SALVO — 8 threats, overwhelming, tight 2s gaps
-  threat(33, 150,'hypersonic', 'Tel Aviv',        true,   9, 'full', 0.35, { origin: 'east', is_final_salvo: true }),      // Iran
-  threat(34, 150,'ballistic',  'Jerusalem',       true,  11, 'full', 0.35, { origin: 'east', is_final_salvo: true }),      // Iran
-  threat(35, 152,'cruise',     'Haifa',           true,  10, 'full', 1.0,  { origin: 'north', is_final_salvo: true }),     // Lebanon
-  threat(36, 152,'rocket',     'Beersheba',       true,  7,  'full', 1.0,  { origin: 'gaza', is_final_salvo: true }),      // Gaza
-  threat(37, 154,'hypersonic', 'Dimona',          true,   9, 'full', 0.35, { origin: 'east', is_final_salvo: true, priority: true }),  // Iran
-  threat(38, 154,'drone',      'Ashkelon',        true,  12, 'full', 1.0,  { origin: 'southeast', is_final_salvo: true }),  // Yemen
-  threat(39, 156,'ballistic',  'Netanya',         true,  11, 'full', 0.40, { origin: 'east', is_final_salvo: true }),      // Iran
-  threat(40, 156,'cruise',     'Northern Negev',  false, 10, 'full', 1.0,  { origin: 'east', is_final_salvo: true }),      // hold fire, Iran
+  threat(33, 135,'hypersonic', 'Tel Aviv',        true,   8, 'full', 0.35, { origin: 'east', is_final_salvo: true }),      // Iran
+  threat(34, 135,'ballistic',  'Jerusalem',       true,  10, 'full', 0.35, { origin: 'east', is_final_salvo: true }),      // Iran
+  threat(35, 136,'cruise',     'Haifa',           true,   9, 'full', 1.0,  { origin: 'north', is_final_salvo: true }),     // Lebanon
+  threat(36, 136,'rocket',     'Beersheba',       true,   6, 'full', 1.0,  { origin: 'gaza', is_final_salvo: true }),      // Gaza
+  threat(37, 138,'hypersonic', 'Dimona',          true,   8, 'full', 0.35, { origin: 'east', is_final_salvo: true, priority: true }),  // Iran
+  threat(38, 138,'drone',      'Ashkelon',        true,  11, 'full', 1.0,  { origin: 'southeast', is_final_salvo: true }),  // Yemen
+  threat(39, 140,'ballistic',  'Netanya',         true,  10, 'full', 0.40, { origin: 'east', is_final_salvo: true }),      // Iran
+  threat(40, 140,'cruise',     'Northern Negev',  false,  9, 'full', 1.0,  { origin: 'east', is_final_salvo: true }),      // hold fire, Iran
 ];
 
 // ============================================================
@@ -488,7 +509,7 @@ export const LEVELS = [
   {
     id: 1,
     duration: 120,
-    ammo: { iron_dome: 18 },
+    ammo: { iron_dome: 22 },
     available_systems: ['iron_dome'],
     auto_end_delay: 3000,
     new_system: null,
@@ -501,7 +522,7 @@ export const LEVELS = [
   {
     id: 2,
     duration: 120,
-    ammo: { iron_dome: 22 },
+    ammo: { iron_dome: 27 },
     available_systems: ['iron_dome'],
     auto_end_delay: 3000,
     new_system: null,
@@ -513,7 +534,7 @@ export const LEVELS = [
   // Level 3: Gush Dan & Jerusalem — Cruise Missiles + David's Sling
   {
     id: 3,
-    duration: 150,
+    duration: 120,
     ammo: { iron_dome: 12, davids_sling: 6 },
     available_systems: ['iron_dome', 'davids_sling'],
     auto_end_delay: 5000,
@@ -527,7 +548,7 @@ export const LEVELS = [
   {
     id: 4,
     duration: 150,
-    ammo: { iron_dome: 8, davids_sling: 5, arrow_2: 6 },
+    ammo: { iron_dome: 10, davids_sling: 6, arrow_2: 7 },
     available_systems: ['iron_dome', 'davids_sling', 'arrow_2'],
     auto_end_delay: 5000,
     new_system: { key: 'arrow_2', name: 'ARROW 2', shortcut: '3', color: '#ef4444' },
@@ -540,7 +561,7 @@ export const LEVELS = [
   {
     id: 5,
     duration: 150,
-    ammo: { iron_dome: 7, davids_sling: 5, arrow_2: 5, arrow_3: 4 },
+    ammo: { iron_dome: 9, davids_sling: 6, arrow_2: 6, arrow_3: 5 },
     available_systems: ['iron_dome', 'davids_sling', 'arrow_2', 'arrow_3'],
     auto_end_delay: 5000,
     new_system: { key: 'arrow_3', name: 'ARROW 3', shortcut: '4', color: '#a855f7' },
@@ -552,7 +573,7 @@ export const LEVELS = [
   // Level 6: Wave-based assault — all types
   {
     id: 6,
-    duration: 180,
+    duration: 150,
     ammo: { iron_dome: 8, davids_sling: 6, arrow_2: 6, arrow_3: 5 },
     available_systems: ['iron_dome', 'davids_sling', 'arrow_2', 'arrow_3'],
     auto_end_delay: 6000,
@@ -565,14 +586,14 @@ export const LEVELS = [
   // Level 7: Final Stand — massive salvos, limited ammo
   {
     id: 7,
-    duration: 180,
+    duration: 150,
     ammo: { iron_dome: 7, davids_sling: 5, arrow_2: 5, arrow_3: 4 },
     available_systems: ['iron_dome', 'davids_sling', 'arrow_2', 'arrow_3'],
     auto_end_delay: 8000,
     new_system: null,
     new_threat: null,
-    final_salvo_warning_time: 130,
-    final_salvo_start_time: 150,
+    final_salvo_warning_time: 115,
+    final_salvo_start_time: 135,
     threats: THREATS_L7,
   },
 ];

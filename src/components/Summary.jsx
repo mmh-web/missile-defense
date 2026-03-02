@@ -60,12 +60,16 @@ export default function Summary({ stats, levelStats, onReset }) {
           <div className="h-px bg-green-900 w-48 mx-auto" />
         </div>
 
-        {/* Rating + Score */}
-        <div className="text-center mb-6 py-5 border border-green-900/50 rounded-lg bg-green-950/20">
+        {/* Total Score — prominent */}
+        <div className="text-center mb-5 py-6 border border-green-900/50 rounded-lg bg-green-950/20">
+          <div className="text-xs text-gray-500 font-mono tracking-widest mb-2">TOTAL SCORE</div>
+          <div className="text-6xl font-bold font-mono text-green-400 tabular-nums mb-4">
+            {totalScore}
+          </div>
           <div className="text-3xl font-bold font-mono text-white tracking-wider mb-2">
             {rating.label}
           </div>
-          <div className="text-3xl tracking-wider mb-3">
+          <div className="text-3xl tracking-wider">
             {stars.map((filled, i) => (
               <span
                 key={i}
@@ -74,10 +78,6 @@ export default function Summary({ stats, levelStats, onReset }) {
                 &#9733;
               </span>
             ))}
-          </div>
-          <div className="text-xs text-gray-500 font-mono tracking-widest mb-1">CAMPAIGN SCORE</div>
-          <div className="text-4xl font-bold font-mono text-green-400 tabular-nums">
-            {totalScore}
           </div>
         </div>
 

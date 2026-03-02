@@ -368,13 +368,13 @@ export default function App() {
 
       {/* Top bar */}
       <div className="flex items-center justify-between px-4 py-2 border-b border-gray-800/50 bg-[#080c16]">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 whitespace-nowrap">
           <span className="text-green-500 font-mono text-xs tracking-widest">
-            MISSILE DEFENSE
+            LEVEL {currentLevel}
           </span>
           <span className="text-gray-700 font-mono text-xs">|</span>
           <span className="font-mono text-xs tracking-wider text-green-500">
-            LEVEL {currentLevel}
+            {({ 1: 'SOUTHERN FRONT', 2: 'NORTHERN FRONT', 3: 'CRUISE THREAT', 4: 'BALLISTIC ARC', 5: 'HYPERSONIC STRIKE', 6: 'WAVE ASSAULT', 7: 'FINAL STAND' })[currentLevel] || ''}
           </span>
         </div>
 
