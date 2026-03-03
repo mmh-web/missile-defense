@@ -31,7 +31,8 @@ export default function App() {
   const briefingMusicRef = useRef(null);
   const [musicMuted, setMusicMuted] = useState(false);
   const cheatBufferRef = useRef([]);
-  const [cheatHints, setCheatHints] = useState(0); // 0-4: number of correct letters typed
+  const [cheatHints, setCheatHints] = useState(0);    // letters matched so far
+  const [cheatMaxHints, setCheatMaxHints] = useState(4); // total letters in active code
 
   const {
     gameState,
@@ -53,6 +54,8 @@ export default function App() {
     screenShake,
     tzurActive,
     triggerTzurMode,
+    sashaActive,
+    triggerSashaMode,
     startCampaign,
     startLevel,
     advanceLevel,
@@ -110,28 +113,42 @@ export default function App() {
   // Keyboard handling
   useEffect(() => {
     const handleKeyDown = (e) => {
-      // === TZUR cheat code detection (Level 1 only) ===
-      const CHEAT_CODE = ['t', 'z', 'u', 'r'];
-      if (gameState === GAME_STATES.ACTIVE && !tzurActive) {
+      // === Cheat code detection (multi-code: tzur, sasha) ===
+      const CHEAT_CODES = [
+        { keys: ['t', 'z', 'u', 'r'], trigger: triggerTzurMode, blocked: tzurActive },
+        { keys: ['s', 'a', 's', 'h', 'a'], trigger: triggerSashaMode, blocked: sashaActive },
+      ];
+      if (gameState === GAME_STATES.ACTIVE && !tzurActive && !sashaActive) {
         const buf = cheatBufferRef.current;
         const key = e.key.toLowerCase();
-        if (key === CHEAT_CODE[buf.length]) {
-          buf.push(key);
-          setCheatHints(buf.length);
-          if (buf.length === 4) {
-            // Code complete!
-            cheatBufferRef.current = [];
-            setCheatHints(0);
-            triggerTzurMode();
-          }
-        } else if (key === CHEAT_CODE[0]) {
-          // Wrong key but matches start — restart sequence
-          cheatBufferRef.current = [key];
-          setCheatHints(1);
-        } else {
-          // Wrong key — reset
+        buf.push(key);
+
+        // Check if buffer matches any code completely
+        const complete = CHEAT_CODES.find((c) => !c.blocked && c.keys.length === buf.length && c.keys.every((k, i) => k === buf[i]));
+        if (complete) {
           cheatBufferRef.current = [];
           setCheatHints(0);
+          setCheatMaxHints(4);
+          complete.trigger();
+          return;
+        }
+
+        // Check if buffer is a prefix of any code
+        const prefixMatch = CHEAT_CODES.find((c) => !c.blocked && buf.length < c.keys.length && c.keys.slice(0, buf.length).every((k, i) => k === buf[i]));
+        if (prefixMatch) {
+          setCheatHints(buf.length);
+          setCheatMaxHints(prefixMatch.keys.length);
+        } else {
+          // No prefix match — check if single key starts any code
+          const restart = CHEAT_CODES.find((c) => !c.blocked && c.keys[0] === key);
+          if (restart) {
+            cheatBufferRef.current = [key];
+            setCheatHints(1);
+            setCheatMaxHints(restart.keys.length);
+          } else {
+            cheatBufferRef.current = [];
+            setCheatHints(0);
+          }
         }
       }
 
@@ -206,7 +223,7 @@ export default function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [gameState, paused, togglePause, handleAction, activeThreats, selectedThreatId, setSelectedThreatId, GAME_STATES, config, currentLevel, tzurActive, triggerTzurMode]);
+  }, [gameState, paused, togglePause, handleAction, activeThreats, selectedThreatId, setSelectedThreatId, GAME_STATES, config, currentLevel, tzurActive, triggerTzurMode, sashaActive, triggerSashaMode]);
 
   const handleCloseFacilitator = useCallback(() => {
     setShowFacilitator(false);
@@ -493,6 +510,7 @@ export default function App() {
             activeTrails={activeTrails}
             currentLevel={currentLevel}
             tzurActive={tzurActive}
+            sashaActive={sashaActive}
           />
         </div>
 
@@ -549,10 +567,24 @@ export default function App() {
         </div>
       )}
 
-      {/* Cheat code hint paw prints — subtle corner indicator */}
-      {cheatHints > 0 && !tzurActive && (
+      {/* SASHA MODE banner */}
+      {sashaActive && (
+        <div className="absolute inset-x-0 top-12 z-25 flex justify-center pointer-events-none sasha-banner-appear">
+          <div className="bg-cyan-950/90 border-2 border-cyan-400 rounded-lg px-8 py-4 text-center">
+            <div className="text-cyan-300 font-mono text-2xl font-bold tracking-wider">
+              LASER CAT PROTOCOL
+            </div>
+            <div className="font-mono text-xs mt-1 tracking-widest text-cyan-400 animate-pulse">
+              ENGAGED
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cheat code hint paw prints — dynamic count based on active code */}
+      {cheatHints > 0 && !tzurActive && !sashaActive && (
         <div className="absolute bottom-16 left-4 z-20 flex gap-1 pointer-events-none">
-          {[0, 1, 2, 3].map((i) => (
+          {Array.from({ length: cheatMaxHints }, (_, i) => (
             <span
               key={i}
               className={`text-lg transition-all duration-200 ${

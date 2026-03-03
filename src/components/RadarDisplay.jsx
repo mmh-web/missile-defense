@@ -363,6 +363,83 @@ function TeddyBearSVG({ cx, cy }) {
   );
 }
 
+// ============================================
+// Siamese Cat SVG — Sasha Cheat Code Easter Egg
+// ============================================
+function SiameseCatSVG({ cx, cy }) {
+  const s = 0.5;
+  return (
+    <g transform={`translate(${cx}, ${cy}) scale(${s})`}>
+      {/* === Tail — curving up behind === */}
+      <path d="M-3,8 Q-8,4 -9,-2 Q-9.5,-5 -8,-6" fill="none" stroke="#6B5244" strokeWidth="1.8" strokeLinecap="round" />
+      <circle cx="-8" cy="-6" r="0.8" fill="#3D2B1F" />
+
+      {/* === Body — slender, elegant === */}
+      <ellipse cx="0" cy="4" rx="5" ry="6.5" fill="#F5E6D3" stroke="#D4C4B0" strokeWidth="0.3" />
+      {/* Chest lighter area */}
+      <ellipse cx="0" cy="3" rx="3" ry="4" fill="#FAF0E6" />
+
+      {/* === Back legs (sitting pose) === */}
+      <ellipse cx="-3.5" cy="9.5" rx="2.8" ry="1.5" fill="#F5E6D3" stroke="#D4C4B0" strokeWidth="0.3" />
+      <ellipse cx="3.5" cy="9.5" rx="2.8" ry="1.5" fill="#F5E6D3" stroke="#D4C4B0" strokeWidth="0.3" />
+      {/* Dark paws */}
+      <ellipse cx="-3.5" cy="10.2" rx="1.5" ry="0.8" fill="#3D2B1F" />
+      <ellipse cx="3.5" cy="10.2" rx="1.5" ry="0.8" fill="#3D2B1F" />
+
+      {/* === Front paws === */}
+      <rect x="-2.5" y="7" width="2" height="4" rx="1" fill="#F5E6D3" stroke="#D4C4B0" strokeWidth="0.2" />
+      <rect x="0.5" y="7" width="2" height="4" rx="1" fill="#F5E6D3" stroke="#D4C4B0" strokeWidth="0.2" />
+      <ellipse cx="-1.5" cy="10.5" rx="1.2" ry="0.7" fill="#3D2B1F" />
+      <ellipse cx="1.5" cy="10.5" rx="1.2" ry="0.7" fill="#3D2B1F" />
+
+      {/* === Head — wedge-shaped === */}
+      <ellipse cx="0" cy="-5" rx="5.5" ry="5" fill="#F5E6D3" stroke="#D4C4B0" strokeWidth="0.3" />
+
+      {/* === Dark face mask (seal point) === */}
+      <ellipse cx="0" cy="-3.5" rx="3.5" ry="3" fill="#6B5244" opacity="0.7" />
+      <ellipse cx="0" cy="-4" rx="4" ry="2.5" fill="#3D2B1F" opacity="0.4" />
+
+      {/* === Ears — large, pointed === */}
+      <polygon points="-4.5,-8 -2,-14 0.5,-8" fill="#F5E6D3" stroke="#D4C4B0" strokeWidth="0.3" />
+      <polygon points="4.5,-8 2,-14 -0.5,-8" fill="#F5E6D3" stroke="#D4C4B0" strokeWidth="0.3" />
+      {/* Inner ears — dark */}
+      <polygon points="-3.8,-8.5 -2,-12.5 -0.2,-8.5" fill="#3D2B1F" opacity="0.6" />
+      <polygon points="3.8,-8.5 2,-12.5 0.2,-8.5" fill="#3D2B1F" opacity="0.6" />
+
+      {/* === Nose — dark pink === */}
+      <ellipse cx="0" cy="-3.2" rx="0.8" ry="0.5" fill="#8B5E5E" />
+
+      {/* === Mouth === */}
+      <path d="M-0.8,-2.8 Q0,-2 0.8,-2.8" fill="none" stroke="#3D2B1F" strokeWidth="0.3" strokeLinecap="round" />
+
+      {/* === Whiskers === */}
+      <line x1="-2" y1="-3" x2="-7" y2="-4" stroke="#D4C4B0" strokeWidth="0.2" opacity="0.6" />
+      <line x1="-2" y1="-2.5" x2="-7" y2="-2.5" stroke="#D4C4B0" strokeWidth="0.2" opacity="0.6" />
+      <line x1="-2" y1="-2" x2="-6.5" y2="-1" stroke="#D4C4B0" strokeWidth="0.2" opacity="0.6" />
+      <line x1="2" y1="-3" x2="7" y2="-4" stroke="#D4C4B0" strokeWidth="0.2" opacity="0.6" />
+      <line x1="2" y1="-2.5" x2="7" y2="-2.5" stroke="#D4C4B0" strokeWidth="0.2" opacity="0.6" />
+      <line x1="2" y1="-2" x2="6.5" y2="-1" stroke="#D4C4B0" strokeWidth="0.2" opacity="0.6" />
+
+      {/* === Eyes — bright blue with laser glow === */}
+      {/* Eye sockets */}
+      <ellipse cx="-2" cy="-5" rx="1.3" ry="1.1" fill="#1a1a2e" />
+      <ellipse cx="2" cy="-5" rx="1.3" ry="1.1" fill="#1a1a2e" />
+      {/* Blue irises */}
+      <ellipse cx="-2" cy="-5" rx="1" ry="0.9" fill="#3B82F6" />
+      <ellipse cx="2" cy="-5" rx="1" ry="0.9" fill="#3B82F6" />
+      {/* Vertical slit pupils */}
+      <ellipse cx="-2" cy="-5" rx="0.3" ry="0.8" fill="#0a0a1a" />
+      <ellipse cx="2" cy="-5" rx="0.3" ry="0.8" fill="#0a0a1a" />
+      {/* Laser glow around eyes */}
+      <ellipse cx="-2" cy="-5" rx="1.8" ry="1.5" fill="none" stroke="#06b6d4" strokeWidth="0.3" opacity="0.7" className="sasha-eye-glow" />
+      <ellipse cx="2" cy="-5" rx="1.8" ry="1.5" fill="none" stroke="#06b6d4" strokeWidth="0.3" opacity="0.7" className="sasha-eye-glow" />
+      {/* Eye glints */}
+      <circle cx="-1.5" cy="-5.3" r="0.3" fill="white" opacity="0.8" />
+      <circle cx="2.5" cy="-5.3" r="0.3" fill="white" opacity="0.8" />
+    </g>
+  );
+}
+
 export default function RadarDisplay({
   activeThreats,
   selectedThreatId,
@@ -373,6 +450,7 @@ export default function RadarDisplay({
   activeTrails = [],
   currentLevel = 1,
   tzurActive = false,
+  sashaActive = false,
 }) {
   const viewport = getViewportForLevel(currentLevel);
   const visibleCities = useMemo(() => getVisibleCities(currentLevel), [currentLevel]);
@@ -645,6 +723,36 @@ export default function RadarDisplay({
             {tzurActive && (
               <g className="tzur-bear-sequence">
                 <TeddyBearSVG cx={50} cy={50} />
+              </g>
+            )}
+
+            {/* === Siamese Cat + Laser Beams (Sasha Cheat Code) === */}
+            {sashaActive && (
+              <g>
+                {/* Laser beams from cat's eyes to each active threat */}
+                {activeThreats.filter((t) => !t.intercepted && !t.held).map((threat) => {
+                  const pos = getBlipPosition(threat);
+                  const svgPos = mapToSVG(pos.x, pos.y, viewport);
+                  // Cat eye positions in SVG coords: center(50,50), scale 0.5, eyes at local (-2,-5) and (2,-5)
+                  const leftEye = { x: 50 + (-2 * 0.5), y: 50 + (-5 * 0.5) };
+                  const rightEye = { x: 50 + (2 * 0.5), y: 50 + (-5 * 0.5) };
+                  return (
+                    <g key={`laser-${threat.id}`} className="sasha-laser-beam">
+                      {/* Glow beam (wide, faint) */}
+                      <line x1={leftEye.x} y1={leftEye.y} x2={svgPos.x} y2={svgPos.y} stroke="#06b6d4" strokeWidth="0.8" opacity="0.3" />
+                      <line x1={rightEye.x} y1={rightEye.y} x2={svgPos.x} y2={svgPos.y} stroke="#06b6d4" strokeWidth="0.8" opacity="0.3" />
+                      {/* Core beam (thin, bright) */}
+                      <line x1={leftEye.x} y1={leftEye.y} x2={svgPos.x} y2={svgPos.y} stroke="#22d3ee" strokeWidth="0.3" opacity="0.9" />
+                      <line x1={rightEye.x} y1={rightEye.y} x2={svgPos.x} y2={svgPos.y} stroke="#22d3ee" strokeWidth="0.3" opacity="0.9" />
+                      {/* Target dot */}
+                      <circle cx={svgPos.x} cy={svgPos.y} r="1.5" fill="#06b6d4" opacity="0.5" className="sasha-target-dot" />
+                    </g>
+                  );
+                })}
+                {/* Cat SVG on top of beams */}
+                <g className="sasha-cat-sequence">
+                  <SiameseCatSVG cx={50} cy={50} />
+                </g>
               </g>
             )}
 

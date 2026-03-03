@@ -981,3 +981,64 @@ button:focus-visible {
   0%   { opacity: 1; }
   100% { opacity: 0; }
 }
+
+/* ============================================
+   Sasha Cheat Code — Laser Cat Animations
+   ============================================ */
+
+/* Cat drop-in: slinky landing */
+.sasha-cat-sequence {
+  transform-origin: center;
+  animation:
+    sashaDropIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards,
+    sashaFadeOut 0.8s ease-in 3.8s forwards;
+}
+
+@keyframes sashaDropIn {
+  0%   { transform: translateY(-50px) scale(0.2); opacity: 0; }
+  60%  { transform: translateY(3px) scale(1.05); opacity: 1; }
+  80%  { transform: translateY(-2px) scale(0.97); opacity: 1; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+@keyframes sashaFadeOut {
+  0%   { opacity: 1; transform: scale(1); }
+  50%  { opacity: 0.6; transform: scale(1.05); }
+  100% { opacity: 0; transform: scale(0.4) translateY(-15px); }
+}
+
+/* Eye glow pulse while active */
+.sasha-eye-glow {
+  animation: sashaEyeGlow 0.4s ease-in-out infinite alternate;
+}
+
+@keyframes sashaEyeGlow {
+  0%   { opacity: 0.4; stroke-width: 0.2; }
+  100% { opacity: 1; stroke-width: 0.6; }
+}
+
+/* Laser beam flicker */
+.sasha-laser-beam line {
+  animation: sashaLaserFlicker 0.1s linear infinite alternate;
+}
+
+@keyframes sashaLaserFlicker {
+  0%   { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+
+/* Target dot pulse */
+.sasha-target-dot {
+  animation: sashaTargetPulse 0.3s ease-in-out infinite alternate;
+}
+
+@keyframes sashaTargetPulse {
+  0%   { r: 1; opacity: 0.3; }
+  100% { r: 2; opacity: 0.7; }
+}
+
+/* Sasha banner overlay */
+.sasha-banner-appear {
+  animation: tzurBannerAppear 0.5s ease-out forwards,
+             tzurBannerFade 1s ease-in 3.5s forwards;
+}

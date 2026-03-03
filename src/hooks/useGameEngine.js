@@ -78,6 +78,9 @@ export default function useGameEngine() {
   const [screenShake, setScreenShake] = useState(false);
   const [tzurActive, setTzurActive] = useState(false);
   const tzurUsedRef = useRef(false);
+  const [sashaActive, setSashaActive] = useState(false);
+  const sashaUsedRef = useRef(false);
+  const sashaIntervalRef = useRef(null);
 
   // Refs for stale closure avoidance
   const gameStateRef = useRef(gameState);
@@ -319,6 +322,82 @@ export default function useGameEngine() {
 
     // Bear fades out after 4.5s
     setTimeout(() => setTzurActive(false), 4500);
+  }, [addImpactFlash, getBlipPosition]);
+
+  // === SASHA MODE — laser cat cheat code (once per level, sustained 4s defense) ===
+  const triggerSashaMode = useCallback(() => {
+    if (sashaUsedRef.current) return;
+    if (gameStateRef.current !== GAME_STATES.ACTIVE) return;
+
+    sashaUsedRef.current = true;
+    setSashaActive(true);
+
+    // After 0.5s (cat lands), start zapping threats every 300ms
+    setTimeout(() => {
+      const zapThreat = () => {
+        const threats = activeThreatsRef.current.filter(
+          (t) => !t.intercepted && !t.held && !interceptedIdsRef.current.has(t.id)
+        );
+        if (threats.length === 0) return;
+
+        // Zap the most urgent threat first
+        const target = threats.sort((a, b) => a.timeLeft - b.timeLeft)[0];
+        interceptedIdsRef.current.add(target.id);
+        const { x: blipX, y: blipY } = getBlipPosition(target);
+
+        // Cyan laser trail from radar center (cat position) to threat
+        const trailId = Date.now() + Math.random();
+        const duration = 250;
+        setActiveTrails((prev) => [...prev, {
+          id: trailId,
+          startX: 0.5, startY: 0.5, // cat is at radar center in map coords
+          endX: blipX, endY: blipY,
+          color: '#06b6d4', // cyan laser
+          duration,
+        }]);
+        setTimeout(() => setActiveTrails((prev) => prev.filter((t) => t.id !== trailId)), duration + 400);
+
+        // Intercept flash + sound
+        setTimeout(() => {
+          addImpactFlash(target.impact_zone, 'intercept', target.type, { x: blipX, y: blipY });
+          playInterceptSound(volumeRef.current, target.type);
+        }, duration);
+
+        // Mark intercepted
+        setActiveThreats((prev) => prev.map((t) =>
+          t.id === target.id ? { ...t, intercepted: true, frozenTimeLeft: t.timeLeft } : t
+        ));
+
+        // Log + streak
+        setResultLog((prev) => [...prev, { ...target, result: 'correct_intercept', siren: false }]);
+        setStreak((s) => {
+          const next = s + 1;
+          setBestStreak((b) => Math.max(b, next));
+          return next;
+        });
+
+        // Remove after trail
+        const tid = target.id;
+        setTimeout(() => {
+          setActiveThreats((prev) => prev.filter((t) => t.id !== tid));
+        }, duration + 500);
+      };
+
+      // Immediate first zap, then every 300ms
+      zapThreat();
+      sashaIntervalRef.current = setInterval(zapThreat, 300);
+    }, 500);
+
+    // Stop zapping at 4s
+    setTimeout(() => {
+      if (sashaIntervalRef.current) {
+        clearInterval(sashaIntervalRef.current);
+        sashaIntervalRef.current = null;
+      }
+    }, 4000);
+
+    // Cat fades out after 4.5s
+    setTimeout(() => setSashaActive(false), 4500);
   }, [addImpactFlash, getBlipPosition]);
 
   // Trigger tzeva adom — non-blocking, brief flash (no timer penalty — points-based only)
@@ -763,10 +842,13 @@ export default function useGameEngine() {
     setActiveTrails([]);
     setScreenShake(false);
     setTzurActive(false);
+    setSashaActive(false);
     setPaused(false);
     spawnedIdsRef.current = new Set();
     interceptedIdsRef.current.clear();
     tzurUsedRef.current = false;
+    sashaUsedRef.current = false;
+    if (sashaIntervalRef.current) { clearInterval(sashaIntervalRef.current); sashaIntervalRef.current = null; }
     allSpawnedRef.current = false;
     lastTickRef.current = null;
     if (tzevaAdomTimerRef.current) clearTimeout(tzevaAdomTimerRef.current);
@@ -798,10 +880,13 @@ export default function useGameEngine() {
     setActiveTrails([]);
     setScreenShake(false);
     setTzurActive(false);
+    setSashaActive(false);
     setPaused(false);
     spawnedIdsRef.current = new Set();
     interceptedIdsRef.current.clear();
     tzurUsedRef.current = false;
+    sashaUsedRef.current = false;
+    if (sashaIntervalRef.current) { clearInterval(sashaIntervalRef.current); sashaIntervalRef.current = null; }
     allSpawnedRef.current = false;
     lastTickRef.current = null;
     if (tzevaAdomTimerRef.current) clearTimeout(tzevaAdomTimerRef.current);
@@ -874,9 +959,11 @@ export default function useGameEngine() {
     setActiveTrails([]);
     setScreenShake(false);
     setTzurActive(false);
+    setSashaActive(false);
     setPaused(false);
     spawnedIdsRef.current = new Set();
     interceptedIdsRef.current.clear();
+    if (sashaIntervalRef.current) { clearInterval(sashaIntervalRef.current); sashaIntervalRef.current = null; }
     allSpawnedRef.current = false;
     lastTickRef.current = null;
     // All levels go through Briefing first
@@ -911,10 +998,13 @@ export default function useGameEngine() {
     setActiveTrails([]);
     setScreenShake(false);
     setTzurActive(false);
+    setSashaActive(false);
     setPaused(false);
     spawnedIdsRef.current = new Set();
     interceptedIdsRef.current.clear();
     tzurUsedRef.current = false;
+    sashaUsedRef.current = false;
+    if (sashaIntervalRef.current) { clearInterval(sashaIntervalRef.current); sashaIntervalRef.current = null; }
     allSpawnedRef.current = false;
     lastTickRef.current = null;
   }, [stopSiren, escapeRoomStartTime]);
@@ -974,6 +1064,8 @@ export default function useGameEngine() {
     screenShake,
     tzurActive,
     triggerTzurMode,
+    sashaActive,
+    triggerSashaMode,
     startCampaign,
     startLevel,
     advanceLevel,
