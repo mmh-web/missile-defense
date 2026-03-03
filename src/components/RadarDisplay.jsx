@@ -285,6 +285,84 @@ function ThreatOriginArc({ origin }) {
 // ============================================
 // Main Component
 // ============================================
+// ============================================
+// Teddy Bear SVG — Tzur Cheat Code Easter Egg
+// ============================================
+function TeddyBearSVG({ cx, cy }) {
+  // Bear is drawn at center (cx, cy) in SVG viewBox coords
+  // Total size ~16 SVG units tall
+  const s = 0.55; // scale factor
+  return (
+    <g transform={`translate(${cx}, ${cy}) scale(${s})`}>
+      {/* === Ears === */}
+      <circle cx="-5.5" cy="-10" r="3.2" fill="#8B6914" stroke="#6B4F10" strokeWidth="0.4" />
+      <circle cx="-5.5" cy="-10" r="1.8" fill="#D4A44C" />
+      <circle cx="5.5" cy="-10" r="3.2" fill="#8B6914" stroke="#6B4F10" strokeWidth="0.4" />
+      <circle cx="5.5" cy="-10" r="1.8" fill="#D4A44C" />
+
+      {/* === Head === */}
+      <circle cx="0" cy="-6" r="6.5" fill="#C4943C" stroke="#8B6914" strokeWidth="0.4" />
+      {/* Muzzle */}
+      <ellipse cx="0" cy="-4" rx="3.5" ry="2.8" fill="#E8C97C" />
+      {/* Nose */}
+      <ellipse cx="0" cy="-4.8" rx="1.2" ry="0.8" fill="#2a1a0a" />
+      {/* Mouth */}
+      <path d="M-1.2,-4 Q0,-2.8 1.2,-4" fill="none" stroke="#2a1a0a" strokeWidth="0.4" strokeLinecap="round" />
+      {/* Smirk */}
+      <path d="M1.2,-4 Q2,-3.5 2.5,-3.8" fill="none" stroke="#2a1a0a" strokeWidth="0.3" strokeLinecap="round" />
+
+      {/* === Aviator Sunglasses === */}
+      {/* Bridge */}
+      <path d="M-1.5,-6.5 Q0,-5.8 1.5,-6.5" fill="none" stroke="#333" strokeWidth="0.5" />
+      {/* Earpieces */}
+      <line x1="-5" y1="-6.5" x2="-3.5" y2="-6.5" stroke="#333" strokeWidth="0.4" />
+      <line x1="5" y1="-6.5" x2="3.5" y2="-6.5" stroke="#333" strokeWidth="0.4" />
+      {/* Left lens */}
+      <path d="M-1.5,-6.5 Q-1.8,-8.2 -3.2,-8 Q-5,-7.8 -5,-6.5 Q-5,-5 -3,-4.8 Q-1.5,-5 -1.5,-6.5Z" fill="rgba(50,50,50,0.85)" stroke="#555" strokeWidth="0.3" />
+      {/* Right lens */}
+      <path d="M1.5,-6.5 Q1.8,-8.2 3.2,-8 Q5,-7.8 5,-6.5 Q5,-5 3,-4.8 Q1.5,-5 1.5,-6.5Z" fill="rgba(50,50,50,0.85)" stroke="#555" strokeWidth="0.3" />
+      {/* Glint on lenses */}
+      <ellipse cx="-3" cy="-7" rx="0.6" ry="0.3" fill="rgba(255,255,255,0.25)" transform="rotate(-15,-3,-7)" />
+      <ellipse cx="3.5" cy="-7" rx="0.6" ry="0.3" fill="rgba(255,255,255,0.25)" transform="rotate(-15,3.5,-7)" />
+
+      {/* === Body === */}
+      <ellipse cx="0" cy="4" rx="6" ry="7" fill="#C4943C" stroke="#8B6914" strokeWidth="0.4" />
+      {/* Tummy */}
+      <ellipse cx="0" cy="4.5" rx="3.8" ry="4.5" fill="#E8C97C" />
+
+      {/* === Left arm (waving) === */}
+      <path d="M-6,1 Q-10,-2 -9,-5" fill="none" stroke="#C4943C" strokeWidth="3" strokeLinecap="round" />
+      <circle cx="-9" cy="-5" r="1.8" fill="#C4943C" stroke="#8B6914" strokeWidth="0.3" />
+
+      {/* === Right arm (holding glock) === */}
+      <path d="M6,1 Q9,-1 10,-3" fill="none" stroke="#C4943C" strokeWidth="3" strokeLinecap="round" />
+      <circle cx="10" cy="-3" r="1.8" fill="#C4943C" stroke="#8B6914" strokeWidth="0.3" />
+
+      {/* === Glock in right paw === */}
+      <g transform="translate(11.5,-4) rotate(-30)">
+        {/* Slide */}
+        <rect x="0" y="-1.2" width="6" height="2.2" rx="0.3" fill="#444" stroke="#222" strokeWidth="0.2" />
+        {/* Barrel */}
+        <rect x="5.5" y="-0.7" width="2" height="1.2" rx="0.2" fill="#555" stroke="#333" strokeWidth="0.15" />
+        {/* Grip */}
+        <rect x="0.5" y="1" width="2.2" height="3.5" rx="0.3" fill="#333" stroke="#222" strokeWidth="0.2" transform="rotate(10,1.5,1)" />
+        {/* Trigger guard */}
+        <path d="M2.5,1 Q3.5,2.5 2.5,3" fill="none" stroke="#444" strokeWidth="0.3" />
+        {/* Muzzle flash when active */}
+        <circle cx="8" cy="-0.1" r="1.5" fill="#f59e0b" opacity="0.6" className="tzur-muzzle-flash" />
+        <circle cx="8.5" cy="-0.1" r="0.8" fill="white" opacity="0.8" className="tzur-muzzle-flash" />
+      </g>
+
+      {/* === Legs === */}
+      <ellipse cx="-3" cy="10.5" rx="2.5" ry="1.8" fill="#C4943C" stroke="#8B6914" strokeWidth="0.3" />
+      <ellipse cx="3" cy="10.5" rx="2.5" ry="1.8" fill="#C4943C" stroke="#8B6914" strokeWidth="0.3" />
+      {/* Foot pads */}
+      <ellipse cx="-3" cy="10.8" rx="1.5" ry="1" fill="#E8C97C" />
+      <ellipse cx="3" cy="10.8" rx="1.5" ry="1" fill="#E8C97C" />
+    </g>
+  );
+}
+
 export default function RadarDisplay({
   activeThreats,
   selectedThreatId,
@@ -294,6 +372,7 @@ export default function RadarDisplay({
   impactFlashes = [],
   activeTrails = [],
   currentLevel = 1,
+  tzurActive = false,
 }) {
   const viewport = getViewportForLevel(currentLevel);
   const visibleCities = useMemo(() => getVisibleCities(currentLevel), [currentLevel]);
@@ -561,6 +640,13 @@ export default function RadarDisplay({
                 </g>
               );
             })}
+
+            {/* === Teddy Bear (Tzur Cheat Code) === */}
+            {tzurActive && (
+              <g className="tzur-bear-sequence">
+                <TeddyBearSVG cx={50} cy={50} />
+              </g>
+            )}
 
           </g>
           {/* === End clipped map content === */}

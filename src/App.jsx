@@ -30,6 +30,8 @@ export default function App() {
   const seenBriefingsRef = useRef(new Set());
   const briefingMusicRef = useRef(null);
   const [musicMuted, setMusicMuted] = useState(false);
+  const cheatBufferRef = useRef([]);
+  const [cheatHints, setCheatHints] = useState(0); // 0-4: number of correct letters typed
 
   const {
     gameState,
@@ -49,6 +51,8 @@ export default function App() {
     impactFlashes,
     activeTrails,
     screenShake,
+    tzurActive,
+    triggerTzurMode,
     startCampaign,
     startLevel,
     advanceLevel,
@@ -106,6 +110,31 @@ export default function App() {
   // Keyboard handling
   useEffect(() => {
     const handleKeyDown = (e) => {
+      // === TZUR cheat code detection (Level 1 only) ===
+      const CHEAT_CODE = ['t', 'z', 'u', 'r'];
+      if (gameState === GAME_STATES.ACTIVE && currentLevel === 1 && !tzurActive) {
+        const buf = cheatBufferRef.current;
+        const key = e.key.toLowerCase();
+        if (key === CHEAT_CODE[buf.length]) {
+          buf.push(key);
+          setCheatHints(buf.length);
+          if (buf.length === 4) {
+            // Code complete!
+            cheatBufferRef.current = [];
+            setCheatHints(0);
+            triggerTzurMode();
+          }
+        } else if (key === CHEAT_CODE[0]) {
+          // Wrong key but matches start — restart sequence
+          cheatBufferRef.current = [key];
+          setCheatHints(1);
+        } else {
+          // Wrong key — reset
+          cheatBufferRef.current = [];
+          setCheatHints(0);
+        }
+      }
+
       // ESC: toggle facilitator panel (available from any game state)
       // Opens → auto-pause, Closes → auto-resume
       if (e.key === 'Escape') {
@@ -177,7 +206,7 @@ export default function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [gameState, paused, togglePause, handleAction, activeThreats, selectedThreatId, setSelectedThreatId, GAME_STATES, config]);
+  }, [gameState, paused, togglePause, handleAction, activeThreats, selectedThreatId, setSelectedThreatId, GAME_STATES, config, currentLevel, tzurActive, triggerTzurMode]);
 
   const handleCloseFacilitator = useCallback(() => {
     setShowFacilitator(false);
@@ -463,6 +492,7 @@ export default function App() {
             impactFlashes={impactFlashes}
             activeTrails={activeTrails}
             currentLevel={currentLevel}
+            tzurActive={tzurActive}
           />
         </div>
 
@@ -502,6 +532,36 @@ export default function App() {
               PREPARE DEFENSE SYSTEMS
             </div>
           </div>
+        </div>
+      )}
+
+      {/* TZUR MODE banner */}
+      {tzurActive && (
+        <div className="absolute inset-x-0 top-12 z-25 flex justify-center pointer-events-none tzur-banner-appear">
+          <div className="bg-amber-950/90 border-2 border-yellow-500 rounded-lg px-8 py-4 text-center">
+            <div className="text-yellow-300 font-mono text-2xl font-bold tracking-wider">
+              TEDDY DEFENSE PROTOCOL
+            </div>
+            <div className="font-mono text-xs mt-1 tracking-widest text-yellow-500 animate-pulse">
+              ENGAGED
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cheat code hint paw prints — subtle corner indicator */}
+      {cheatHints > 0 && !tzurActive && currentLevel === 1 && (
+        <div className="absolute bottom-16 left-4 z-20 flex gap-1 pointer-events-none">
+          {[0, 1, 2, 3].map((i) => (
+            <span
+              key={i}
+              className={`text-lg transition-all duration-200 ${
+                i < cheatHints ? 'opacity-80 scale-110' : 'opacity-15'
+              }`}
+            >
+              🐾
+            </span>
+          ))}
         </div>
       )}
 
