@@ -254,11 +254,10 @@ export default function useGameEngine() {
     }
   }, [addImpactFlash, getBlipPosition]);
 
-  // === TZUR MODE — teddy bear cheat code (Level 1 only, once per campaign) ===
+  // === TZUR MODE — teddy bear cheat code (once per level) ===
   const triggerTzurMode = useCallback(() => {
     if (tzurUsedRef.current) return;
     if (gameStateRef.current !== GAME_STATES.ACTIVE) return;
-    if (currentLevelRef.current !== 1) return;
 
     tzurUsedRef.current = true;
     setTzurActive(true);
@@ -802,6 +801,7 @@ export default function useGameEngine() {
     setPaused(false);
     spawnedIdsRef.current = new Set();
     interceptedIdsRef.current.clear();
+    tzurUsedRef.current = false;
     allSpawnedRef.current = false;
     lastTickRef.current = null;
     if (tzevaAdomTimerRef.current) clearTimeout(tzevaAdomTimerRef.current);

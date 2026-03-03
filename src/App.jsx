@@ -112,7 +112,7 @@ export default function App() {
     const handleKeyDown = (e) => {
       // === TZUR cheat code detection (Level 1 only) ===
       const CHEAT_CODE = ['t', 'z', 'u', 'r'];
-      if (gameState === GAME_STATES.ACTIVE && currentLevel === 1 && !tzurActive) {
+      if (gameState === GAME_STATES.ACTIVE && !tzurActive) {
         const buf = cheatBufferRef.current;
         const key = e.key.toLowerCase();
         if (key === CHEAT_CODE[buf.length]) {
@@ -550,7 +550,7 @@ export default function App() {
       )}
 
       {/* Cheat code hint paw prints — subtle corner indicator */}
-      {cheatHints > 0 && !tzurActive && currentLevel === 1 && (
+      {cheatHints > 0 && !tzurActive && (
         <div className="absolute bottom-16 left-4 z-20 flex gap-1 pointer-events-none">
           {[0, 1, 2, 3].map((i) => (
             <span
