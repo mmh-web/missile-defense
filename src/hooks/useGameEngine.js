@@ -258,6 +258,8 @@ export default function useGameEngine() {
   }, [addImpactFlash, getBlipPosition]);
 
   // === TZUR MODE — teddy bear cheat code (once per level) ===
+  const tzurIntervalRef = useRef(null);
+
   const triggerTzurMode = useCallback(() => {
     if (tzurUsedRef.current) return;
     if (gameStateRef.current !== GAME_STATES.ACTIVE) return;
@@ -265,66 +267,76 @@ export default function useGameEngine() {
     tzurUsedRef.current = true;
     setTzurActive(true);
 
-    // After 1.5s (bear drops + starts spinning), intercept all active threats
+    // After 1.5s (bear drops + starts spinning), start sustained zapping every 300ms
     setTimeout(() => {
-      const battery = getBatteryForLevel(currentLevelRef.current) || COMMAND_CENTER;
-      const threats = activeThreatsRef.current.filter((t) => !t.intercepted && !t.held);
+      const zapThreat = () => {
+        const battery = getBatteryForLevel(currentLevelRef.current) || COMMAND_CENTER;
+        const threats = activeThreatsRef.current.filter(
+          (t) => !t.intercepted && !t.held && !interceptedIdsRef.current.has(t.id)
+        );
+        if (threats.length === 0) return;
 
-      threats.forEach((threat, i) => {
-        // Stagger trails slightly for visual effect
+        // Zap the most urgent threat first
+        const target = threats.sort((a, b) => a.timeLeft - b.timeLeft)[0];
+        interceptedIdsRef.current.add(target.id);
+        const { x: blipX, y: blipY } = getBlipPosition(target);
+
+        // Gold trail from bear (battery position) to threat
+        const trailId = Date.now() + Math.random();
+        const duration = 400;
+        setActiveTrails((prev) => [...prev, {
+          id: trailId,
+          startX: battery.x, startY: battery.y,
+          endX: blipX, endY: blipY,
+          color: '#f59e0b', // gold for teddy
+          duration,
+        }]);
+        setTimeout(() => setActiveTrails((prev) => prev.filter((t) => t.id !== trailId)), duration + 500);
+
+        // Intercept flash + sound
         setTimeout(() => {
-          interceptedIdsRef.current.add(threat.id);
-          const { x: blipX, y: blipY } = getBlipPosition(threat);
+          addImpactFlash(target.impact_zone, 'intercept', target.type, { x: blipX, y: blipY });
+          playInterceptSound(volumeRef.current, target.type);
+        }, duration);
 
-          // Fire trail from bear (battery position) to each threat
-          const trailId = Date.now() + Math.random() + i;
-          const duration = 400;
-          setActiveTrails((prev) => [...prev, {
-            id: trailId,
-            startX: battery.x, startY: battery.y,
-            endX: blipX, endY: blipY,
-            color: '#f59e0b', // gold for teddy
-            duration,
-          }]);
-          setTimeout(() => setActiveTrails((prev) => prev.filter((t) => t.id !== trailId)), duration + 500);
+        // Mark intercepted
+        setActiveThreats((prev) => prev.map((t) =>
+          t.id === target.id ? { ...t, intercepted: true, frozenTimeLeft: t.timeLeft } : t
+        ));
 
-          // Intercept explosion at blip position
-          setTimeout(() => {
-            addImpactFlash(threat.impact_zone, 'intercept', threat.type, { x: blipX, y: blipY });
-            playInterceptSound(volumeRef.current, threat.type);
-          }, duration);
-        }, i * 120); // 120ms stagger between each shot
-      });
+        // Log + streak
+        setResultLog((prev) => [...prev, { ...target, result: 'correct_intercept', siren: false }]);
+        setStreak((s) => {
+          const next = s + 1;
+          setBestStreak((b) => Math.max(b, next));
+          return next;
+        });
 
-      // Mark all threats as intercepted
-      setActiveThreats((prev) => prev.map((t) =>
-        (!t.intercepted && !t.held) ? { ...t, intercepted: true, frozenTimeLeft: t.timeLeft } : t
-      ));
+        // Remove after trail
+        const tid = target.id;
+        setTimeout(() => {
+          setActiveThreats((prev) => prev.filter((t) => t.id !== tid));
+        }, duration + 500);
+      };
 
-      // Log as correct intercepts
-      setResultLog((prev) => [
-        ...prev,
-        ...threats.map((t) => ({ ...t, result: 'correct_intercept', siren: false })),
-      ]);
-
-      // Update streak
-      setStreak((s) => {
-        const next = s + threats.length;
-        setBestStreak((b) => Math.max(b, next));
-        return next;
-      });
-
-      // Remove intercepted threats after trails finish
-      setTimeout(() => {
-        setActiveThreats((prev) => prev.filter((t) => !t.intercepted));
-      }, threats.length * 120 + 800);
+      // Immediate first zap, then every 300ms
+      zapThreat();
+      tzurIntervalRef.current = setInterval(zapThreat, 300);
     }, 1500);
 
-    // Bear fades out after 4.5s
-    setTimeout(() => setTzurActive(false), 4500);
+    // Stop zapping at 8s
+    setTimeout(() => {
+      if (tzurIntervalRef.current) {
+        clearInterval(tzurIntervalRef.current);
+        tzurIntervalRef.current = null;
+      }
+    }, 8000);
+
+    // Bear fades out after 8.5s
+    setTimeout(() => setTzurActive(false), 8500);
   }, [addImpactFlash, getBlipPosition]);
 
-  // === SASHA MODE — laser cat cheat code (once per level, sustained 4s defense) ===
+  // === SASHA MODE — laser cat cheat code (once per level, sustained 8s defense) ===
   const triggerSashaMode = useCallback(() => {
     if (sashaUsedRef.current) return;
     if (gameStateRef.current !== GAME_STATES.ACTIVE) return;
@@ -388,16 +400,16 @@ export default function useGameEngine() {
       sashaIntervalRef.current = setInterval(zapThreat, 300);
     }, 500);
 
-    // Stop zapping at 4s
+    // Stop zapping at 8s
     setTimeout(() => {
       if (sashaIntervalRef.current) {
         clearInterval(sashaIntervalRef.current);
         sashaIntervalRef.current = null;
       }
-    }, 4000);
+    }, 8000);
 
-    // Cat fades out after 4.5s
-    setTimeout(() => setSashaActive(false), 4500);
+    // Cat fades out after 8.5s
+    setTimeout(() => setSashaActive(false), 8500);
   }, [addImpactFlash, getBlipPosition]);
 
   // Trigger tzeva adom — non-blocking, brief flash (no timer penalty — points-based only)
@@ -848,6 +860,7 @@ export default function useGameEngine() {
     interceptedIdsRef.current.clear();
     tzurUsedRef.current = false;
     sashaUsedRef.current = false;
+    if (tzurIntervalRef.current) { clearInterval(tzurIntervalRef.current); tzurIntervalRef.current = null; }
     if (sashaIntervalRef.current) { clearInterval(sashaIntervalRef.current); sashaIntervalRef.current = null; }
     allSpawnedRef.current = false;
     lastTickRef.current = null;
@@ -886,6 +899,7 @@ export default function useGameEngine() {
     interceptedIdsRef.current.clear();
     tzurUsedRef.current = false;
     sashaUsedRef.current = false;
+    if (tzurIntervalRef.current) { clearInterval(tzurIntervalRef.current); tzurIntervalRef.current = null; }
     if (sashaIntervalRef.current) { clearInterval(sashaIntervalRef.current); sashaIntervalRef.current = null; }
     allSpawnedRef.current = false;
     lastTickRef.current = null;
@@ -963,6 +977,7 @@ export default function useGameEngine() {
     setPaused(false);
     spawnedIdsRef.current = new Set();
     interceptedIdsRef.current.clear();
+    if (tzurIntervalRef.current) { clearInterval(tzurIntervalRef.current); tzurIntervalRef.current = null; }
     if (sashaIntervalRef.current) { clearInterval(sashaIntervalRef.current); sashaIntervalRef.current = null; }
     allSpawnedRef.current = false;
     lastTickRef.current = null;
@@ -1004,6 +1019,7 @@ export default function useGameEngine() {
     interceptedIdsRef.current.clear();
     tzurUsedRef.current = false;
     sashaUsedRef.current = false;
+    if (tzurIntervalRef.current) { clearInterval(tzurIntervalRef.current); tzurIntervalRef.current = null; }
     if (sashaIntervalRef.current) { clearInterval(sashaIntervalRef.current); sashaIntervalRef.current = null; }
     allSpawnedRef.current = false;
     lastTickRef.current = null;

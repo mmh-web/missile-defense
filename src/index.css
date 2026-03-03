@@ -931,7 +931,7 @@ button:focus-visible {
   animation:
     tzurDropIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
     tzurSpinFire 1.2s ease-in-out 1.5s forwards,
-    tzurFadeOut 1s ease-in 3.5s forwards;
+    tzurFadeOut 1s ease-in 7.5s forwards;
 }
 
 @keyframes tzurDropIn {
@@ -969,7 +969,7 @@ button:focus-visible {
 /* Banner overlay slide-in */
 .tzur-banner-appear {
   animation: tzurBannerAppear 0.5s ease-out forwards,
-             tzurBannerFade 1s ease-in 3s forwards;
+             tzurBannerFade 1s ease-in 7s forwards;
 }
 
 @keyframes tzurBannerAppear {
@@ -991,7 +991,7 @@ button:focus-visible {
   transform-origin: center;
   animation:
     sashaDropIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards,
-    sashaFadeOut 0.8s ease-in 3.8s forwards;
+    sashaFadeOut 0.8s ease-in 7.5s forwards;
 }
 
 @keyframes sashaDropIn {
@@ -1040,5 +1040,5 @@ button:focus-visible {
 /* Sasha banner overlay */
 .sasha-banner-appear {
   animation: tzurBannerAppear 0.5s ease-out forwards,
-             tzurBannerFade 1s ease-in 3.5s forwards;
+             tzurBannerFade 1s ease-in 7s forwards;
 }
