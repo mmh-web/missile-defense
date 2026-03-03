@@ -54,6 +54,8 @@ export const IMPACT_POSITIONS = {
   "Ra'anana": { x: 0.313, y: 0.323 },
   "Modi'in": { x: 0.364, y: 0.386 },
   'Gush Etzion': { x: 0.417, y: 0.442 },
+  'Caesarea': { x: 0.320, y: 0.253 },
+  'Hadera': { x: 0.331, y: 0.269 },
   'Akko': { x: 0.37, y: 0.17 },
   'Katzrin': { x: 0.60, y: 0.14 },
   'Majdal Shams': { x: 0.59, y: 0.09 },

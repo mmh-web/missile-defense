@@ -489,7 +489,7 @@ export default function App() {
       </div>
 
       {/* SALVO WARNING overlay — level-based intensity */}
-      {activeSalvoWarning && (
+      {finalSalvoWarning && (
         <div className="absolute inset-x-0 top-12 z-20 flex justify-center pointer-events-none">
           <div className="bg-red-950/90 border-2 border-red-600 rounded-lg px-8 py-4 text-center final-salvo-warning">
             <div className="text-red-400 font-mono text-xs tracking-[0.4em] mb-1">
@@ -498,12 +498,8 @@ export default function App() {
             <div className="text-red-300 font-mono text-2xl font-bold tracking-wider">
               SALVO INCOMING
             </div>
-            <div className={`font-mono text-xs mt-1 tracking-widest animate-pulse ${
-              activeSalvoWarning.level === 2 ? 'text-red-500' : 'text-amber-500'
-            }`}>
-              {activeSalvoWarning.level === 2
-                ? 'BRACE FOR IMPACT — MULTIPLE THREATS INBOUND'
-                : 'PREPARE DEFENSE SYSTEMS'}
+            <div className="font-mono text-xs mt-1 tracking-widest animate-pulse text-amber-500">
+              PREPARE DEFENSE SYSTEMS
             </div>
           </div>
         </div>

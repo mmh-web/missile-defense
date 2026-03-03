@@ -422,9 +422,9 @@ export default function useGameEngine() {
         spawned = true;
         setActiveThreats((prev) => {
           const newThreat = {
-            ...threat,
-            timeLeft: threat.countdown,
-            impactRevealed: threat.reveal_pct >= 1.0,
+            ...t,
+            timeLeft: t.countdown,
+            impactRevealed: t.reveal_pct >= 1.0,
             _corrected: false,
           };
           const newThreats = [...prev, newThreat];
@@ -449,7 +449,7 @@ export default function useGameEngine() {
     // Salvo warnings
     const warnings = config.salvo_warnings || [];
     const active = warnings.find((w) => sessionTime >= w.time && sessionTime < w.end_time);
-    setActiveSalvoWarning(active || null);
+    setFinalSalvoWarning(active || null);
 
     // End level — time ran out
     if (sessionTime >= config.duration) {

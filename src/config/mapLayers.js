@@ -49,7 +49,11 @@ export const CITIES = {
   'Gush Etzion':    { x: 0.417, y: 0.442, region: 'central', tier: 2, revealLevel: 3, labelDir: 'se' },
   'Holon':          { x: 0.27, y: 0.37, region: 'central', tier: 2, revealLevel: 3, labelDir: 'e' },
 
-  // === L4: Negev === (pushed south for spacing from Otef Aza / Jerusalem)
+  // === L4: Coastal bridge + Negev ===
+  // Coastal cities between Galil and Central — fill the visual gap on full map
+  'Caesarea':       { x: 0.320, y: 0.253, region: 'coast', tier: 2, revealLevel: 4, labelDir: 'w' },
+  'Hadera':         { x: 0.331, y: 0.269, region: 'coast', tier: 2, revealLevel: 4, labelDir: 'e' },
+  // Negev (pushed south for spacing from Otef Aza / Jerusalem)
   'Beersheba':      { x: 0.29, y: 0.57, region: 'negev', tier: 1, revealLevel: 4, labelDir: 'e' },
   'Dimona':         { x: 0.37, y: 0.62, region: 'negev', tier: 1, revealLevel: 4, labelDir: 'e' },
   'Eilat':          { x: 0.35, y: 0.90, region: 'negev', tier: 1, revealLevel: 4, labelDir: 'e' },

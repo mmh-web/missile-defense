@@ -1535,9 +1535,21 @@ function FieldExercisePhase({ config, onComplete }) {
 // ============================================================
 // Main EducationalBriefing Orchestrator
 // ============================================================
+// Level names + geographic context for briefing headers
+const LEVEL_NAMES = {
+  1: { name: 'SOUTHERN FRONT', subtitle: 'Otef Aza — Gaza Border Communities' },
+  2: { name: 'NORTHERN FRONT', subtitle: 'Galil & Golan Heights' },
+  3: { name: 'CENTRAL FRONT', subtitle: 'Tel Aviv — Jerusalem Corridor' },
+  4: { name: 'BALLISTIC ARC', subtitle: 'Full Country Defense' },
+  5: { name: 'HYPERSONIC STRIKE', subtitle: 'Full Country Defense' },
+  6: { name: 'WAVE ASSAULT', subtitle: 'Coordinated Multi-Front Attack' },
+  7: { name: 'FINAL STAND', subtitle: 'Total Saturation Attack' },
+};
+
 export default function EducationalBriefing({ level, onComplete }) {
   const content = BRIEFING_CONTENT[level] || BRIEFING_CONTENT[1];
   const phases = content.phases;
+  const levelInfo = LEVEL_NAMES[level] || { name: `LEVEL ${level}`, subtitle: '' };
 
   const [phase, setPhase] = useState(phases[0]);
   const quizPointsRef = useRef(0);
@@ -1578,10 +1590,16 @@ export default function EducationalBriefing({ level, onComplete }) {
   return (
     <div className="h-screen bg-[#0a0e1a] flex flex-col relative overflow-hidden">
       <div className="max-w-2xl w-full mx-auto px-4 pt-3 pb-2 flex-shrink-0">
-        {/* Header — right padding avoids Escape Room timer overlap */}
-        <div className="text-center mb-2 pr-48">
-          <div className="text-green-500/50 font-mono text-xs tracking-[0.4em]">
-            MISSION BRIEFING — LEVEL {level}
+        {/* Header — level name prominent, right padding avoids Escape Room timer overlap */}
+        <div className="text-center mb-3 pr-48">
+          <div className="text-green-500/40 font-mono text-[10px] tracking-[0.5em] mb-1">
+            LEVEL {level} — MISSION BRIEFING
+          </div>
+          <h1 className="text-2xl font-bold font-mono text-green-400 tracking-wider mb-0.5">
+            {levelInfo.name}
+          </h1>
+          <div className="text-xs font-mono text-green-600/70 tracking-widest">
+            {levelInfo.subtitle}
           </div>
         </div>
 
