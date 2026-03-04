@@ -480,6 +480,89 @@ export function playGroundImpactSound(volume = 0.7) {
 }
 
 // -------------------------------------------------------
+// Shield Bounce: Hollow "bonk" + metallic ring when threat deflects off turtle shell
+// Duration: ~0.35s — satisfying rubbery bounce with shell resonance
+// -------------------------------------------------------
+export function playShieldBounceSound(volume = 0.7) {
+  try {
+    const ctx = getContext();
+    const now = ctx.currentTime;
+
+    // Hollow bonk — descending tone (800Hz → 200Hz, fast)
+    const bonk = ctx.createOscillator();
+    bonk.type = 'triangle';
+    bonk.frequency.setValueAtTime(800, now);
+    bonk.frequency.exponentialRampToValueAtTime(200, now + 0.12);
+
+    const bonkGain = ctx.createGain();
+    bonkGain.gain.setValueAtTime(volume * 0.7, now);
+    bonkGain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+
+    bonk.connect(bonkGain);
+    bonkGain.connect(ctx.destination);
+    bonk.start(now);
+    bonk.stop(now + 0.15);
+
+    // Shell resonance — ringing overtone (1200Hz → 600Hz)
+    const ring = ctx.createOscillator();
+    ring.type = 'sine';
+    ring.frequency.setValueAtTime(1200, now);
+    ring.frequency.exponentialRampToValueAtTime(600, now + 0.3);
+
+    const ringGain = ctx.createGain();
+    ringGain.gain.setValueAtTime(volume * 0.3, now + 0.02);
+    ringGain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+
+    ring.connect(ringGain);
+    ringGain.connect(ctx.destination);
+    ring.start(now + 0.02);
+    ring.stop(now + 0.3);
+
+    // Bouncy spring overtone (ascending 400Hz → 900Hz, quick)
+    const spring = ctx.createOscillator();
+    spring.type = 'sine';
+    spring.frequency.setValueAtTime(400, now);
+    spring.frequency.exponentialRampToValueAtTime(900, now + 0.08);
+
+    const springGain = ctx.createGain();
+    springGain.gain.setValueAtTime(volume * 0.25, now);
+    springGain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+
+    spring.connect(springGain);
+    springGain.connect(ctx.destination);
+    spring.start(now);
+    spring.stop(now + 0.1);
+
+    // Short noise tap — the "hit" texture
+    const bufferSize = Math.floor(ctx.sampleRate * 0.03);
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, 2);
+    }
+    const noise = ctx.createBufferSource();
+    noise.buffer = buffer;
+
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = 1500;
+    filter.Q.value = 2;
+
+    const noiseGain = ctx.createGain();
+    noiseGain.gain.setValueAtTime(volume * 0.4, now);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+
+    noise.connect(filter);
+    filter.connect(noiseGain);
+    noiseGain.connect(ctx.destination);
+    noise.start(now);
+    noise.stop(now + 0.05);
+  } catch (e) {
+    // Silently fail
+  }
+}
+
+// -------------------------------------------------------
 // Launch: Quick ascending whoosh when interceptor fires
 // Duration: ~0.2s
 // -------------------------------------------------------

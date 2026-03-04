@@ -1042,3 +1042,156 @@ button:focus-visible {
   animation: tzurBannerAppear 0.5s ease-out forwards,
              tzurBannerFade 1s ease-in 7s forwards;
 }
+
+/* ============================================
+   Dvir Cheat Code — Turtle Defense Animations
+   ============================================ */
+
+/* Turtle emerges from shell — pops up, wobbles, settles in */
+.dvir-turtle-sequence {
+  transform-origin: center;
+  animation:
+    dvirEmerge 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards,
+    dvirBob 3s ease-in-out 1.5s 3,
+    dvirRetreat 1.2s ease-in 11.5s forwards;
+}
+
+@keyframes dvirEmerge {
+  0%   { transform: scale(0.1) rotate(-10deg); opacity: 0; }
+  30%  { transform: scale(0.6) rotate(5deg); opacity: 0.7; }
+  50%  { transform: scale(1.08) rotate(-3deg); opacity: 1; }
+  70%  { transform: scale(0.96) rotate(2deg); opacity: 1; }
+  85%  { transform: scale(1.02) rotate(-1deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+/* Gentle bobbing while on screen */
+@keyframes dvirBob {
+  0%   { transform: scale(1) translateY(0); }
+  50%  { transform: scale(1.02) translateY(-2px); }
+  100% { transform: scale(1) translateY(0); }
+}
+
+/* Retreats back into shell */
+@keyframes dvirRetreat {
+  0%   { opacity: 1; transform: scale(1) rotate(0deg); }
+  30%  { opacity: 0.8; transform: scale(0.9) rotate(5deg); }
+  60%  { opacity: 0.5; transform: scale(0.5) rotate(-5deg); }
+  100% { opacity: 0; transform: scale(0.1) rotate(10deg); }
+}
+
+/* Shell energy glow pulse */
+.dvir-shell-glow {
+  animation: dvirShellGlow 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes dvirShellGlow {
+  0%   { opacity: 0.2; stroke-width: 0.3; }
+  100% { opacity: 0.6; stroke-width: 0.7; }
+}
+
+/* Flipper swim animations */
+.dvir-flipper-l {
+  transform-origin: -6px 3px;
+  animation: dvirFlipperL 1.2s ease-in-out infinite alternate;
+}
+.dvir-flipper-r {
+  transform-origin: 6px 3px;
+  animation: dvirFlipperR 1.2s ease-in-out infinite alternate;
+}
+@keyframes dvirFlipperL {
+  0%   { transform: rotate(-8deg); }
+  100% { transform: rotate(8deg); }
+}
+@keyframes dvirFlipperR {
+  0%   { transform: rotate(8deg); }
+  100% { transform: rotate(-8deg); }
+}
+
+/* Bouncing threat blip — ricochets off shell and fades */
+.dvir-bounce-blip {
+  animation: dvirBounceBlip 0.7s ease-out forwards;
+}
+@keyframes dvirBounceBlip {
+  0%   { opacity: 1; transform: translate(0, 0) scale(1); }
+  20%  { opacity: 1; transform: translate(calc(var(--bounce-x) * 0.1), calc(var(--bounce-y) * 0.1)) scale(1.3); }
+  50%  { opacity: 0.8; transform: translate(calc(var(--bounce-x) * 0.5), calc(var(--bounce-y) * 0.5)) scale(1); }
+  100% { opacity: 0; transform: translate(var(--bounce-x), var(--bounce-y)) scale(0.4); }
+}
+
+/* Bounce trail streak fades */
+.dvir-bounce-trail {
+  animation: dvirBounceTrail 0.5s ease-out forwards;
+}
+@keyframes dvirBounceTrail {
+  0%   { opacity: 0.6; }
+  100% { opacity: 0; }
+}
+
+/* Shield dome appears with pop + pulse */
+.dvir-shield-dome {
+  animation: dvirDomeAppear 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+             dvirDomePulse 2s ease-in-out 0.6s infinite alternate;
+  opacity: 0;
+}
+
+@keyframes dvirDomeAppear {
+  0%   { opacity: 0; transform: scale(0.3); }
+  60%  { opacity: 0.9; transform: scale(1.1); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes dvirDomePulse {
+  0%   { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
+/* Shield deflect effect — green flash + bounce particles */
+.shield-dome-flash {
+  animation: shieldFlash 0.4s ease-out forwards;
+}
+@keyframes shieldFlash {
+  0%   { opacity: 0.8; r: 3; }
+  50%  { opacity: 0.5; r: 5; }
+  100% { opacity: 0; r: 6; }
+}
+
+.shield-crack-ring {
+  animation: shieldCrack 0.5s ease-out forwards;
+}
+@keyframes shieldCrack {
+  0%   { r: 2; opacity: 0.9; stroke-width: 1; }
+  100% { r: 6; opacity: 0; stroke-width: 0.2; }
+}
+
+.shield-ripple {
+  animation: shieldRipple 0.6s ease-out forwards;
+}
+@keyframes shieldRipple {
+  0%   { r: 3; opacity: 0.6; }
+  100% { r: 8; opacity: 0; }
+}
+
+.shield-bounce-particle {
+  animation: shieldBounce 0.5s ease-out forwards;
+}
+@keyframes shieldBounce {
+  0%   { opacity: 1; transform: translate(0, 0); }
+  60%  { opacity: 0.8; }
+  100% { opacity: 0; transform: translate(var(--end-x), var(--end-y)); }
+}
+
+.shield-spark {
+  animation: shieldSpark 0.3s ease-out forwards;
+}
+@keyframes shieldSpark {
+  0%   { opacity: 1; r: 0.4; }
+  50%  { opacity: 0.8; r: 0.6; }
+  100% { opacity: 0; r: 0.1; }
+}
+
+/* Dvir banner overlay */
+.dvir-banner-appear {
+  animation: tzurBannerAppear 0.5s ease-out forwards,
+             tzurBannerFade 1s ease-in 11s forwards;
+}

@@ -14,6 +14,7 @@ import {
   playCityHitSound,
   playGroundImpactSound,
   playLaunchSound,
+  playShieldBounceSound,
 } from '../utils/soundEffects.js';
 
 export const GAME_STATES = {
@@ -81,6 +82,10 @@ export default function useGameEngine() {
   const [sashaActive, setSashaActive] = useState(false);
   const sashaUsedRef = useRef(false);
   const sashaIntervalRef = useRef(null);
+  const [dvirActive, setDvirActive] = useState(false);
+  const dvirUsedRef = useRef(false);
+  const dvirActiveRef = useRef(false);
+  const [bouncingThreats, setBouncingThreats] = useState([]);
 
   // Refs for stale closure avoidance
   const gameStateRef = useRef(gameState);
@@ -96,6 +101,8 @@ export default function useGameEngine() {
   useEffect(() => { ammoRef.current = ammo; }, [ammo]);
   useEffect(() => { volumeRef.current = volume; }, [volume]);
   useEffect(() => { currentLevelRef.current = currentLevel; }, [currentLevel]);
+  const sessionTimeRef = useRef(0);
+  useEffect(() => { sessionTimeRef.current = sessionTime; }, [sessionTime]);
 
   const animFrameRef = useRef(null);
   const lastTickRef = useRef(null);
@@ -171,7 +178,20 @@ export default function useGameEngine() {
     const cy = pos.y;
 
     let particles = [];
-    if (type === 'intercept') {
+    if (type === 'shield_deflect') {
+      // Bounce particles — fly upward/outward like deflecting off a dome
+      particles = Array.from({ length: 10 }, (_, i) => {
+        const angle = -Math.PI * 0.15 + (i / 9) * Math.PI * 1.3 - Math.PI * 0.5;
+        const dist = 6 + Math.random() * 5;
+        return {
+          endX: Math.cos(angle) * dist,
+          endY: Math.sin(angle) * dist - 3,
+          r: 0.3 + Math.random() * 0.2,
+          delay: i * 0.02,
+          color: i % 2 === 0 ? '#4CAF50' : '#81C784',
+        };
+      });
+    } else if (type === 'intercept') {
       particles = Array.from({ length: 8 }, (_, i) => {
         const angle = (i / 8) * Math.PI * 2;
         return { endX: Math.cos(angle) * 6, endY: Math.sin(angle) * 6, r: 0.4, delay: i * 0.02 };
@@ -412,6 +432,24 @@ export default function useGameEngine() {
     setTimeout(() => setSashaActive(false), 8500);
   }, [addImpactFlash, getBlipPosition]);
 
+  // === DVIR MODE — turtle shield cheat code (once per level, passive 12s city defense) ===
+  const triggerDvirMode = useCallback(() => {
+    if (dvirUsedRef.current) return;
+    if (gameStateRef.current !== GAME_STATES.ACTIVE) return;
+
+    dvirUsedRef.current = true;
+    setDvirActive(true);
+    dvirActiveRef.current = true;
+
+    // Shield lasts 12 seconds
+    setTimeout(() => {
+      dvirActiveRef.current = false;
+    }, 12000);
+
+    // Turtle fades out after 12.5s
+    setTimeout(() => setDvirActive(false), 12500);
+  }, []);
+
   // Trigger tzeva adom — non-blocking, brief flash (no timer penalty — points-based only)
   const triggerTzevaAdom = useCallback(() => {
     setSirenCount((c) => c + 1);
@@ -445,6 +483,35 @@ export default function useGameEngine() {
     setActiveThreats((prev) => prev.filter((t) => t.id !== threat.id));
     if (selectedThreatIdRef.current === threat.id) {
       setSelectedThreatId(null);
+    }
+
+    // DVIR TURTLE SHIELD — if active and threat targets a populated area, auto-deflect with bounce
+    if (dvirActiveRef.current && threat.is_populated) {
+      interceptedIdsRef.current.add(threat.id);
+      setResultLog((prev) => [...prev, { ...threat, result: 'correct_intercept', siren: false }]);
+      addImpactFlash(threat.impact_zone, 'shield_deflect', threat.type);
+      playShieldBounceSound(volumeRef.current);
+      setStreak((s) => {
+        const next = s + 1;
+        setBestStreak((b) => Math.max(b, next));
+        return next;
+      });
+      // Add to bouncing threats for visual ricochet
+      const impactPos = IMPACT_POSITIONS[threat.impact_zone] || { x: 0.5, y: 0.5 };
+      const bounceId = Date.now() + Math.random();
+      setBouncingThreats((prev) => [...prev, {
+        id: bounceId,
+        x: impactPos.x,
+        y: impactPos.y,
+        type: threat.type,
+        originX: getSpawnOrigin(threat.type, threat.origin).x,
+        originY: getSpawnOrigin(threat.type, threat.origin).y,
+      }]);
+      // Remove bouncing threat after animation completes
+      setTimeout(() => {
+        setBouncingThreats((prev) => prev.filter((b) => b.id !== bounceId));
+      }, 800);
+      return;
     }
 
     if (threat.is_populated) {
@@ -624,6 +691,7 @@ export default function useGameEngine() {
   }, [sessionTime, gameState, currentLevel, playSound, stopSiren]);
 
   // Auto-end level when all threats resolved
+  // Ensures level never ends before its intended duration, even if threats are cleared early
   const autoEndTimerRef = useRef(null);
   useEffect(() => {
     if (gameState !== GAME_STATES.ACTIVE) return;
@@ -632,6 +700,9 @@ export default function useGameEngine() {
     const unresolvedThreats = activeThreats.filter((t) => !t.intercepted);
     if (allSpawnedRef.current && unresolvedThreats.length === 0) {
       if (!autoEndTimerRef.current) {
+        // Calculate remaining level time so we don't end early
+        const remainingMs = Math.max(0, (config.duration - sessionTimeRef.current) * 1000);
+        const delay = Math.max(config.auto_end_delay, remainingMs + 1000);
         autoEndTimerRef.current = setTimeout(() => {
           if (gameStateRef.current === GAME_STATES.ACTIVE) {
             if (currentLevelRef.current >= TOTAL_LEVELS) {
@@ -642,7 +713,7 @@ export default function useGameEngine() {
             stopSiren();
             if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
           }
-        }, config.auto_end_delay);
+        }, delay);
       }
     } else {
       if (autoEndTimerRef.current) {
@@ -687,6 +758,57 @@ export default function useGameEngine() {
           return updatedThreat;
         });
 
+        // DVIR SHELL DEFLECTION — intercept threats at the shell boundary (before they reach the city)
+        if (dvirActiveRef.current) {
+          const shellRadius = 0.025; // map-coordinate radius matching the shell visual
+          updated.forEach((t) => {
+            if (t.intercepted || t.held || interceptedIdsRef.current.has(t.id) || !t.is_populated) return;
+            if (processedTimeouts.has(t.id)) return;
+            const target = IMPACT_POSITIONS[t.impact_zone] || { x: 0.5, y: 0.5 };
+            // Calculate current position
+            const linearProgress = 1 - t.timeLeft / t.countdown;
+            let progress = linearProgress;
+            if (t.type === 'ballistic') progress = linearProgress ** 3;
+            else if (t.type === 'hypersonic') progress = linearProgress ** 4;
+            const start = getSpawnOrigin(t.type, t.origin);
+            const cx = start.x + (target.x - start.x) * progress;
+            const cy = start.y + (target.y - start.y) * progress;
+            const dx = cx - target.x;
+            const dy = cy - target.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < shellRadius) {
+              // Threat has reached the shell edge — deflect!
+              processedTimeouts.add(t.id);
+              interceptedIdsRef.current.add(t.id);
+              t.intercepted = true;
+              t.frozenTimeLeft = t.timeLeft;
+              setTimeout(() => {
+                setActiveThreats((prev) => prev.filter((at) => at.id !== t.id));
+                setResultLog((prev) => [...prev, { ...t, result: 'correct_intercept', siren: false }]);
+                addImpactFlash(t.impact_zone, 'shield_deflect', t.type);
+                playShieldBounceSound(volumeRef.current);
+                setStreak((s) => {
+                  const next = s + 1;
+                  setBestStreak((b) => Math.max(b, next));
+                  return next;
+                });
+                // Add bouncing threat at the SHELL EDGE position (not city center)
+                const bounceId = Date.now() + Math.random();
+                setBouncingThreats((prev) => [...prev, {
+                  id: bounceId,
+                  x: cx, y: cy, // position at shell edge
+                  type: t.type,
+                  originX: start.x,
+                  originY: start.y,
+                }]);
+                setTimeout(() => {
+                  setBouncingThreats((prev) => prev.filter((b) => b.id !== bounceId));
+                }, 800);
+              }, 0);
+            }
+          });
+        }
+
         const timedOut = updated.filter(
           (t) => t.timeLeft <= 0 && !t.intercepted && !processedTimeouts.has(t.id)
             && !interceptedIdsRef.current.has(t.id)
@@ -704,7 +826,7 @@ export default function useGameEngine() {
     }, 100);
 
     return () => clearInterval(interval);
-  }, [gameState, paused, handleThreatTimeout]);
+  }, [gameState, paused, handleThreatTimeout, addImpactFlash]);
 
   // (Tzeva adom is now non-blocking — no countdown effect needed)
 
@@ -852,14 +974,18 @@ export default function useGameEngine() {
     setFinalSalvoWarning(false);
     setImpactFlashes([]);
     setActiveTrails([]);
+    setBouncingThreats([]);
     setScreenShake(false);
     setTzurActive(false);
     setSashaActive(false);
+    setDvirActive(false);
+    dvirActiveRef.current = false;
     setPaused(false);
     spawnedIdsRef.current = new Set();
     interceptedIdsRef.current.clear();
     tzurUsedRef.current = false;
     sashaUsedRef.current = false;
+    dvirUsedRef.current = false;
     if (tzurIntervalRef.current) { clearInterval(tzurIntervalRef.current); tzurIntervalRef.current = null; }
     if (sashaIntervalRef.current) { clearInterval(sashaIntervalRef.current); sashaIntervalRef.current = null; }
     allSpawnedRef.current = false;
@@ -891,14 +1017,18 @@ export default function useGameEngine() {
     setFinalSalvoWarning(false);
     setImpactFlashes([]);
     setActiveTrails([]);
+    setBouncingThreats([]);
     setScreenShake(false);
     setTzurActive(false);
     setSashaActive(false);
+    setDvirActive(false);
+    dvirActiveRef.current = false;
     setPaused(false);
     spawnedIdsRef.current = new Set();
     interceptedIdsRef.current.clear();
     tzurUsedRef.current = false;
     sashaUsedRef.current = false;
+    dvirUsedRef.current = false;
     if (tzurIntervalRef.current) { clearInterval(tzurIntervalRef.current); tzurIntervalRef.current = null; }
     if (sashaIntervalRef.current) { clearInterval(sashaIntervalRef.current); sashaIntervalRef.current = null; }
     allSpawnedRef.current = false;
@@ -971,9 +1101,12 @@ export default function useGameEngine() {
     setFinalSalvoWarning(false);
     setImpactFlashes([]);
     setActiveTrails([]);
+    setBouncingThreats([]);
     setScreenShake(false);
     setTzurActive(false);
     setSashaActive(false);
+    setDvirActive(false);
+    dvirActiveRef.current = false;
     setPaused(false);
     spawnedIdsRef.current = new Set();
     interceptedIdsRef.current.clear();
@@ -1011,14 +1144,18 @@ export default function useGameEngine() {
     setFinalSalvoWarning(false);
     setImpactFlashes([]);
     setActiveTrails([]);
+    setBouncingThreats([]);
     setScreenShake(false);
     setTzurActive(false);
     setSashaActive(false);
+    setDvirActive(false);
+    dvirActiveRef.current = false;
     setPaused(false);
     spawnedIdsRef.current = new Set();
     interceptedIdsRef.current.clear();
     tzurUsedRef.current = false;
     sashaUsedRef.current = false;
+    dvirUsedRef.current = false;
     if (tzurIntervalRef.current) { clearInterval(tzurIntervalRef.current); tzurIntervalRef.current = null; }
     if (sashaIntervalRef.current) { clearInterval(sashaIntervalRef.current); sashaIntervalRef.current = null; }
     allSpawnedRef.current = false;
@@ -1082,6 +1219,9 @@ export default function useGameEngine() {
     triggerTzurMode,
     sashaActive,
     triggerSashaMode,
+    dvirActive,
+    triggerDvirMode,
+    bouncingThreats,
     startCampaign,
     startLevel,
     advanceLevel,

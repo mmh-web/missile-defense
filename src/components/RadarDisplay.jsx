@@ -187,6 +187,29 @@ function GroundImpactEffect({ flash, viewport }) {
   );
 }
 
+function ShieldDeflectEffect({ flash, viewport }) {
+  const { cx, cy, particles } = flash;
+  const p = mapToSVG(cx, cy, viewport);
+  return (
+    <g>
+      {/* Shell dome flash — green dome lights up on impact */}
+      <circle cx={p.x} cy={p.y} r="4" fill="rgba(76, 175, 80, 0.5)" className="shield-dome-flash" />
+      {/* Hexagonal crack pattern flash */}
+      <circle cx={p.x} cy={p.y} r="3.5" fill="none" stroke="#81C784" strokeWidth="0.8" className="shield-crack-ring" />
+      <circle cx={p.x} cy={p.y} r="5" fill="none" stroke="#4CAF50" strokeWidth="0.4" className="shield-ripple" />
+      {/* Bounce particles — fly upward like deflecting off a dome */}
+      {particles.map((pt, i) => (
+        <circle key={i} cx={p.x} cy={p.y} r={pt.r || 0.4} fill={pt.color || '#4CAF50'} className="shield-bounce-particle"
+          style={{ '--end-x': `${pt.endX}px`, '--end-y': `${pt.endY}px`, animationDelay: `${pt.delay}s` }} />
+      ))}
+      {/* "DEFLECTED" sparks — small bright dots */}
+      <circle cx={p.x - 1} cy={p.y - 2} r="0.3" fill="#A5D6A7" className="shield-spark" style={{ animationDelay: '0.05s' }} />
+      <circle cx={p.x + 1.5} cy={p.y - 1.5} r="0.25" fill="#C8E6C9" className="shield-spark" style={{ animationDelay: '0.1s' }} />
+      <circle cx={p.x} cy={p.y - 3} r="0.35" fill="#66BB6A" className="shield-spark" style={{ animationDelay: '0.15s' }} />
+    </g>
+  );
+}
+
 function HoldClearEffect({ flash, viewport }) {
   const { cx, cy } = flash;
   const p = mapToSVG(cx, cy, viewport);
@@ -440,6 +463,153 @@ function SiameseCatSVG({ cx, cy }) {
   );
 }
 
+function TurtleShellDome({ cx, cy, r }) {
+  // Realistic turtle shell from above — proper scute anatomy: 5 vertebral, 4 costal pairs, marginal rim
+  const sw = Math.max(0.08, r * 0.03);
+  const ry = r * 0.88; // slightly oval
+  return (
+    <g>
+      {/* Marginal rim — dark border ring */}
+      <ellipse cx={cx} cy={cy} rx={r} ry={ry}
+        fill="#1B5E20" fillOpacity="0.6" stroke="#4CAF50" strokeWidth={sw * 3} />
+      {/* Marginal scute segments — notches around the rim */}
+      {Array.from({ length: 24 }, (_, i) => {
+        const a = (i / 24) * Math.PI * 2;
+        const ix = cx + Math.cos(a) * r * 0.82;
+        const iy = cy + Math.sin(a) * ry * 0.82;
+        const ox = cx + Math.cos(a) * r * 0.98;
+        const oy = cy + Math.sin(a) * ry * 0.98;
+        return <line key={i} x1={ix} y1={iy} x2={ox} y2={oy} stroke="#66BB6A" strokeWidth={sw} opacity="0.5" />;
+      })}
+      {/* Inner shell area */}
+      <ellipse cx={cx} cy={cy} rx={r * 0.8} ry={ry * 0.8}
+        fill="#2E7D32" fillOpacity="0.5" stroke="#388E3C" strokeWidth={sw * 1.5} />
+      {/* === 5 Vertebral scutes (center column) === */}
+      {[- 0.55, -0.27, 0, 0.27, 0.55].map((yOff, i) => (
+        <ellipse key={`v${i}`} cx={cx} cy={cy + ry * yOff}
+          rx={r * 0.18} ry={ry * (i === 2 ? 0.15 : 0.12)}
+          fill="#388E3C" fillOpacity="0.5" stroke="#66BB6A" strokeWidth={sw * 1.2} />
+      ))}
+      {/* Vertebral ridge line */}
+      <line x1={cx} y1={cy - ry * 0.68} x2={cx} y2={cy + ry * 0.68}
+        stroke="#4CAF50" strokeWidth={sw} opacity="0.4" />
+      {/* === 4 pairs of costal scutes (flanking vertebral) === */}
+      {[-0.4, -0.13, 0.13, 0.4].map((yOff, i) => (
+        <g key={`c${i}`}>
+          <ellipse cx={cx - r * 0.42} cy={cy + ry * yOff}
+            rx={r * 0.22} ry={ry * 0.12}
+            fill="#43A047" fillOpacity="0.35" stroke="#66BB6A" strokeWidth={sw} />
+          <ellipse cx={cx + r * 0.42} cy={cy + ry * yOff}
+            rx={r * 0.22} ry={ry * 0.12}
+            fill="#43A047" fillOpacity="0.35" stroke="#66BB6A" strokeWidth={sw} />
+        </g>
+      ))}
+      {/* Radial growth lines from vertebral to costal */}
+      {[-0.4, -0.13, 0.13, 0.4].map((yOff, i) => (
+        <g key={`r${i}`}>
+          <line x1={cx - r * 0.18} y1={cy + ry * yOff} x2={cx - r * 0.25} y2={cy + ry * yOff}
+            stroke="#66BB6A" strokeWidth={sw * 0.8} opacity="0.4" />
+          <line x1={cx + r * 0.18} y1={cy + ry * yOff} x2={cx + r * 0.25} y2={cy + ry * yOff}
+            stroke="#66BB6A" strokeWidth={sw * 0.8} opacity="0.4" />
+        </g>
+      ))}
+      {/* 3D highlight — top-left */}
+      <ellipse cx={cx - r * 0.15} cy={cy - ry * 0.2} rx={r * 0.25} ry={ry * 0.15}
+        fill="#81C784" opacity="0.25" />
+    </g>
+  );
+}
+
+function TurtleSVG({ cx, cy }) {
+  const s = 0.55;
+  return (
+    <g transform={`translate(${cx}, ${cy}) scale(${s})`}>
+      {/* === Flippers — sea turtle style, behind body === */}
+      {/* Back left flipper */}
+      <path d="M-6,-5 Q-11,-8 -13,-4 Q-12,-2 -8,-3 Z" fill="#6B9B37" stroke="#4A7A25" strokeWidth="0.4" />
+      {/* Back right flipper */}
+      <path d="M6,-5 Q11,-8 13,-4 Q12,-2 8,-3 Z" fill="#6B9B37" stroke="#4A7A25" strokeWidth="0.4" />
+      {/* Front left flipper — large, paddle-shaped */}
+      <path d="M-6,3 Q-14,6 -15,2 Q-14,-1 -12,0 Q-10,1 -7,1 Z" fill="#7CB342" stroke="#4A7A25" strokeWidth="0.4" className="dvir-flipper-l" />
+      {/* Front right flipper */}
+      <path d="M6,3 Q14,6 15,2 Q14,-1 12,0 Q10,1 7,1 Z" fill="#7CB342" stroke="#4A7A25" strokeWidth="0.4" className="dvir-flipper-r" />
+
+      {/* === Tail — small triangular === */}
+      <path d="M-1,-8 L0,-12 L1,-8" fill="#6B9B37" stroke="#4A7A25" strokeWidth="0.3" />
+
+      {/* === Shell — detailed carapace from above === */}
+      <ellipse cx="0" cy="0" rx="10" ry="8.5" fill="#2E7D32" stroke="#1B5E20" strokeWidth="0.7" />
+
+      {/* 5 Vertebral scutes — center column */}
+      <ellipse cx="0" cy="-5" rx="2.5" ry="1.5" fill="#388E3C" stroke="#1B5E20" strokeWidth="0.35" />
+      <ellipse cx="0" cy="-2.5" rx="2.8" ry="1.6" fill="#388E3C" stroke="#1B5E20" strokeWidth="0.35" />
+      <ellipse cx="0" cy="0" rx="3" ry="1.8" fill="#388E3C" stroke="#1B5E20" strokeWidth="0.35" />
+      <ellipse cx="0" cy="2.5" rx="2.8" ry="1.6" fill="#388E3C" stroke="#1B5E20" strokeWidth="0.35" />
+      <ellipse cx="0" cy="5" rx="2.5" ry="1.5" fill="#388E3C" stroke="#1B5E20" strokeWidth="0.35" />
+
+      {/* 4 Costal scute pairs — flanking sides */}
+      <ellipse cx="-5.5" cy="-3.5" rx="2.8" ry="2" fill="#43A047" stroke="#1B5E20" strokeWidth="0.3" />
+      <ellipse cx="5.5" cy="-3.5" rx="2.8" ry="2" fill="#43A047" stroke="#1B5E20" strokeWidth="0.3" />
+      <ellipse cx="-5.5" cy="-0.5" rx="3" ry="2" fill="#43A047" stroke="#1B5E20" strokeWidth="0.3" />
+      <ellipse cx="5.5" cy="-0.5" rx="3" ry="2" fill="#43A047" stroke="#1B5E20" strokeWidth="0.3" />
+      <ellipse cx="-5.5" cy="2.5" rx="3" ry="2" fill="#43A047" stroke="#1B5E20" strokeWidth="0.3" />
+      <ellipse cx="5.5" cy="2.5" rx="3" ry="2" fill="#43A047" stroke="#1B5E20" strokeWidth="0.3" />
+      <ellipse cx="-5" cy="5" rx="2.5" ry="1.8" fill="#43A047" stroke="#1B5E20" strokeWidth="0.3" />
+      <ellipse cx="5" cy="5" rx="2.5" ry="1.8" fill="#43A047" stroke="#1B5E20" strokeWidth="0.3" />
+
+      {/* Marginal scutes — small rim notches */}
+      {Array.from({ length: 22 }, (_, i) => {
+        const a = (i / 22) * Math.PI * 2;
+        const ix = Math.cos(a) * 8.2;
+        const iy = Math.sin(a) * 7;
+        const ox = Math.cos(a) * 9.8;
+        const oy = Math.sin(a) * 8.3;
+        return <line key={i} x1={ix} y1={iy} x2={ox} y2={oy} stroke="#1B5E20" strokeWidth="0.3" opacity="0.6" />;
+      })}
+
+      {/* Shell 3D highlight */}
+      <ellipse cx="-2" cy="-2" rx="4" ry="3" fill="#4CAF50" opacity="0.15" />
+
+      {/* === Military helmet/visor on head === */}
+      {/* Head — poking out front */}
+      <ellipse cx="0" cy="10.5" rx="4" ry="3.5" fill="#8BC34A" stroke="#558B2F" strokeWidth="0.4" />
+      {/* Neck */}
+      <ellipse cx="0" cy="9" rx="3.2" ry="2.2" fill="#8BC34A" />
+
+      {/* Helmet — military green, sits on top of head */}
+      <ellipse cx="0" cy="10" rx="4.2" ry="2.2" fill="#556B2F" stroke="#3B4F1E" strokeWidth="0.4" />
+      {/* Helmet brim */}
+      <path d="M-4.2,10 Q-4.5,9 -3.5,8.5 L3.5,8.5 Q4.5,9 4.2,10" fill="#4A5F28" stroke="#3B4F1E" strokeWidth="0.25" />
+      {/* Helmet star emblem */}
+      <polygon points="0,9.2 0.4,10 1.2,10 0.5,10.5 0.7,11.3 0,10.8 -0.7,11.3 -0.5,10.5 -1.2,10 -0.4,10" fill="#FFD54F" opacity="0.8" />
+      {/* Chin strap */}
+      <path d="M-3,10.5 Q-3.5,12 -2,12.5" fill="none" stroke="#3B4F1E" strokeWidth="0.3" />
+      <path d="M3,10.5 Q3.5,12 2,12.5" fill="none" stroke="#3B4F1E" strokeWidth="0.3" />
+
+      {/* Eyes — determined look, peeking under helmet */}
+      <circle cx="-1.8" cy="11.5" r="1.1" fill="white" stroke="#33691E" strokeWidth="0.25" />
+      <circle cx="1.8" cy="11.5" r="1.1" fill="white" stroke="#33691E" strokeWidth="0.25" />
+      <circle cx="-1.8" cy="11.7" r="0.55" fill="#1B5E20" />
+      <circle cx="1.8" cy="11.7" r="0.55" fill="#1B5E20" />
+      {/* Eye glints */}
+      <circle cx="-1.4" cy="11.3" r="0.2" fill="white" opacity="0.9" />
+      <circle cx="2.2" cy="11.3" r="0.2" fill="white" opacity="0.9" />
+      {/* Determined brow line under helmet */}
+      <path d="M-3,10.8 L-0.8,11" fill="none" stroke="#33691E" strokeWidth="0.3" />
+      <path d="M3,10.8 L0.8,11" fill="none" stroke="#33691E" strokeWidth="0.3" />
+
+      {/* Nostrils */}
+      <circle cx="-0.5" cy="13" r="0.2" fill="#33691E" />
+      <circle cx="0.5" cy="13" r="0.2" fill="#33691E" />
+      {/* Determined smile */}
+      <path d="M-1.2,13.5 Q0,14.5 1.2,13.5" fill="none" stroke="#33691E" strokeWidth="0.35" strokeLinecap="round" />
+
+      {/* === Shield energy aura === */}
+      <ellipse cx="0" cy="0" rx="12" ry="10.5" fill="none" stroke="#4CAF50" strokeWidth="0.4" opacity="0.4" className="dvir-shell-glow" />
+    </g>
+  );
+}
+
 export default function RadarDisplay({
   activeThreats,
   selectedThreatId,
@@ -451,6 +621,8 @@ export default function RadarDisplay({
   currentLevel = 1,
   tzurActive = false,
   sashaActive = false,
+  dvirActive = false,
+  bouncingThreats = [],
 }) {
   const viewport = getViewportForLevel(currentLevel);
   const visibleCities = useMemo(() => getVisibleCities(currentLevel), [currentLevel]);
@@ -481,6 +653,12 @@ export default function RadarDisplay({
             <clipPath id="radar-clip">
               <circle cx="50" cy="50" r="49" />
             </clipPath>
+            {/* Dvir shield dome gradient */}
+            <radialGradient id="dvirShieldGrad" cx="50%" cy="30%" r="70%">
+              <stop offset="0%" stopColor="#A5D6A7" stopOpacity="0.25" />
+              <stop offset="60%" stopColor="#4CAF50" stopOpacity="0.15" />
+              <stop offset="100%" stopColor="#2E7D32" stopOpacity="0.08" />
+            </radialGradient>
           </defs>
 
           {/* Background */}
@@ -624,6 +802,7 @@ export default function RadarDisplay({
               if (flash.type === 'intercept') return <InterceptEffect key={flash.id} flash={flash} viewport={viewport} />;
               if (flash.type === 'city_hit') return <CityHitEffect key={flash.id} flash={flash} viewport={viewport} />;
               if (flash.type === 'ground_impact') return <GroundImpactEffect key={flash.id} flash={flash} viewport={viewport} />;
+              if (flash.type === 'shield_deflect') return <ShieldDeflectEffect key={flash.id} flash={flash} viewport={viewport} />;
               if (flash.type === 'hold_clear') return <HoldClearEffect key={flash.id} flash={flash} viewport={viewport} />;
               return null;
             })}
@@ -755,6 +934,52 @@ export default function RadarDisplay({
                 </g>
               </g>
             )}
+
+            {/* === Turtle + Shield Domes (Dvir Cheat Code) === */}
+            {dvirActive && (
+              <g>
+                {/* Turtle shell shields over each city */}
+                {Object.entries(visibleCities).map(([name, city]) => {
+                  const p = mapToSVG(city.x, city.y, viewport);
+                  const r = viewport.scale >= 2.0 ? 2.2 : viewport.scale >= 1.5 ? 1.8 : 1.4;
+                  return (
+                    <g key={`shield-${name}`} className="dvir-shield-dome">
+                      <TurtleShellDome cx={p.x} cy={p.y} r={r} />
+                    </g>
+                  );
+                })}
+                {/* Turtle SVG at center */}
+                <g className="dvir-turtle-sequence">
+                  <TurtleSVG cx={50} cy={50} />
+                </g>
+              </g>
+            )}
+
+            {/* === Bouncing Threats (ricochet off turtle shells) === */}
+            {bouncingThreats.map((bt) => {
+              const impactSvg = mapToSVG(bt.x, bt.y, viewport);
+              // Bounce direction: away from city (opposite of incoming direction)
+              const dx = bt.x - bt.originX;
+              const dy = bt.y - bt.originY;
+              const len = Math.sqrt(dx * dx + dy * dy) || 1;
+              // Bounce vector — reflect back along incoming path + upward bias
+              const bounceX = (dx / len) * 15;
+              const bounceY = (dy / len) * 15;
+              const color = THREAT_COLORS[bt.type] || '#ef4444';
+              return (
+                <g key={bt.id} className="dvir-bounce-blip"
+                  style={{ '--bounce-x': `${bounceX}px`, '--bounce-y': `${bounceY}px` }}>
+                  {/* Bouncing blip — flies away from city */}
+                  <circle cx={impactSvg.x} cy={impactSvg.y}
+                    r={BLIP_RADIUS[bt.type] || 1.4}
+                    fill={color} stroke="white" strokeWidth="0.3" />
+                  {/* Bounce trail streak */}
+                  <line x1={impactSvg.x} y1={impactSvg.y}
+                    x2={impactSvg.x - bounceX * 0.3} y2={impactSvg.y - bounceY * 0.3}
+                    stroke={color} strokeWidth="0.5" opacity="0.6" className="dvir-bounce-trail" />
+                </g>
+              );
+            })}
 
           </g>
           {/* === End clipped map content === */}
