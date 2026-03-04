@@ -418,75 +418,102 @@ export function playCityHitSound(volume = 0.7) {
 }
 
 // -------------------------------------------------------
-// Ground Impact: Distant muffled explosion in open terrain
-// Duration: ~0.5s — sounds like a rocket cratering into sand/dirt
+// Ground Impact: Muffled distant thud + crumbling debris
+// Duration: ~0.7s — distinct "whump" with dirt/gravel scatter
+// Designed to sound NOTHING like launch or intercept sounds:
+//   - Uses mid-range (150-400Hz) thud, not sub-bass
+//   - Descending "whump" envelope, not ascending whoosh
+//   - Granular debris texture, not smooth noise
+//   - Reverberant echo tail for distance feel
 // -------------------------------------------------------
 export function playGroundImpactSound(volume = 0.7) {
   try {
     const ctx = getContext();
     const now = ctx.currentTime;
 
-    // Distant boom — low muffled explosion (60Hz → 25Hz)
-    const boom = ctx.createOscillator();
-    boom.type = 'sine';
-    boom.frequency.setValueAtTime(60, now);
-    boom.frequency.exponentialRampToValueAtTime(25, now + 0.35);
+    // Layer 1: Mid-range thud — the "WHUMP" (150Hz → 80Hz, fast attack)
+    // Sits in audible range unlike the old sub-bass version
+    const thud = ctx.createOscillator();
+    thud.type = 'sine';
+    thud.frequency.setValueAtTime(150, now);
+    thud.frequency.exponentialRampToValueAtTime(80, now + 0.15);
 
-    const boomGain = ctx.createGain();
-    boomGain.gain.setValueAtTime(volume * 0.35, now);
-    boomGain.gain.linearRampToValueAtTime(volume * 0.25, now + 0.04);
-    boomGain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+    const thudGain = ctx.createGain();
+    thudGain.gain.setValueAtTime(0.001, now);
+    thudGain.gain.linearRampToValueAtTime(volume * 0.45, now + 0.008); // snappy 8ms attack
+    thudGain.gain.exponentialRampToValueAtTime(volume * 0.15, now + 0.06);
+    thudGain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
 
-    boom.connect(boomGain);
-    boomGain.connect(ctx.destination);
-    boom.start(now);
-    boom.stop(now + 0.35);
+    // Lowpass muffle — makes it sound buried/distant
+    const thudLPF = ctx.createBiquadFilter();
+    thudLPF.type = 'lowpass';
+    thudLPF.frequency.value = 350;
+    thudLPF.Q.value = 1.0;
 
-    // Dirt scatter — filtered noise (bandpass to sound like debris)
-    const scatterLen = Math.floor(ctx.sampleRate * 0.4);
-    const scatterBuf = ctx.createBuffer(1, scatterLen, ctx.sampleRate);
-    const scatterData = scatterBuf.getChannelData(0);
-    for (let i = 0; i < scatterLen; i++) {
-      const t = i / scatterLen;
-      // Starts after a tiny delay, fades out with random grain
-      const env = Math.pow(1 - t, 2) * (t > 0.02 ? 1 : t / 0.02);
-      scatterData[i] = (Math.random() * 2 - 1) * env * 0.4;
+    thud.connect(thudLPF);
+    thudLPF.connect(thudGain);
+    thudGain.connect(ctx.destination);
+    thud.start(now);
+    thud.stop(now + 0.25);
+
+    // Layer 2: Crumbling debris — granular scattered noise
+    // Unlike the smooth noise in launch sounds, this has "chunks"
+    const debrisLen = Math.floor(ctx.sampleRate * 0.5);
+    const debrisBuf = ctx.createBuffer(1, debrisLen, ctx.sampleRate);
+    const debrisData = debrisBuf.getChannelData(0);
+    for (let i = 0; i < debrisLen; i++) {
+      const t = i / debrisLen;
+      // Delayed onset (50ms after impact), then granular decay
+      const onset = t < 0.1 ? t / 0.1 : 1;
+      const decay = Math.pow(1 - t, 3);
+      // Granular texture — random amplitude modulation for "chunks of dirt"
+      const grain = Math.random() < 0.15 ? (Math.random() * 1.5 + 0.5) : 0.3;
+      debrisData[i] = (Math.random() * 2 - 1) * onset * decay * grain * 0.5;
     }
-    const scatter = ctx.createBufferSource();
-    scatter.buffer = scatterBuf;
+    const debris = ctx.createBufferSource();
+    debris.buffer = debrisBuf;
 
-    // Bandpass filter — makes noise sound like dirt/sand
-    const bpf = ctx.createBiquadFilter();
-    bpf.type = 'bandpass';
-    bpf.frequency.setValueAtTime(800, now);
-    bpf.frequency.exponentialRampToValueAtTime(300, now + 0.3);
-    bpf.Q.value = 1.5;
+    // Bandpass centered at 1200Hz — gritty gravel/dirt texture
+    // Much higher than launch sounds (which use 800Hz or lower)
+    const debrisBPF = ctx.createBiquadFilter();
+    debrisBPF.type = 'bandpass';
+    debrisBPF.frequency.setValueAtTime(1800, now);
+    debrisBPF.frequency.exponentialRampToValueAtTime(600, now + 0.4);
+    debrisBPF.Q.value = 0.8;
 
-    const scatterGain = ctx.createGain();
-    scatterGain.gain.setValueAtTime(volume * 0.2, now);
-    scatterGain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+    const debrisGain = ctx.createGain();
+    debrisGain.gain.setValueAtTime(0.001, now);
+    debrisGain.gain.linearRampToValueAtTime(volume * 0.22, now + 0.06);
+    debrisGain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
 
-    scatter.connect(bpf);
-    bpf.connect(scatterGain);
-    scatterGain.connect(ctx.destination);
-    scatter.start(now);
-    scatter.stop(now + 0.4);
+    debris.connect(debrisBPF);
+    debrisBPF.connect(debrisGain);
+    debrisGain.connect(ctx.destination);
+    debris.start(now);
+    debris.stop(now + 0.5);
 
-    // Low rumble tail — makes it feel distant
-    const rumble = ctx.createOscillator();
-    rumble.type = 'triangle';
-    rumble.frequency.setValueAtTime(35, now + 0.05);
-    rumble.frequency.exponentialRampToValueAtTime(18, now + 0.5);
+    // Layer 3: Echo tail — reverberant "thoom" that fades (200Hz → 100Hz)
+    // Delayed 80ms to simulate sound bouncing off terrain
+    const echo = ctx.createOscillator();
+    echo.type = 'triangle';
+    echo.frequency.setValueAtTime(200, now + 0.08);
+    echo.frequency.exponentialRampToValueAtTime(100, now + 0.5);
 
-    const rumbleGain = ctx.createGain();
-    rumbleGain.gain.setValueAtTime(0.001, now);
-    rumbleGain.gain.linearRampToValueAtTime(volume * 0.15, now + 0.06);
-    rumbleGain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+    const echoGain = ctx.createGain();
+    echoGain.gain.setValueAtTime(0.001, now);
+    echoGain.gain.linearRampToValueAtTime(volume * 0.12, now + 0.1);
+    echoGain.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
 
-    rumble.connect(rumbleGain);
-    rumbleGain.connect(ctx.destination);
-    rumble.start(now);
-    rumble.stop(now + 0.5);
+    // Lowpass to keep it muffled and distant
+    const echoLPF = ctx.createBiquadFilter();
+    echoLPF.type = 'lowpass';
+    echoLPF.frequency.value = 400;
+
+    echo.connect(echoLPF);
+    echoLPF.connect(echoGain);
+    echoGain.connect(ctx.destination);
+    echo.start(now + 0.08);
+    echo.stop(now + 0.7);
   } catch (e) {
     // Silently fail
   }
