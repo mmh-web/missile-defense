@@ -55,7 +55,7 @@ export function saveScore(entry) {
   const mode = entry.gameMode || 'CAMPAIGN';
 
   const newEntry = {
-    name: (entry.name || 'AAA').toUpperCase().slice(0, 3),
+    name: (entry.name || 'AAA').toUpperCase().slice(0, 10),
     score: entry.score || 0,
     stars: entry.stars || 0,
     rating: entry.rating || '',

@@ -47,6 +47,7 @@ export default function App() {
     feedbackMessage,
     escapeRoomTime,
     escapeRoomStartTime,
+    escapeRoomMode,
     streak,
     finalSalvoWarning,
     impactFlashes,
@@ -73,6 +74,8 @@ export default function App() {
     setSelectedThreatId,
     setVolume,
     setEscapeRoomStartTime,
+    setEscapeRoomMode,
+    addEscapeTime,
     getLevelStats,
     getRunningScore,
     getCampaignStats,
@@ -279,6 +282,9 @@ export default function App() {
       onUnlock={() => setFacilitatorUnlocked(true)}
       escapeRoomStartTime={escapeRoomStartTime}
       onSetEscapeTime={setEscapeRoomStartTime}
+      escapeRoomMode={escapeRoomMode}
+      onToggleEscapeRoomMode={() => setEscapeRoomMode((prev) => !prev)}
+      onAddTime={addEscapeTime}
       skipBriefings={skipBriefings}
       onToggleSkipBriefings={() => setSkipBriefings((prev) => !prev)}
     />
@@ -404,7 +410,7 @@ export default function App() {
             <span className="text-base leading-none">{musicMuted ? '\u266A' : '\u266A'}</span>
             {musicMuted ? 'OFF' : 'ON'}
           </button>
-          <EscapeRoomTimer escapeRoomTime={escapeRoomTime} />
+          {escapeRoomMode && <EscapeRoomTimer escapeRoomTime={escapeRoomTime} />}
         </div>
         <EducationalBriefing
           key={`briefing-${currentLevel}`}
@@ -423,7 +429,7 @@ export default function App() {
     return (
       <div className="relative">
         <div className="absolute top-4 right-4 z-10">
-          <EscapeRoomTimer escapeRoomTime={escapeRoomTime} />
+          {escapeRoomMode && <EscapeRoomTimer escapeRoomTime={escapeRoomTime} />}
         </div>
         <LevelIntro
           level={currentLevel}
@@ -441,7 +447,7 @@ export default function App() {
     return (
       <div className="relative">
         <div className="absolute top-4 right-4 z-10">
-          <EscapeRoomTimer escapeRoomTime={escapeRoomTime} />
+          {escapeRoomMode && <EscapeRoomTimer escapeRoomTime={escapeRoomTime} />}
         </div>
         <LevelComplete
           levelStats={getLevelStats()}
@@ -476,7 +482,7 @@ export default function App() {
     <div className={`h-screen bg-[#0a0e1a] flex flex-col overflow-hidden relative ${screenShake ? 'screen-shake border-flash-red' : ''}`}>
       {/* Escape Room Timer — floating overlay, visually separate from game */}
       <div className="absolute top-2 right-4 z-30">
-        <EscapeRoomTimer escapeRoomTime={escapeRoomTime} />
+        {escapeRoomMode && <EscapeRoomTimer escapeRoomTime={escapeRoomTime} />}
       </div>
 
       {/* Top bar */}

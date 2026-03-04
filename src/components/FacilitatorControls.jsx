@@ -18,6 +18,9 @@ export default function FacilitatorControls({
   onUnlock,
   escapeRoomStartTime,
   onSetEscapeTime,
+  escapeRoomMode,
+  onToggleEscapeRoomMode,
+  onAddTime,
   skipBriefings,
   onToggleSkipBriefings,
 }) {
@@ -83,30 +86,66 @@ export default function FacilitatorControls({
           </div>
         </div>
 
-        {/* Escape Room Timer — unlocked only */}
+        {/* Escape Room Mode toggle — unlocked only */}
         {unlocked && (
           <div className="mb-6">
             <div className="h-px bg-gray-800 mb-4" />
-            <label className="block text-xs text-gray-500 font-mono tracking-wider mb-2">
-              ESCAPE ROOM TIMER
-            </label>
-            <div className="flex items-center gap-3">
-              <input
-                type="range"
-                min="5"
-                max="45"
-                step="1"
-                value={Math.round((escapeRoomStartTime || 1200) / 60)}
-                onChange={(e) => onSetEscapeTime(parseInt(e.target.value) * 60)}
-                className="flex-1 accent-green-500 h-2 bg-gray-800 rounded-lg cursor-pointer"
-              />
-              <span className="text-xs text-gray-400 font-mono w-16 text-right">
-                {Math.round((escapeRoomStartTime || 1200) / 60)} MIN
-              </span>
+            <div className="flex items-center justify-between mb-3">
+              <label className="text-xs text-gray-500 font-mono tracking-wider">
+                ESCAPE ROOM MODE
+              </label>
+              <button
+                onClick={onToggleEscapeRoomMode}
+                className={`relative w-11 h-6 rounded-full transition-colors cursor-pointer ${
+                  escapeRoomMode ? 'bg-purple-600' : 'bg-gray-700'
+                }`}
+              >
+                <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform ${
+                  escapeRoomMode ? 'translate-x-5' : ''
+                }`} />
+              </button>
             </div>
-            <div className="text-[10px] text-gray-600 font-mono text-center mt-1">
-              RESETS ON NEW CAMPAIGN
+            <div className="text-[10px] text-gray-600 font-mono mb-3">
+              {escapeRoomMode ? 'TIMER ACTIVE — CAMPAIGN AUTO-ENDS AT 0:00' : 'NO TIMER — PLAY ALL 7 LEVELS'}
             </div>
+
+            {/* Timer duration slider + add time — only when escape room mode ON */}
+            {escapeRoomMode && (
+              <>
+                <label className="block text-xs text-gray-500 font-mono tracking-wider mb-2">
+                  TIMER DURATION
+                </label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="range"
+                    min="5"
+                    max="45"
+                    step="1"
+                    value={Math.round((escapeRoomStartTime || 1500) / 60)}
+                    onChange={(e) => onSetEscapeTime(parseInt(e.target.value) * 60)}
+                    className="flex-1 accent-purple-500 h-2 bg-gray-800 rounded-lg cursor-pointer"
+                  />
+                  <span className="text-xs text-gray-400 font-mono w-16 text-right">
+                    {Math.round((escapeRoomStartTime || 1500) / 60)} MIN
+                  </span>
+                </div>
+                <div className="text-[10px] text-gray-600 font-mono text-center mt-1">
+                  RESETS ON NEW CAMPAIGN
+                </div>
+
+                {/* Add time button — only visible during active campaign */}
+                {!isPreGame && (
+                  <button
+                    onClick={() => onAddTime(300)}
+                    className="w-full mt-3 py-2 rounded-lg font-mono font-bold text-xs tracking-wider
+                      bg-purple-900/30 border-2 border-purple-700 text-purple-400
+                      hover:bg-purple-900/50 hover:border-purple-500 transition-all cursor-pointer"
+                  >
+                    +5 MIN
+                  </button>
+                )}
+              </>
+            )}
           </div>
         )}
 

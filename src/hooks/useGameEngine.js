@@ -67,8 +67,9 @@ export default function useGameEngine() {
   const [volume, setVolume] = useState(0.7);
   const [resultLog, setResultLog] = useState([]);
   const [feedbackMessage, setFeedbackMessage] = useState(null);
-  const [escapeRoomTime, setEscapeRoomTime] = useState(20 * 60);
-  const [escapeRoomStartTime, setEscapeRoomStartTime] = useState(20 * 60);
+  const [escapeRoomTime, setEscapeRoomTime] = useState(25 * 60);
+  const [escapeRoomStartTime, setEscapeRoomStartTime] = useState(25 * 60);
+  const [escapeRoomMode, setEscapeRoomMode] = useState(true);
   const [sirenCount, setSirenCount] = useState(0);
   const [wrongInterceptAttempts, setWrongInterceptAttempts] = useState(0);
   const [streak, setStreak] = useState(0);
@@ -126,6 +127,7 @@ export default function useGameEngine() {
     totalWrongIntercepts: 0,
     totalWastedIntercepts: 0,
     overallBestStreak: 0,
+    endedEarly: false,
   });
 
   // Audio refs
@@ -989,6 +991,7 @@ export default function useGameEngine() {
       ...campaign,
       rating,
       levelsCompleted: campaign.levelScores.length,
+      endedEarly: campaign.endedEarly || false,
     };
   }, []);
 
@@ -1015,6 +1018,7 @@ export default function useGameEngine() {
       totalWastedIntercepts: 0,
       overallBestStreak: 0,
       quizPoints: 0,
+      endedEarly: false,
     };
     setCurrentLevel(1);
     setGameState(GAME_STATES.BRIEFING);
@@ -1124,6 +1128,35 @@ export default function useGameEngine() {
     setGameState(GAME_STATES.SUMMARY);
   }, [saveLevelToCampaign]);
 
+  // End campaign early (called when escape room timer hits 0)
+  const endCampaignEarly = useCallback(() => {
+    stopSiren();
+    if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+    if (tzevaAdomTimerRef.current) clearTimeout(tzevaAdomTimerRef.current);
+    if (autoEndTimerRef.current) {
+      clearTimeout(autoEndTimerRef.current);
+      autoEndTimerRef.current = null;
+    }
+    if (tzurIntervalRef.current) { clearInterval(tzurIntervalRef.current); tzurIntervalRef.current = null; }
+    if (sashaIntervalRef.current) { clearInterval(sashaIntervalRef.current); sashaIntervalRef.current = null; }
+
+    // Save current level stats if mid-gameplay or at level complete
+    const state = gameStateRef.current;
+    if (state === GAME_STATES.ACTIVE || state === GAME_STATES.LEVEL_COMPLETE) {
+      saveLevelToCampaign();
+    }
+
+    campaignStatsRef.current.endedEarly = true;
+    // Update ref synchronously to prevent double-firing from rapid timer ticks
+    gameStateRef.current = GAME_STATES.SUMMARY;
+    setGameState(GAME_STATES.SUMMARY);
+  }, [stopSiren, saveLevelToCampaign]);
+
+  // Add time to escape room countdown (facilitator control)
+  const addEscapeTime = useCallback((seconds) => {
+    setEscapeRoomTime((prev) => prev + seconds);
+  }, []);
+
   const skipBriefing = useCallback(() => {
     if (gameStateRef.current !== GAME_STATES.BRIEFING) return;
     setGameState(GAME_STATES.LEVEL_INTRO);
@@ -1147,6 +1180,7 @@ export default function useGameEngine() {
       totalWastedIntercepts: 0,
       overallBestStreak: 0,
       quizPoints: 0,
+      endedEarly: false,
     };
     setCurrentLevel(level);
     setSessionTime(0);
@@ -1231,9 +1265,10 @@ export default function useGameEngine() {
     setPaused((p) => !p);
   }, []);
 
-  // Escape room timer — ticks during ALL states except PRE_GAME and SUMMARY
+  // Escape room timer — ticks during ALL states except PRE_GAME and SUMMARY (only when escape room mode is ON)
   useEffect(() => {
     const shouldTick =
+      escapeRoomMode &&
       gameState !== GAME_STATES.PRE_GAME &&
       gameState !== GAME_STATES.SUMMARY &&
       !paused;
@@ -1248,7 +1283,19 @@ export default function useGameEngine() {
     }, 100);
 
     return () => clearInterval(interval);
-  }, [gameState, paused]);
+  }, [gameState, paused, escapeRoomMode]);
+
+  // Auto-end campaign when escape room timer hits 0
+  const endCampaignEarlyRef = useRef(endCampaignEarly);
+  useEffect(() => { endCampaignEarlyRef.current = endCampaignEarly; }, [endCampaignEarly]);
+
+  useEffect(() => {
+    if (!escapeRoomMode) return;
+    if (escapeRoomTime > 0) return;
+    const state = gameStateRef.current;
+    if (state === GAME_STATES.PRE_GAME || state === GAME_STATES.SUMMARY) return;
+    endCampaignEarlyRef.current();
+  }, [escapeRoomTime, escapeRoomMode]);
 
   // Add quiz points to campaign total
   const addQuizPoints = useCallback((points) => {
@@ -1273,6 +1320,7 @@ export default function useGameEngine() {
     feedbackMessage,
     escapeRoomTime,
     escapeRoomStartTime,
+    escapeRoomMode,
     sirenCount,
     streak,
     bestStreak,
@@ -1301,6 +1349,8 @@ export default function useGameEngine() {
     setSelectedThreatId,
     setVolume,
     setEscapeRoomStartTime,
+    setEscapeRoomMode,
+    addEscapeTime,
     getLevelStats,
     getRunningScore,
     getCampaignStats,

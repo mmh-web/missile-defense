@@ -13,7 +13,10 @@ export default function Summary({ stats, levelStats, onReset }) {
     overallBestStreak,
     rating,
     levelsCompleted,
+    endedEarly,
   } = stats;
+
+  const isIncomplete = levelsCompleted < 7;
 
   const [callsign, setCallsign] = useState('');
   const [saved, setSaved] = useState(false);
@@ -64,13 +67,18 @@ export default function Summary({ stats, levelStats, onReset }) {
       <div className="max-w-2xl w-full py-8 px-4">
         {/* Header */}
         <div className="text-center mb-6">
-          <div className="text-green-500 font-mono text-sm tracking-[0.3em] mb-2">
-            CAMPAIGN COMPLETE
+          <div className={`font-mono text-sm tracking-[0.3em] mb-2 ${isIncomplete ? 'text-red-400' : 'text-green-500'}`}>
+            {isIncomplete ? 'CAMPAIGN INCOMPLETE' : 'CAMPAIGN COMPLETE'}
           </div>
-          <div className="text-4xl font-bold font-mono text-green-400 tracking-wider mb-2">
-            ALL CLEAR
+          <div className={`text-4xl font-bold font-mono tracking-wider mb-2 ${isIncomplete ? 'text-red-400' : 'text-green-400'}`}>
+            {isIncomplete && endedEarly ? "TIME'S UP" : isIncomplete ? 'MISSION ABORTED' : 'ALL CLEAR'}
           </div>
-          <div className="h-px bg-green-900 w-48 mx-auto" />
+          {isIncomplete && (
+            <div className="text-lg font-mono text-gray-400 tracking-wider mb-2">
+              {levelsCompleted} / 7 LEVELS COMPLETED
+            </div>
+          )}
+          <div className={`h-px w-48 mx-auto ${isIncomplete ? 'bg-red-900' : 'bg-green-900'}`} />
         </div>
 
         {/* Total Score — prominent */}
@@ -82,7 +90,7 @@ export default function Summary({ stats, levelStats, onReset }) {
           <div className="text-3xl font-bold font-mono text-white tracking-wider mb-2">
             {rating.label}
           </div>
-          <div className="text-3xl tracking-wider mb-3">
+          <div className="text-3xl tracking-wider mb-1">
             {stars.map((filled, i) => (
               <span
                 key={i}
@@ -91,12 +99,6 @@ export default function Summary({ stats, levelStats, onReset }) {
                 &#9733;
               </span>
             ))}
-          </div>
-          <div className="text-5xl font-bold font-mono text-green-400 tabular-nums">
-            {score.toLocaleString()}
-          </div>
-          <div className="text-xs text-gray-500 font-mono tracking-widest mt-1">
-            MISSION SCORE
           </div>
         </div>
 
@@ -166,8 +168,8 @@ export default function Summary({ stats, levelStats, onReset }) {
           )}
           <StatRow
             label="LEVELS COMPLETED"
-            value={`${levelsCompleted} / 5`}
-            good={levelsCompleted === 5}
+            value={`${levelsCompleted} / 7`}
+            good={levelsCompleted === 7}
           />
         </div>
 
@@ -179,13 +181,13 @@ export default function Summary({ stats, levelStats, onReset }) {
           <div className="flex items-center justify-center gap-3">
             <input
               type="text"
-              maxLength={3}
+              maxLength={10}
               value={callsign}
               onChange={(e) => setCallsign(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
-              placeholder="AAA"
+              placeholder="CALLSIGN"
               disabled={saved}
-              className="w-24 px-3 py-2 bg-gray-900 border-2 border-green-800 rounded font-mono text-xl
-                text-center text-green-400 tracking-[0.3em] uppercase
+              className="w-48 px-3 py-2 bg-gray-900 border-2 border-green-800 rounded font-mono text-lg
+                text-center text-green-400 tracking-widest uppercase
                 focus:border-green-500 focus:outline-none
                 disabled:opacity-50 disabled:cursor-not-allowed
                 placeholder:text-gray-700"
@@ -280,6 +282,7 @@ export function LeaderboardTable({ entries, gameMode = 'CAMPAIGN', highlightTime
             <th className="text-left py-1 px-2 w-8">#</th>
             <th className="text-left py-1 px-2">CALLSIGN</th>
             <th className="text-right py-1 px-2">SCORE</th>
+            <th className="text-center py-1 px-2">LVL</th>
             <th className="text-center py-1 px-2">RATING</th>
             <th className="text-center py-1 px-2">STARS</th>
           </tr>
@@ -301,6 +304,9 @@ export function LeaderboardTable({ entries, gameMode = 'CAMPAIGN', highlightTime
                 <td className="py-2 px-2 text-gray-600">{i + 1}</td>
                 <td className="py-2 px-2 font-bold tracking-wider">{entry.name}</td>
                 <td className="py-2 px-2 text-right tabular-nums">{entry.score}</td>
+                <td className="py-2 px-2 text-center text-xs tabular-nums opacity-70">
+                  {entry.levelsCompleted != null ? `${entry.levelsCompleted}/7` : '—'}
+                </td>
                 <td className="py-2 px-2 text-center text-xs tracking-wider opacity-70">
                   {entry.rating}
                 </td>
