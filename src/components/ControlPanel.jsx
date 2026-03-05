@@ -1,10 +1,10 @@
 import { INTERCEPTOR_COLORS } from '../config/threats.js';
 
 const INTERCEPTORS = [
-  { key: 'iron_dome', label: 'IRON DOME', color: INTERCEPTOR_COLORS.iron_dome, shortcut: '1' },
-  { key: 'davids_sling', label: "DAVID'S SLING", color: INTERCEPTOR_COLORS.davids_sling, shortcut: '2' },
-  { key: 'arrow_2', label: 'ARROW 2', color: INTERCEPTOR_COLORS.arrow_2, shortcut: '3' },
-  { key: 'arrow_3', label: 'ARROW 3', color: INTERCEPTOR_COLORS.arrow_3, shortcut: '4' },
+  { key: 'iron_dome', label: 'IRON DOME', hebrew: 'כִּפַּת בַּרְזֶל', color: INTERCEPTOR_COLORS.iron_dome, shortcut: '1' },
+  { key: 'davids_sling', label: "DAVID'S SLING", hebrew: 'קֶלַע דָּוִד', color: INTERCEPTOR_COLORS.davids_sling, shortcut: '2' },
+  { key: 'arrow_2', label: 'ARROW 2', hebrew: 'חֵץ 2', color: INTERCEPTOR_COLORS.arrow_2, shortcut: '3' },
+  { key: 'arrow_3', label: 'ARROW 3', hebrew: 'חֵץ 3', color: INTERCEPTOR_COLORS.arrow_3, shortcut: '4' },
 ];
 
 export default function ControlPanel({
@@ -55,7 +55,7 @@ export default function ControlPanel({
 
       {/* Interceptor + Hold Fire buttons */}
       <div className="flex gap-2">
-        {visibleInterceptors.map(({ key, label, color, shortcut }) => {
+        {visibleInterceptors.map(({ key, label, hebrew, color, shortcut }) => {
           const count = ammo[key];
           const depleted = count <= 0;
           const isLow = count === 1;
@@ -76,15 +76,18 @@ export default function ControlPanel({
                 ${isLow && !disabled ? 'ammo-low-flash' : ''}
               `}
             >
-              {/* Shortcut badge + system name — centered together */}
-              <div className="flex items-center justify-center gap-2 mb-2">
+              {/* Shortcut badge + system name + Hebrew — centered together */}
+              <div className="flex items-center justify-center gap-2 mb-1">
                 <span
                   className="w-6 h-6 rounded border-2 flex items-center justify-center text-xs font-bold flex-shrink-0"
                   style={{ borderColor: depleted ? '#4b5563' : color, color: depleted ? '#4b5563' : color }}
                 >
                   {shortcut}
                 </span>
-                <span className="text-xs font-bold tracking-wider" style={{ color: depleted ? '#4b5563' : color }}>{label}</span>
+                <div className="text-center">
+                  <div className="text-xs font-bold tracking-wider" style={{ color: depleted ? '#4b5563' : color }}>{label}</div>
+                  <div className="text-xs font-bold" style={{ color: depleted ? '#4b5563' : color, fontFamily: 'Arial, sans-serif' }}>{hebrew}</div>
+                </div>
               </div>
               {/* Ammo count + dots — centered */}
               <div className="text-center">

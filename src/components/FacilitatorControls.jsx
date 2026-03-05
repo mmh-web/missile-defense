@@ -136,12 +136,12 @@ export default function FacilitatorControls({
                 {/* Add time button — only visible during active campaign */}
                 {!isPreGame && (
                   <button
-                    onClick={() => onAddTime(300)}
+                    onClick={() => onAddTime(60)}
                     className="w-full mt-3 py-2 rounded-lg font-mono font-bold text-xs tracking-wider
                       bg-purple-900/30 border-2 border-purple-700 text-purple-400
                       hover:bg-purple-900/50 hover:border-purple-500 transition-all cursor-pointer"
                   >
-                    +5 MIN
+                    +1 MIN
                   </button>
                 )}
               </>
