@@ -455,23 +455,9 @@ export default function useGameEngine() {
         interceptedIdsRef.current.add(target.id);
         const { x: blipX, y: blipY } = getBlipPosition(target);
 
-        // Cyan laser trail from radar center (cat position) to threat
-        const trailId = Date.now() + Math.random();
-        const duration = 250;
-        setActiveTrails((prev) => [...prev, {
-          id: trailId,
-          startX: 0.5, startY: 0.5, // cat is at radar center in map coords
-          endX: blipX, endY: blipY,
-          color: '#06b6d4', // cyan laser
-          duration,
-        }]);
-        setTimeout(() => setActiveTrails((prev) => prev.filter((t) => t.id !== trailId)), duration + 400);
-
-        // Intercept flash + sound
-        setTimeout(() => {
-          addImpactFlash(target.impact_zone, 'intercept', target.type, { x: blipX, y: blipY });
-          playInterceptSound(volumeRef.current, target.type);
-        }, duration);
+        // No trail needed — SVG laser beams from cat eyes handle the visual
+        addImpactFlash(target.impact_zone, 'intercept', target.type, { x: blipX, y: blipY });
+        playInterceptSound(volumeRef.current, target.type);
 
         // Mark intercepted
         setActiveThreats((prev) => prev.map((t) =>
@@ -486,11 +472,11 @@ export default function useGameEngine() {
           return next;
         });
 
-        // Remove after trail
+        // Remove threat after brief delay
         const tid = target.id;
         setTimeout(() => {
           setActiveThreats((prev) => prev.filter((t) => t.id !== tid));
-        }, duration + 500);
+        }, 500);
       };
 
       // Immediate first zap, then every 300ms
