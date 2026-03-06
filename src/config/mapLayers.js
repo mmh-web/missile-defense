@@ -91,7 +91,7 @@ export const LEVEL_VIEWPORTS = [
 // Iron Dome batteries deployed regionally near the front (L1-L2).
 // David's Sling based at Hatzor AFB (L3).
 // Arrow systems based at Palmachim AFB (L4).
-// Nationwide: Air Defense Command (The Bor), central Israel (L5-7).
+// Nationwide (L5-7): distributed batteries — interceptors fire from nearest base.
 
 export const LEVEL_BATTERIES = [
   null,
@@ -99,9 +99,22 @@ export const LEVEL_BATTERIES = [
   { x: 0.38, y: 0.20, label: 'Iron Dome' },       // L2: near Haifa (northern front)
   { x: 0.25, y: 0.39, label: 'Hatzor AFB' },      // L3: David's Sling home base
   { x: 0.22, y: 0.37, label: 'Palmachim AFB' },   // L4: Arrow 2 primary site
-  { x: 0.28, y: 0.34, label: 'Air Defense HQ' },  // L5: nationwide (The Bor area)
-  { x: 0.28, y: 0.34, label: 'Air Defense HQ' },  // L6: nationwide
-  { x: 0.28, y: 0.34, label: 'Air Defense HQ' },  // L7: nationwide
+  // L5-7: array of distributed batteries — getNearestBattery picks the closest
+  [
+    { x: 0.24, y: 0.38, label: 'Palmachim' },     // Central coast — Arrow 2/3 primary
+    { x: 0.43, y: 0.22, label: 'Ramat David' },   // North — Iron Dome / air defense
+    { x: 0.36, y: 0.54, label: 'Nevatim' },       // South — strategic air base
+  ],
+  [
+    { x: 0.24, y: 0.38, label: 'Palmachim' },
+    { x: 0.43, y: 0.22, label: 'Ramat David' },
+    { x: 0.36, y: 0.54, label: 'Nevatim' },
+  ],
+  [
+    { x: 0.24, y: 0.38, label: 'Palmachim' },
+    { x: 0.43, y: 0.22, label: 'Ramat David' },
+    { x: 0.36, y: 0.54, label: 'Nevatim' },
+  ],
 ];
 
 // --- Region Outlines ---
@@ -214,10 +227,30 @@ export function getViewportForLevel(level) {
   return LEVEL_VIEWPORTS[idx] || LEVEL_VIEWPORTS[5];
 }
 
-/** Get the battery position for a given level */
+/** Get battery config for a given level.
+ *  Returns a single battery object (L1-4) or an array of batteries (L5-7). */
 export function getBatteryForLevel(level) {
   const idx = Math.min(level, LEVEL_BATTERIES.length - 1);
   return LEVEL_BATTERIES[idx] || LEVEL_BATTERIES[3];
+}
+
+/** Get the nearest battery to a target position.
+ *  For L1-4 (single battery) returns that battery.
+ *  For L5-7 (multiple batteries) returns the closest one. */
+export function getNearestBattery(level, targetX, targetY) {
+  const entry = getBatteryForLevel(level);
+  if (!entry) return null;
+  if (!Array.isArray(entry)) return entry;
+  // Find nearest battery by Euclidean distance
+  let best = entry[0];
+  let bestDist = Infinity;
+  for (const b of entry) {
+    const dx = b.x - targetX;
+    const dy = b.y - targetY;
+    const dist = dx * dx + dy * dy;
+    if (dist < bestDist) { bestDist = dist; best = b; }
+  }
+  return best;
 }
 
 /** Get region labels visible at a given level.

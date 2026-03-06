@@ -842,30 +842,33 @@ export default function RadarDisplay({
               });
             })()}
 
-            {/* Battery/HQ marker — per-level position */}
+            {/* Battery markers — single for L1-4, multiple for L5-7 */}
             {(() => {
-              const battery = getBatteryForLevel(currentLevel);
-              if (!battery) return null;
-              const hq = mapToSVG(battery.x, battery.y, viewport);
-              return (
-                <g>
-                  <rect
-                    x={hq.x - 1.5} y={hq.y - 1.5}
-                    width="3" height="3"
-                    fill="none" stroke="#22c55e" strokeWidth="0.4" opacity="0.7"
-                    transform={`rotate(45, ${hq.x}, ${hq.y})`}
-                  />
-                  {/* Battery label — uses name from config */}
-                  <text
-                    x={hq.x} y={hq.y + 3.5}
-                    fill="#22c55e" fontSize={battery.label.length > 10 ? '1.6' : '2.2'} fontFamily="monospace"
-                    textAnchor="middle" dominantBaseline="hanging"
-                    opacity="0.7" fontWeight="bold"
-                  >
-                    {battery.label}
-                  </text>
-                </g>
-              );
+              const entry = getBatteryForLevel(currentLevel);
+              if (!entry) return null;
+              const batteries = Array.isArray(entry) ? entry : [entry];
+              return batteries.map((battery, i) => {
+                const hq = mapToSVG(battery.x, battery.y, viewport);
+                return (
+                  <g key={`bat-${i}`}>
+                    <rect
+                      x={hq.x - 1.5} y={hq.y - 1.5}
+                      width="3" height="3"
+                      fill="none" stroke="#22c55e" strokeWidth="0.4" opacity="0.7"
+                      transform={`rotate(45, ${hq.x}, ${hq.y})`}
+                    />
+                    {/* Battery label */}
+                    <text
+                      x={hq.x} y={hq.y + 3.5}
+                      fill="#22c55e" fontSize={battery.label.length > 10 ? '1.6' : '2.2'} fontFamily="monospace"
+                      textAnchor="middle" dominantBaseline="hanging"
+                      opacity="0.7" fontWeight="bold"
+                    >
+                      {battery.label}
+                    </text>
+                  </g>
+                );
+              });
             })()}
 
             {/* === Impact Effects Layer === */}

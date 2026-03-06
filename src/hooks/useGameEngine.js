@@ -8,7 +8,7 @@ import {
   COMMAND_CENTER,
   INTERCEPTOR_COLORS,
 } from '../config/threats.js';
-import { getBatteryForLevel } from '../config/mapLayers.js';
+import { getBatteryForLevel, getNearestBattery } from '../config/mapLayers.js';
 import { getSpawnOrigin } from '../config/spawnOrigins.js';
 import {
   playInterceptSound,
@@ -257,7 +257,11 @@ export default function useGameEngine() {
 
   // Launch interceptor trail with delayed impact flash
   const addTrail = useCallback((action, threat, impactType) => {
-    const battery = getBatteryForLevel(currentLevelRef.current) || COMMAND_CENTER;
+    // Pick nearest battery to the threat's target (for L5-7 multi-battery)
+    const targetPos = IMPACT_POSITIONS[threat.impact_zone];
+    const battery = targetPos
+      ? getNearestBattery(currentLevelRef.current, targetPos.x, targetPos.y)
+      : (getBatteryForLevel(currentLevelRef.current) || COMMAND_CENTER);
     if (!battery) return;
 
     const { x: blipX, y: blipY } = getBlipPosition(threat);
