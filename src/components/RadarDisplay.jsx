@@ -1041,9 +1041,8 @@ export default function RadarDisplay({
                   const tid = typeof threat.id === 'number' ? Math.abs(threat.id) :
                     [...String(threat.id)].reduce((h, c) => (h * 31 + c.charCodeAt(0)) & 0x7fffffff, 0);
 
-                  // Generate 7 wiry squiggly beard strands per threat
-                  const strandColors = ['#1a0a00', '#3d1c00', '#8B4513', '#D2691E', '#A0522D', '#5c2e00', '#2d1200'];
-                  const strandWidths = [0.35, 0.4, 0.55, 0.6, 0.45, 0.35, 0.3];
+                  // Generate 7 beard hair strands per threat — rim-lit dark hair technique
+                  // Wider warm-brown outer glow underneath, thin near-black hair on top
                   const strandPaths = [];
 
                   for (let s = 0; s < 7; s++) {
@@ -1063,17 +1062,17 @@ export default function RadarDisplay({
                     const perpX = -dy / dist;
                     const perpY = dx / dist;
 
-                    // Tight squiggly curls like wiry beard hair
-                    const numCurls = 10 + (seed1 % 6);
-                    const curlSize = 1.8 + (seed2 % 20) / 8;
+                    // Gentle wavy curls — fewer, wider curves for natural hair look
+                    const numCurls = 5 + (seed1 % 3);
+                    const curlSize = 1.2 + (seed2 % 15) / 10;
                     let pathD = `M ${beardX.toFixed(1)} ${beardY.toFixed(1)}`;
 
                     for (let w = 0; w < numCurls; w++) {
                       const tCtrl = (w + 0.5) / numCurls;
                       const tEnd = (w + 1) / numCurls;
                       const side = (w % 2 === 0) ? 1 : -1;
-                      // Envelope: full squiggle throughout, slight taper at ends
-                      const envelope = Math.sin(tCtrl * Math.PI) * 0.7 + 0.3;
+                      // Smooth envelope — gentle wave, not tight zigzag
+                      const envelope = Math.sin(tCtrl * Math.PI) * 0.5 + 0.5;
                       const amp = curlSize * envelope;
 
                       const cpX = beardX + dx * tCtrl + perpX * side * amp;
@@ -1087,20 +1086,39 @@ export default function RadarDisplay({
                     strandPaths.push(pathD);
                   }
 
+                  // Rim-lit colors: warm brown outer glow, near-black inner hair
+                  const outerColors = ['#3d1c00', '#2a1a10', '#4a2800', '#3d1c00', '#2a1a10', '#4a2800', '#3d1c00'];
+                  const innerColors = ['#0a0500', '#080300', '#0c0600', '#0a0500', '#080300', '#0c0600', '#0a0500'];
+                  const outerWidths = [1.4, 1.2, 1.6, 1.5, 1.3, 1.2, 1.4];
+                  const innerWidths = [0.5, 0.4, 0.6, 0.55, 0.45, 0.4, 0.5];
+
                   return (
                     <g key={`beard-${threat.id}`} className="sufrin-beard-strand">
+                      {/* Outer glow layer — warm brown rim light */}
                       {strandPaths.map((pathD, i) => (
                         <path
-                          key={i}
+                          key={`outer-${i}`}
                           d={pathD}
                           fill="none"
-                          stroke={strandColors[i]}
-                          strokeWidth={strandWidths[i]}
-                          opacity={0.85}
+                          stroke={outerColors[i]}
+                          strokeWidth={outerWidths[i]}
+                          opacity={0.6}
                           strokeLinecap="round"
                         />
                       ))}
-                      <circle cx={svgPos.x} cy={svgPos.y} r="1.5" fill="#D2691E" opacity="0.5" className="sufrin-target-dot" />
+                      {/* Inner hair layer — near-black dark strands */}
+                      {strandPaths.map((pathD, i) => (
+                        <path
+                          key={`inner-${i}`}
+                          d={pathD}
+                          fill="none"
+                          stroke={innerColors[i]}
+                          strokeWidth={innerWidths[i]}
+                          opacity={0.9}
+                          strokeLinecap="round"
+                        />
+                      ))}
+                      <circle cx={svgPos.x} cy={svgPos.y} r="1.5" fill="#3d1c00" opacity="0.4" className="sufrin-target-dot" />
                     </g>
                   );
                 })}
