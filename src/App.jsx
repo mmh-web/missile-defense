@@ -12,6 +12,15 @@ import LevelComplete from './components/LevelComplete.jsx';
 import FacilitatorControls from './components/FacilitatorControls.jsx';
 import { getLevelConfig } from './config/threats.js';
 import { getLeaderboard } from './utils/leaderboard.js';
+import {
+  startMusic,
+  stopMusic,
+  pauseMusic,
+  resumeMusic,
+  setMusicVolume,
+  toggleMusicEnabled,
+  isMusicEnabled,
+} from './utils/musicPlayer.js';
 
 function formatCountdown(seconds) {
   const m = Math.floor(seconds / 60);
@@ -33,6 +42,7 @@ export default function App() {
   const cheatBufferRef = useRef([]);
   const [cheatHints, setCheatHints] = useState(0);    // letters matched so far
   const [cheatMaxHints, setCheatMaxHints] = useState(4); // total letters in active code
+  const [gameMusicOn, setGameMusicOn] = useState(true);
 
   const {
     gameState,
@@ -115,6 +125,23 @@ export default function App() {
     if (briefingMusicRef.current && !musicMuted) briefingMusicRef.current.volume = volume * 0.4;
   }, [volume, musicMuted]);
 
+  // Game music — plays during ACTIVE gameplay, pauses/stops on other screens
+  useEffect(() => {
+    if (!gameMusicOn) { stopMusic(); return; }
+    if (gameState === GAME_STATES.ACTIVE && !paused) {
+      startMusic(currentLevel, volume * 0.3);
+    } else if (gameState === GAME_STATES.ACTIVE && paused) {
+      pauseMusic();
+    } else {
+      stopMusic();
+    }
+  }, [gameState, GAME_STATES, currentLevel, paused, gameMusicOn]);
+
+  // Sync game music volume with global volume slider
+  useEffect(() => {
+    if (gameMusicOn) setMusicVolume(volume * 0.3);
+  }, [volume, gameMusicOn]);
+
   // Auto-skip briefing if facilitator toggle is on, or if this level's briefing was already seen
   useEffect(() => {
     if (gameState === GAME_STATES.BRIEFING && (skipBriefings || seenBriefingsRef.current.has(currentLevel))) {
@@ -128,9 +155,12 @@ export default function App() {
       // === Cheat code detection (multi-code: tzur, sasha, dvir) ===
       const CHEAT_CODES = [
         { keys: ['t', 'z', 'u', 'r'], trigger: triggerTzurMode, blocked: tzurActive },
+        { keys: ['b', 'e', 'a', 'r'], trigger: triggerTzurMode, blocked: tzurActive },
         { keys: ['s', 'a', 's', 'h', 'a'], trigger: triggerSashaMode, blocked: sashaActive },
+        { keys: ['c', 'a', 't'], trigger: triggerSashaMode, blocked: sashaActive },
         { keys: ['s', 'u', 'f', 'r', 'i', 'n'], trigger: triggerSufrinMode, blocked: sufrinActive },
         { keys: ['d', 'v', 'i', 'r'], trigger: triggerDvirMode, blocked: dvirActive },
+        { keys: ['t', 'u', 'r', 't', 'l', 'e'], trigger: triggerDvirMode, blocked: dvirActive },
         { keys: ['b', 'h'], trigger: triggerHHMode, blocked: false },
         { keys: ['b', 's', 'd'], trigger: triggerRLMode, blocked: false },
       ];
@@ -505,8 +535,22 @@ export default function App() {
           </span>
         </div>
 
-        {/* Score + Level timer — right (with padding-right for escape room pill) */}
+        {/* Music toggle + Score + Level timer — right (with padding-right for escape room pill) */}
         <div className="flex items-center gap-4 mr-52">
+          <button
+            onClick={() => {
+              const nowEnabled = toggleMusicEnabled();
+              setGameMusicOn(nowEnabled);
+            }}
+            className={`font-mono text-xs tracking-wider transition-all cursor-pointer flex items-center gap-1 ${
+              gameMusicOn ? 'text-green-500 hover:text-green-300' : 'text-gray-600 hover:text-gray-400'
+            }`}
+            title={gameMusicOn ? 'Mute music' : 'Unmute music'}
+          >
+            <span className="text-sm leading-none">&#9834;</span>
+            <span>{gameMusicOn ? 'ON' : 'OFF'}</span>
+          </button>
+          <span className="text-gray-700 font-mono text-xs">|</span>
           <div className="font-mono text-xs">
             <span className="text-gray-600">SCORE </span>
             <span className="text-cyan-400 text-sm font-bold tabular-nums">{getRunningScore()}</span>

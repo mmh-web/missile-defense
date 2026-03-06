@@ -330,12 +330,12 @@ function ThreatOriginArc({ origin, currentLevel }) {
 // ============================================
 // Teddy Bear SVG — Tzur Cheat Code Easter Egg
 // ============================================
-function TeddyBearSVG({ cx, cy }) {
+function TeddyBearSVG({ cx, cy, rotation = 0 }) {
   // Bear is drawn at center (cx, cy) in SVG viewBox coords
   // Total size ~16 SVG units tall
   const s = 0.55; // scale factor
   return (
-    <g transform={`translate(${cx}, ${cy}) scale(${s})`}>
+    <g transform={`translate(${cx}, ${cy}) rotate(${rotation}) scale(${s})`}>
       {/* === Ears === */}
       <circle cx="-5.5" cy="-10" r="3.2" fill="#8B6914" stroke="#6B4F10" strokeWidth="0.4" />
       <circle cx="-5.5" cy="-10" r="1.8" fill="#D4A44C" />
@@ -929,12 +929,55 @@ export default function RadarDisplay({
               );
             })}
 
-            {/* === Teddy Bear (Tzur Cheat Code) === */}
-            {tzurActive && (
-              <g className="tzur-bear-sequence">
-                <TeddyBearSVG cx={50} cy={50} />
-              </g>
-            )}
+            {/* === Teddy Bear + Bullet Tracers (Tzur Cheat Code) === */}
+            {tzurActive && (() => {
+              const urgentThreats = activeThreats.filter(t => !t.intercepted && !t.held);
+              // Glock muzzle: ~11 SVG units from bear center at -24° in bear's local frame
+              const GLOCK_AIM_RAD = -0.415; // -23.8° natural glock aim direction
+              const MUZZLE_DIST = 11.04;
+
+              let rotation = 0;
+              let muzzleX = 50 + MUZZLE_DIST * Math.cos(GLOCK_AIM_RAD);
+              let muzzleY = 50 + MUZZLE_DIST * Math.sin(GLOCK_AIM_RAD);
+
+              if (urgentThreats.length > 0) {
+                // Rotate bear so glock faces the most urgent threat
+                const mostUrgent = [...urgentThreats].sort((a, b) => a.timeLeft - b.timeLeft)[0];
+                const pos = getBlipPosition(mostUrgent);
+                const svgPos = mapToSVG(pos.x, pos.y, viewport);
+                const targetAngle = Math.atan2(svgPos.y - 50, svgPos.x - 50);
+                rotation = (targetAngle - GLOCK_AIM_RAD) * 180 / Math.PI;
+                muzzleX = 50 + MUZZLE_DIST * Math.cos(targetAngle);
+                muzzleY = 50 + MUZZLE_DIST * Math.sin(targetAngle);
+              }
+
+              return (
+                <g>
+                  {/* Bullet tracers from glock muzzle to each active threat */}
+                  {urgentThreats.map(threat => {
+                    const tpos = getBlipPosition(threat);
+                    const tsvg = mapToSVG(tpos.x, tpos.y, viewport);
+                    return (
+                      <g key={`bullet-${threat.id}`}>
+                        {/* Glow trail (wide, faint) */}
+                        <line x1={muzzleX} y1={muzzleY} x2={tsvg.x} y2={tsvg.y}
+                          stroke="#f59e0b" strokeWidth="0.8" opacity="0.3" />
+                        {/* Core trail (thin, bright) */}
+                        <line x1={muzzleX} y1={muzzleY} x2={tsvg.x} y2={tsvg.y}
+                          stroke="#fbbf24" strokeWidth="0.3" opacity="0.8" />
+                        {/* Target dot */}
+                        <circle cx={tsvg.x} cy={tsvg.y} r="1.5" fill="#f59e0b" opacity="0.5"
+                          className="sasha-target-dot" />
+                      </g>
+                    );
+                  })}
+                  {/* Bear SVG on top of tracers */}
+                  <g className="tzur-bear-sequence">
+                    <TeddyBearSVG cx={50} cy={50} rotation={rotation} />
+                  </g>
+                </g>
+              );
+            })()}
 
             {/* === Siamese Cat + Laser Beams (Sasha Cheat Code) === */}
             {sashaActive && (

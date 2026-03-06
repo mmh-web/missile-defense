@@ -365,10 +365,9 @@ export default function useGameEngine() {
     tzurUsedRef.current = true;
     setTzurActive(true);
 
-    // After 1.5s (bear drops + starts spinning), start sustained zapping every 300ms
+    // After 1.5s (bear drops in), start sustained zapping every 300ms
     setTimeout(() => {
       const zapThreat = () => {
-        const battery = getBatteryForLevel(currentLevelRef.current) || COMMAND_CENTER;
         const threats = activeThreatsRef.current.filter(
           (t) => !t.intercepted && !t.held && !interceptedIdsRef.current.has(t.id)
         );
@@ -379,23 +378,9 @@ export default function useGameEngine() {
         interceptedIdsRef.current.add(target.id);
         const { x: blipX, y: blipY } = getBlipPosition(target);
 
-        // Gold trail from bear (battery position) to threat
-        const trailId = Date.now() + Math.random();
-        const duration = 400;
-        setActiveTrails((prev) => [...prev, {
-          id: trailId,
-          startX: battery.x, startY: battery.y,
-          endX: blipX, endY: blipY,
-          color: '#f59e0b', // gold for teddy
-          duration,
-        }]);
-        setTimeout(() => setActiveTrails((prev) => prev.filter((t) => t.id !== trailId)), duration + 500);
-
-        // Intercept flash + sound
-        setTimeout(() => {
-          addImpactFlash(target.impact_zone, 'intercept', target.type, { x: blipX, y: blipY });
-          playInterceptSound(volumeRef.current, target.type);
-        }, duration);
+        // No trail needed — SVG bullet tracers from glock handle the visual
+        addImpactFlash(target.impact_zone, 'intercept', target.type, { x: blipX, y: blipY });
+        playInterceptSound(volumeRef.current, target.type);
 
         // Mark intercepted
         setActiveThreats((prev) => prev.map((t) =>
@@ -410,11 +395,11 @@ export default function useGameEngine() {
           return next;
         });
 
-        // Remove after trail
+        // Remove threat after brief delay
         const tid = target.id;
         setTimeout(() => {
           setActiveThreats((prev) => prev.filter((t) => t.id !== tid));
-        }, duration + 500);
+        }, 500);
       };
 
       // Immediate first zap, then every 300ms
@@ -422,16 +407,16 @@ export default function useGameEngine() {
       tzurIntervalRef.current = setInterval(zapThreat, 300);
     }, 1500);
 
-    // Stop zapping at 8s
+    // Stop zapping at 11s
     setTimeout(() => {
       if (tzurIntervalRef.current) {
         clearInterval(tzurIntervalRef.current);
         tzurIntervalRef.current = null;
       }
-    }, 8000);
+    }, 11000);
 
-    // Bear fades out after 8.5s
-    setTimeout(() => setTzurActive(false), 8500);
+    // Bear fades out after 12s
+    setTimeout(() => setTzurActive(false), 12000);
   }, [addImpactFlash, getBlipPosition]);
 
   // === SASHA MODE — laser cat cheat code (once per level, sustained 8s defense) ===
@@ -484,16 +469,16 @@ export default function useGameEngine() {
       sashaIntervalRef.current = setInterval(zapThreat, 300);
     }, 500);
 
-    // Stop zapping at 8s
+    // Stop zapping at 11s
     setTimeout(() => {
       if (sashaIntervalRef.current) {
         clearInterval(sashaIntervalRef.current);
         sashaIntervalRef.current = null;
       }
-    }, 8000);
+    }, 11000);
 
-    // Cat fades out after 8.5s
-    setTimeout(() => setSashaActive(false), 8500);
+    // Cat fades out after 12s
+    setTimeout(() => setSashaActive(false), 12000);
   }, [addImpactFlash, getBlipPosition]);
 
   // === DVIR MODE — turtle shield cheat code (once per level, passive 12s city defense) ===
