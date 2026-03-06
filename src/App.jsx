@@ -526,7 +526,7 @@ export default function App() {
             if (gameState === GAME_STATES.ACTIVE && !paused) togglePause();
             setShowFacilitator(true);
           }}
-          className="text-gray-600 hover:text-gray-300 transition-colors cursor-pointer text-lg opacity-50 hover:opacity-100"
+          className="text-gray-500 hover:text-gray-200 transition-colors cursor-pointer text-xl px-1"
           title="Settings (ESC)"
         >
           &#9881;
