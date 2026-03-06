@@ -331,11 +331,11 @@ export default function useGameEngine() {
           return next;
         });
 
-        // Remove after trail
+        // Remove threat after brief delay for visual feedback
         const tid = target.id;
         setTimeout(() => {
           setActiveThreats((prev) => prev.filter((t) => t.id !== tid));
-        }, duration + 500);
+        }, 500);
       };
 
       // Immediate first zap, then every 300ms
