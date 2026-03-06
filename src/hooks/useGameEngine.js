@@ -88,6 +88,8 @@ export default function useGameEngine() {
   const dvirUsedRef = useRef(false);
   const dvirActiveRef = useRef(false);
   const [bouncingThreats, setBouncingThreats] = useState([]);
+  const [sufrinActive, setSufrinActive] = useState(false);
+  const sufrinUsedRef = useRef(false);
 
   // Instant-effect cheat code refs (once per level)
   const hhUsedRef = useRef(false);  // "hh" — clear all threats
@@ -285,6 +287,84 @@ export default function useGameEngine() {
         if (impactType === 'intercept') playInterceptSound(volumeRef.current, threat.type);
       }, duration);
     }
+  }, [addImpactFlash, getBlipPosition]);
+
+  // === SUFRIN MODE — beard defense cheat code (once per level, sustained 15s defense) ===
+  const sufrinIntervalRef = useRef(null);
+
+  const triggerSufrinMode = useCallback(() => {
+    if (sufrinUsedRef.current) return;
+    if (gameStateRef.current !== GAME_STATES.ACTIVE) return;
+
+    sufrinUsedRef.current = true;
+    setSufrinActive(true);
+
+    // After 1s (portrait drops in), start zapping threats every 300ms
+    setTimeout(() => {
+      const zapThreat = () => {
+        const threats = activeThreatsRef.current.filter(
+          (t) => !t.intercepted && !t.held && !interceptedIdsRef.current.has(t.id)
+        );
+        if (threats.length === 0) return;
+
+        // Zap the most urgent threat first
+        const target = threats.sort((a, b) => a.timeLeft - b.timeLeft)[0];
+        interceptedIdsRef.current.add(target.id);
+        const { x: blipX, y: blipY } = getBlipPosition(target);
+
+        // Brown beard strand trail from portrait center to threat
+        const trailId = Date.now() + Math.random();
+        const duration = 350;
+        setActiveTrails((prev) => [...prev, {
+          id: trailId,
+          startX: 0.5, startY: 0.5,
+          endX: blipX, endY: blipY,
+          color: '#8B4513',
+          duration,
+        }]);
+        setTimeout(() => setActiveTrails((prev) => prev.filter((t) => t.id !== trailId)), duration + 500);
+
+        // Intercept flash + sound
+        setTimeout(() => {
+          addImpactFlash(target.impact_zone, 'intercept', target.type, { x: blipX, y: blipY });
+          playInterceptSound(volumeRef.current, target.type);
+        }, duration);
+
+        // Mark intercepted
+        setActiveThreats((prev) => prev.map((t) =>
+          t.id === target.id ? { ...t, intercepted: true, frozenTimeLeft: t.timeLeft } : t
+        ));
+
+        // Log + streak
+        setResultLog((prev) => [...prev, { ...target, result: 'correct_intercept', siren: false }]);
+        setStreak((s) => {
+          const next = s + 1;
+          setBestStreak((b) => Math.max(b, next));
+          return next;
+        });
+
+        // Remove after trail
+        const tid = target.id;
+        setTimeout(() => {
+          setActiveThreats((prev) => prev.filter((t) => t.id !== tid));
+        }, duration + 500);
+      };
+
+      // Immediate first zap, then every 300ms
+      zapThreat();
+      sufrinIntervalRef.current = setInterval(zapThreat, 300);
+    }, 1000);
+
+    // Stop zapping at 14s
+    setTimeout(() => {
+      if (sufrinIntervalRef.current) {
+        clearInterval(sufrinIntervalRef.current);
+        sufrinIntervalRef.current = null;
+      }
+    }, 14000);
+
+    // Portrait fades out after 15.5s
+    setTimeout(() => setSufrinActive(false), 15500);
   }, [addImpactFlash, getBlipPosition]);
 
   // === TZUR MODE — teddy bear cheat code (once per level) ===
@@ -1046,16 +1126,19 @@ export default function useGameEngine() {
     setSashaActive(false);
     setDvirActive(false);
     dvirActiveRef.current = false;
+    setSufrinActive(false);
     setPaused(false);
     spawnedIdsRef.current = new Set();
     interceptedIdsRef.current.clear();
     tzurUsedRef.current = false;
     sashaUsedRef.current = false;
     dvirUsedRef.current = false;
+    sufrinUsedRef.current = false;
     hhUsedRef.current = false;
     rlUsedRef.current = false;
     if (tzurIntervalRef.current) { clearInterval(tzurIntervalRef.current); tzurIntervalRef.current = null; }
     if (sashaIntervalRef.current) { clearInterval(sashaIntervalRef.current); sashaIntervalRef.current = null; }
+    if (sufrinIntervalRef.current) { clearInterval(sufrinIntervalRef.current); sufrinIntervalRef.current = null; }
     allSpawnedRef.current = false;
     lastTickRef.current = null;
     if (tzevaAdomTimerRef.current) clearTimeout(tzevaAdomTimerRef.current);
@@ -1090,6 +1173,7 @@ export default function useGameEngine() {
     setTzurActive(false);
     setSashaActive(false);
     setDvirActive(false);
+    setSufrinActive(false);
     dvirActiveRef.current = false;
     setPaused(false);
     spawnedIdsRef.current = new Set();
@@ -1097,10 +1181,12 @@ export default function useGameEngine() {
     tzurUsedRef.current = false;
     sashaUsedRef.current = false;
     dvirUsedRef.current = false;
+    sufrinUsedRef.current = false;
     hhUsedRef.current = false;
     rlUsedRef.current = false;
     if (tzurIntervalRef.current) { clearInterval(tzurIntervalRef.current); tzurIntervalRef.current = null; }
     if (sashaIntervalRef.current) { clearInterval(sashaIntervalRef.current); sashaIntervalRef.current = null; }
+    if (sufrinIntervalRef.current) { clearInterval(sufrinIntervalRef.current); sufrinIntervalRef.current = null; }
     allSpawnedRef.current = false;
     lastTickRef.current = null;
     if (tzevaAdomTimerRef.current) clearTimeout(tzevaAdomTimerRef.current);
@@ -1210,12 +1296,14 @@ export default function useGameEngine() {
     setTzurActive(false);
     setSashaActive(false);
     setDvirActive(false);
+    setSufrinActive(false);
     dvirActiveRef.current = false;
     setPaused(false);
     spawnedIdsRef.current = new Set();
     interceptedIdsRef.current.clear();
     if (tzurIntervalRef.current) { clearInterval(tzurIntervalRef.current); tzurIntervalRef.current = null; }
     if (sashaIntervalRef.current) { clearInterval(sashaIntervalRef.current); sashaIntervalRef.current = null; }
+    if (sufrinIntervalRef.current) { clearInterval(sufrinIntervalRef.current); sufrinIntervalRef.current = null; }
     allSpawnedRef.current = false;
     lastTickRef.current = null;
     // All levels go through Briefing first
@@ -1253,6 +1341,7 @@ export default function useGameEngine() {
     setTzurActive(false);
     setSashaActive(false);
     setDvirActive(false);
+    setSufrinActive(false);
     dvirActiveRef.current = false;
     setPaused(false);
     spawnedIdsRef.current = new Set();
@@ -1260,10 +1349,12 @@ export default function useGameEngine() {
     tzurUsedRef.current = false;
     sashaUsedRef.current = false;
     dvirUsedRef.current = false;
+    sufrinUsedRef.current = false;
     hhUsedRef.current = false;
     rlUsedRef.current = false;
     if (tzurIntervalRef.current) { clearInterval(tzurIntervalRef.current); tzurIntervalRef.current = null; }
     if (sashaIntervalRef.current) { clearInterval(sashaIntervalRef.current); sashaIntervalRef.current = null; }
+    if (sufrinIntervalRef.current) { clearInterval(sufrinIntervalRef.current); sufrinIntervalRef.current = null; }
     allSpawnedRef.current = false;
     lastTickRef.current = null;
   }, [stopSiren, escapeRoomStartTime]);
@@ -1341,6 +1432,8 @@ export default function useGameEngine() {
     triggerSashaMode,
     dvirActive,
     triggerDvirMode,
+    sufrinActive,
+    triggerSufrinMode,
     bouncingThreats,
     triggerHHMode,
     triggerRLMode,

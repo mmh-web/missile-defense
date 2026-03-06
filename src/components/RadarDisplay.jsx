@@ -641,6 +641,7 @@ export default function RadarDisplay({
   tzurActive = false,
   sashaActive = false,
   dvirActive = false,
+  sufrinActive = false,
   bouncingThreats = [],
 }) {
   const viewport = getViewportForLevel(currentLevel);
@@ -981,6 +982,92 @@ export default function RadarDisplay({
                 {/* Turtle SVG at center */}
                 <g className="dvir-turtle-sequence">
                   <TurtleSVG cx={50} cy={50} />
+                </g>
+              </g>
+            )}
+
+            {/* === Sufrin Portrait + Beard Strands (Sufrin Cheat Code) === */}
+            {sufrinActive && (
+              <g>
+                {/* Wiry beard hair strands from beard area to each active threat */}
+                {activeThreats.filter((t) => !t.intercepted && !t.held).map((threat) => {
+                  const { x, y } = getBlipPosition(threat);
+                  const svgPos = mapToSVG(x, y, viewport);
+
+                  // Hash threat id to a stable number for deterministic strand positions
+                  const tid = typeof threat.id === 'number' ? Math.abs(threat.id) :
+                    [...String(threat.id)].reduce((h, c) => (h * 31 + c.charCodeAt(0)) & 0x7fffffff, 0);
+
+                  // Generate 7 wiry squiggly beard strands per threat
+                  const strandColors = ['#1a0a00', '#3d1c00', '#8B4513', '#D2691E', '#A0522D', '#5c2e00', '#2d1200'];
+                  const strandWidths = [0.35, 0.4, 0.55, 0.6, 0.45, 0.35, 0.3];
+                  const strandPaths = [];
+
+                  for (let s = 0; s < 7; s++) {
+                    // Deterministic pseudo-random seeds per strand
+                    const seed1 = Math.abs((tid * 2654435 + s * 40503) & 0x7fffffff) % 1000;
+                    const seed2 = Math.abs((tid * 1597334 + s * 73856) & 0x7fffffff) % 1000;
+
+                    // Origin: beard tip area at bottom of face image
+                    // Image is 28x28 at (36,36). Beard tips: x 44-56, y 60-64
+                    const beardX = 44 + (seed1 % 12);
+                    const beardY = 60 + (seed2 % 4);
+
+                    // Direction vector and perpendicular
+                    const dx = svgPos.x - beardX;
+                    const dy = svgPos.y - beardY;
+                    const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                    const perpX = -dy / dist;
+                    const perpY = dx / dist;
+
+                    // Tight squiggly curls like wiry beard hair
+                    const numCurls = 10 + (seed1 % 6);
+                    const curlSize = 1.8 + (seed2 % 20) / 8;
+                    let pathD = `M ${beardX.toFixed(1)} ${beardY.toFixed(1)}`;
+
+                    for (let w = 0; w < numCurls; w++) {
+                      const tCtrl = (w + 0.5) / numCurls;
+                      const tEnd = (w + 1) / numCurls;
+                      const side = (w % 2 === 0) ? 1 : -1;
+                      // Envelope: full squiggle throughout, slight taper at ends
+                      const envelope = Math.sin(tCtrl * Math.PI) * 0.7 + 0.3;
+                      const amp = curlSize * envelope;
+
+                      const cpX = beardX + dx * tCtrl + perpX * side * amp;
+                      const cpY = beardY + dy * tCtrl + perpY * side * amp;
+                      const ptX = beardX + dx * tEnd;
+                      const ptY = beardY + dy * tEnd;
+
+                      pathD += ` Q ${cpX.toFixed(1)} ${cpY.toFixed(1)} ${ptX.toFixed(1)} ${ptY.toFixed(1)}`;
+                    }
+
+                    strandPaths.push(pathD);
+                  }
+
+                  return (
+                    <g key={`beard-${threat.id}`} className="sufrin-beard-strand">
+                      {strandPaths.map((pathD, i) => (
+                        <path
+                          key={i}
+                          d={pathD}
+                          fill="none"
+                          stroke={strandColors[i]}
+                          strokeWidth={strandWidths[i]}
+                          opacity={0.85}
+                          strokeLinecap="round"
+                        />
+                      ))}
+                      <circle cx={svgPos.x} cy={svgPos.y} r="1.5" fill="#D2691E" opacity="0.5" className="sufrin-target-dot" />
+                    </g>
+                  );
+                })}
+                {/* Portrait — raw image, no frame, 2x larger */}
+                <g className="sufrin-portrait-sequence">
+                  <image
+                    href={`${import.meta.env.BASE_URL}images/sufrin.png`}
+                    x={36} y={36} width={28} height={28}
+                    preserveAspectRatio="xMidYMid meet"
+                  />
                 </g>
               </g>
             )}

@@ -59,6 +59,8 @@ export default function App() {
     triggerSashaMode,
     dvirActive,
     triggerDvirMode,
+    sufrinActive,
+    triggerSufrinMode,
     bouncingThreats,
     triggerHHMode,
     triggerRLMode,
@@ -127,11 +129,12 @@ export default function App() {
       const CHEAT_CODES = [
         { keys: ['t', 'z', 'u', 'r'], trigger: triggerTzurMode, blocked: tzurActive },
         { keys: ['s', 'a', 's', 'h', 'a'], trigger: triggerSashaMode, blocked: sashaActive },
+        { keys: ['s', 'u', 'f', 'r', 'i', 'n'], trigger: triggerSufrinMode, blocked: sufrinActive },
         { keys: ['d', 'v', 'i', 'r'], trigger: triggerDvirMode, blocked: dvirActive },
         { keys: ['b', 'h'], trigger: triggerHHMode, blocked: false },
         { keys: ['b', 's', 'd'], trigger: triggerRLMode, blocked: false },
       ];
-      if (gameState === GAME_STATES.ACTIVE && !tzurActive && !sashaActive && !dvirActive) {
+      if (gameState === GAME_STATES.ACTIVE && !tzurActive && !sashaActive && !dvirActive && !sufrinActive) {
         const buf = cheatBufferRef.current;
         const key = e.key.toLowerCase();
         buf.push(key);
@@ -236,7 +239,7 @@ export default function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [gameState, paused, togglePause, handleAction, activeThreats, selectedThreatId, setSelectedThreatId, GAME_STATES, config, currentLevel, tzurActive, triggerTzurMode, sashaActive, triggerSashaMode, dvirActive, triggerDvirMode, triggerHHMode, triggerRLMode]);
+  }, [gameState, paused, togglePause, handleAction, activeThreats, selectedThreatId, setSelectedThreatId, GAME_STATES, config, currentLevel, tzurActive, triggerTzurMode, sashaActive, triggerSashaMode, dvirActive, triggerDvirMode, sufrinActive, triggerSufrinMode, triggerHHMode, triggerRLMode]);
 
   const handleCloseFacilitator = useCallback(() => {
     setShowFacilitator(false);
@@ -534,6 +537,7 @@ export default function App() {
             tzurActive={tzurActive}
             sashaActive={sashaActive}
             dvirActive={dvirActive}
+            sufrinActive={sufrinActive}
             bouncingThreats={bouncingThreats}
           />
         </div>
@@ -619,8 +623,22 @@ export default function App() {
         </div>
       )}
 
+      {/* SUFRIN MODE banner */}
+      {sufrinActive && (
+        <div className="absolute inset-x-0 top-12 z-25 flex justify-center pointer-events-none sufrin-banner-appear">
+          <div className="bg-amber-950/90 border-2 border-amber-600 rounded-lg px-8 py-4 text-center">
+            <div className="text-amber-300 font-mono text-2xl font-bold tracking-wider">
+              BEARD DEFENSE PROTOCOL
+            </div>
+            <div className="font-mono text-xs mt-1 tracking-widest text-amber-400 animate-pulse">
+              STRANDS DEPLOYED
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Cheat code hint paw prints — dynamic count based on active code */}
-      {cheatHints > 0 && !tzurActive && !sashaActive && !dvirActive && (
+      {cheatHints > 0 && !tzurActive && !sashaActive && !dvirActive && !sufrinActive && (
         <div className="absolute bottom-16 left-4 z-20 flex gap-1 pointer-events-none">
           {Array.from({ length: cheatMaxHints }, (_, i) => (
             <span
