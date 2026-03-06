@@ -16,7 +16,7 @@ export const QUIZ_DATA = {
   1: {
     questionsPerQuiz: 2,
     timePerQuestion: 15,
-    pointsPerCorrect: 100,
+    pointsPerCorrect: 250,
     questions: [
       {
         id: 'l1q1',
@@ -145,7 +145,7 @@ export const QUIZ_DATA = {
   2: {
     questionsPerQuiz: 2,
     timePerQuestion: 15,
-    pointsPerCorrect: 100,
+    pointsPerCorrect: 250,
     questions: [
       {
         id: 'l2q1',
@@ -266,7 +266,7 @@ export const QUIZ_DATA = {
   3: {
     questionsPerQuiz: 2,
     timePerQuestion: 15,
-    pointsPerCorrect: 100,
+    pointsPerCorrect: 250,
     questions: [
       {
         id: 'l3q1',
@@ -402,7 +402,7 @@ export const QUIZ_DATA = {
   4: {
     questionsPerQuiz: 2,
     timePerQuestion: 15,
-    pointsPerCorrect: 100,
+    pointsPerCorrect: 250,
     questions: [
       {
         id: 'l4q1',
@@ -561,7 +561,7 @@ export const QUIZ_DATA = {
   5: {
     questionsPerQuiz: 2,
     timePerQuestion: 15,
-    pointsPerCorrect: 100,
+    pointsPerCorrect: 250,
     questions: [
       {
         id: 'l5q1',
@@ -702,7 +702,7 @@ export const QUIZ_DATA = {
   6: {
     questionsPerQuiz: 2,
     timePerQuestion: 15,
-    pointsPerCorrect: 100,
+    pointsPerCorrect: 250,
     questions: [
       {
         id: 'l6q1',
@@ -853,7 +853,7 @@ export const QUIZ_DATA = {
   7: {
     questionsPerQuiz: 2,
     timePerQuestion: 15,
-    pointsPerCorrect: 100,
+    pointsPerCorrect: 250,
     questions: [
       {
         id: 'l7q1',

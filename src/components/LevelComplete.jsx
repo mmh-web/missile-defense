@@ -2,11 +2,14 @@ import { useEffect, useRef } from 'react';
 import { getLevelConfig, TOTAL_LEVELS } from '../config/threats.js';
 import { playPerfectFanfare } from '../utils/soundEffects.js';
 
-function StatRow({ label, value, color = 'text-gray-300' }) {
+function ScoreRow({ label, stat, points, color = 'text-gray-300', pointsColor = 'text-green-400' }) {
   return (
     <div className="flex justify-between items-center py-1.5 border-b border-gray-800/50">
       <span className="text-xs text-gray-500 font-mono tracking-wider">{label}</span>
-      <span className={`text-sm font-bold font-mono ${color}`}>{value}</span>
+      <div className="flex items-center gap-4">
+        <span className={`text-sm font-bold font-mono ${color}`}>{stat}</span>
+        <span className={`text-xs font-mono ${pointsColor} w-16 text-right`}>{points > 0 ? `+${points}` : points}</span>
+      </div>
     </div>
   );
 }
@@ -140,23 +143,57 @@ export default function LevelComplete({ levelStats, campaignStats, onNextLevel, 
           </div>
         </div>
 
-        {/* Stats */}
+        {/* Score Breakdown */}
         <div className="border border-gray-800 rounded-lg p-4 mb-6 bg-gray-900/20">
-          <StatRow label="THREATS INTERCEPTED" value={`${levelStats.correctIntercepts} / ${levelStats.populatedThreats}`}
+          <div className="flex justify-between items-center mb-2 pb-1 border-b border-gray-700">
+            <span className="text-[10px] text-gray-600 font-mono tracking-widest">SCORE BREAKDOWN</span>
+            <span className="text-[10px] text-gray-600 font-mono tracking-widest">PTS</span>
+          </div>
+          <ScoreRow label="THREATS INTERCEPTED"
+            stat={`${levelStats.correctIntercepts} / ${levelStats.populatedThreats}`}
+            points={levelStats.correctIntercepts * 100}
             color={levelStats.correctIntercepts === levelStats.populatedThreats ? 'text-green-400' : 'text-yellow-400'} />
-          <StatRow label="INTERCEPTORS SAVED" value={Object.values(levelStats.ammoRemaining).reduce((s, v) => s + v, 0)}
+          <ScoreRow label="INTERCEPTORS SAVED"
+            stat={Object.values(levelStats.ammoRemaining).reduce((s, v) => s + v, 0)}
+            points={Object.values(levelStats.ammoRemaining).reduce((s, v) => s + v, 0) * 250}
             color="text-cyan-400" />
-          <StatRow label="SIRENS" value={levelStats.sirenCount}
-            color={levelStats.sirenCount === 0 ? 'text-green-400' : 'text-red-400'} />
-          <StatRow label="BEST STREAK" value={levelStats.bestStreak} color="text-yellow-400" />
+          <ScoreRow label="BEST STREAK"
+            stat={levelStats.bestStreak}
+            points={levelStats.bestStreak * 25}
+            color="text-yellow-400" />
           {levelStats.quizBonus > 0 && (
-            <StatRow label="INTEL BONUS" value={`+${levelStats.quizBonus}`} color="text-cyan-300" />
+            <ScoreRow label="INTEL BONUS"
+              stat={`${levelStats.quizBonus / 250}/2`}
+              points={levelStats.quizBonus}
+              color="text-cyan-300" />
+          )}
+          {levelStats.sirenCount > 0 && (
+            <ScoreRow label="SIRENS"
+              stat={levelStats.sirenCount}
+              points={levelStats.sirenCount * -100}
+              color="text-red-400"
+              pointsColor="text-red-400" />
+          )}
+          {levelStats.sirenCount === 0 && (
+            <ScoreRow label="SIRENS"
+              stat="0"
+              points={0}
+              color="text-green-400"
+              pointsColor="text-green-500" />
           )}
           {levelStats.wrongIntercepts > 0 && (
-            <StatRow label="WRONG SYSTEM" value={levelStats.wrongIntercepts} color="text-red-400" />
+            <ScoreRow label="WRONG SYSTEM"
+              stat={levelStats.wrongIntercepts}
+              points={0}
+              color="text-red-400"
+              pointsColor="text-gray-600" />
           )}
           {levelStats.wastedIntercepts > 0 && (
-            <StatRow label="WASTED ON OPEN GROUND" value={levelStats.wastedIntercepts} color="text-yellow-500" />
+            <ScoreRow label="WASTED ON OPEN GROUND"
+              stat={levelStats.wastedIntercepts}
+              points={0}
+              color="text-yellow-500"
+              pointsColor="text-gray-600" />
           )}
         </div>
 

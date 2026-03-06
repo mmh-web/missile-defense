@@ -21,6 +21,7 @@ import {
 
 export const GAME_STATES = {
   PRE_GAME: 'pre_game',
+  SCORING_INTRO: 'scoring_intro',
   BRIEFING: 'briefing',
   LEVEL_INTRO: 'level_intro',
   ACTIVE: 'active',
@@ -968,9 +969,8 @@ export default function useGameEngine() {
     const score = Math.max(0,
       quizBonus                          // briefing intel bonus
       + (correctIntercepts * 100)
-      + (ammoRemaining * 75)             // efficiency bonus: unused interceptors
+      + (ammoRemaining * 250)            // efficiency bonus: unused interceptors
       + (bestStreak * 25)
-      + (totalThreats * 10)              // base engagement bonus
       - (sirenCount * 100)
     );
 
@@ -1017,9 +1017,8 @@ export default function useGameEngine() {
     return Math.max(0,
       quizBonus
       + (correctIntercepts * 100)
-      + (ammoRemaining * 75)
+      + (ammoRemaining * 250)
       + (bestStreak * 25)
-      + (totalProcessed * 10)
       - (sirenCount * 100)
     );
   }, [resultLog, sirenCount, wrongInterceptAttempts, bestStreak, quizBonus]);
@@ -1071,7 +1070,7 @@ export default function useGameEngine() {
       endedEarly: false,
     };
     setCurrentLevel(1);
-    setGameState(GAME_STATES.BRIEFING);
+    setGameState(GAME_STATES.SCORING_INTRO);
     setSessionTime(0);
     setAmmo({ ...getLevelConfig(1).ammo });
     setActiveThreats([]);
@@ -1217,6 +1216,11 @@ export default function useGameEngine() {
   // Add time to escape room countdown (facilitator control)
   const addEscapeTime = useCallback((seconds) => {
     setEscapeRoomTime((prev) => prev + seconds);
+  }, []);
+
+  const dismissScoringIntro = useCallback(() => {
+    if (gameStateRef.current !== GAME_STATES.SCORING_INTRO) return;
+    setGameState(GAME_STATES.BRIEFING);
   }, []);
 
   const skipBriefing = useCallback(() => {
@@ -1410,6 +1414,7 @@ export default function useGameEngine() {
     finishCampaign,
     resetGame,
     togglePause,
+    dismissScoringIntro,
     skipBriefing,
     jumpToLevel,
     handleAction,

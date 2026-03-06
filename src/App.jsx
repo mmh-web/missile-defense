@@ -9,6 +9,7 @@ import EducationalBriefing from './components/EducationalBriefing.jsx';
 import EscapeRoomTimer from './components/EscapeRoomTimer.jsx';
 import LevelIntro from './components/LevelIntro.jsx';
 import LevelComplete from './components/LevelComplete.jsx';
+import ScoringIntro from './components/ScoringIntro.jsx';
 import FacilitatorControls from './components/FacilitatorControls.jsx';
 import { getLevelConfig } from './config/threats.js';
 import { getLeaderboard } from './utils/leaderboard.js';
@@ -80,6 +81,7 @@ export default function App() {
     finishCampaign,
     resetGame,
     togglePause,
+    dismissScoringIntro,
     skipBriefing,
     jumpToLevel,
     handleAction,
@@ -424,6 +426,18 @@ export default function App() {
           </div>
         )}
 
+        {facilitatorOverlay}
+      </div>
+    );
+  }
+
+  // ========================
+  // SCORING INTRO SCREEN (shown once before Level 1 briefing)
+  // ========================
+  if (gameState === GAME_STATES.SCORING_INTRO) {
+    return (
+      <div className="relative">
+        <ScoringIntro onContinue={dismissScoringIntro} />
         {facilitatorOverlay}
       </div>
     );
