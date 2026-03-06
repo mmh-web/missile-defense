@@ -550,7 +550,7 @@ export const LEVELS = [
   {
     id: 1,
     duration: 80,
-    ammo: { iron_dome: 22 },
+    ammo: { iron_dome: 24 },
     available_systems: ['iron_dome'],
     auto_end_delay: 3000,
     new_system: null,
@@ -564,7 +564,7 @@ export const LEVELS = [
   {
     id: 2,
     duration: 120,
-    ammo: { iron_dome: 27 },
+    ammo: { iron_dome: 30 },
     available_systems: ['iron_dome'],
     auto_end_delay: 3000,
     new_system: null,
@@ -577,7 +577,7 @@ export const LEVELS = [
   {
     id: 3,
     duration: 120,
-    ammo: { iron_dome: 12, davids_sling: 6 },
+    ammo: { iron_dome: 14, davids_sling: 10 },
     available_systems: ['iron_dome', 'davids_sling'],
     auto_end_delay: 5000,
     new_system: { key: 'davids_sling', name: "DAVID'S SLING", shortcut: '2', color: '#3b82f6' },
@@ -603,7 +603,7 @@ export const LEVELS = [
   {
     id: 5,
     duration: 150,
-    ammo: { iron_dome: 9, davids_sling: 6, arrow_2: 6, arrow_3: 5 },
+    ammo: { iron_dome: 10, davids_sling: 7, arrow_2: 6, arrow_3: 8 },
     available_systems: ['iron_dome', 'davids_sling', 'arrow_2', 'arrow_3'],
     auto_end_delay: 5000,
     new_system: { key: 'arrow_3', name: 'ARROW 3', shortcut: '4', color: '#a855f7' },
@@ -616,7 +616,7 @@ export const LEVELS = [
   {
     id: 6,
     duration: 150,
-    ammo: { iron_dome: 8, davids_sling: 6, arrow_2: 6, arrow_3: 5 },
+    ammo: { iron_dome: 14, davids_sling: 7, arrow_2: 9, arrow_3: 7 },
     available_systems: ['iron_dome', 'davids_sling', 'arrow_2', 'arrow_3'],
     auto_end_delay: 6000,
     new_system: null,
@@ -629,7 +629,7 @@ export const LEVELS = [
   {
     id: 7,
     duration: 150,
-    ammo: { iron_dome: 7, davids_sling: 5, arrow_2: 5, arrow_3: 4 },
+    ammo: { iron_dome: 12, davids_sling: 7, arrow_2: 7, arrow_3: 7 },
     available_systems: ['iron_dome', 'davids_sling', 'arrow_2', 'arrow_3'],
     auto_end_delay: 8000,
     new_system: null,

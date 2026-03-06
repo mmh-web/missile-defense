@@ -397,7 +397,7 @@ export default function App() {
           </div>
 
           <div className="text-gray-700 font-mono text-[10px] tracking-widest mt-6">
-            &copy; HECHT STUDIO
+            &copy; HECHT STUDIO 2026
           </div>
         </div>
 

@@ -31,14 +31,6 @@ export const GAME_STATES = {
 // Leaderboard localStorage key
 const LB_KEY = 'missile_defense_leaderboard';
 
-export function calculateScore(stats) {
-  const base = (stats.correctIntercepts * 100) + (stats.correctHolds * 50);
-  const penalties = (stats.sirenCount * -200) + (stats.wastedIntercepts * -30) + (stats.wrongIntercepts * -20);
-  const ammoTotal = Object.values(stats.ammoRemaining).reduce((sum, v) => sum + v, 0);
-  const bonuses = (stats.bestStreak * 25) + (ammoTotal * 10);
-  return Math.max(0, base + penalties + bonuses);
-}
-
 export function getLeaderboard() {
   try {
     return JSON.parse(localStorage.getItem(LB_KEY)) || [];
@@ -76,6 +68,7 @@ export default function useGameEngine() {
   const [wrongInterceptAttempts, setWrongInterceptAttempts] = useState(0);
   const [streak, setStreak] = useState(0);
   const [bestStreak, setBestStreak] = useState(0);
+  const [quizBonus, setQuizBonus] = useState(0);
   const [finalSalvoWarning, setFinalSalvoWarning] = useState(false);
   const [impactFlashes, setImpactFlashes] = useState([]);
   const [activeTrails, setActiveTrails] = useState([]);
@@ -973,13 +966,12 @@ export default function useGameEngine() {
     const ammoRemaining = Object.values(ammo).reduce((sum, v) => sum + v, 0);
 
     const score = Math.max(0,
-      (correctIntercepts * 100)
-      + (ammoRemaining * 50)           // efficiency bonus: unused interceptors
+      quizBonus                          // briefing intel bonus
+      + (correctIntercepts * 100)
+      + (ammoRemaining * 75)             // efficiency bonus: unused interceptors
       + (bestStreak * 25)
-      + (totalThreats * 10)            // base engagement bonus
+      + (totalThreats * 10)              // base engagement bonus
       - (sirenCount * 100)
-      - (wrongInterceptAttempts * 50)
-      - (wastedIntercepts * 25)
     );
 
     // Perfect level: all populated threats intercepted, no wasted interceptors
@@ -1006,11 +998,12 @@ export default function useGameEngine() {
       ammoRemaining: ammo,
       sirenCount,
       bestStreak,
+      quizBonus,
       rating,
       score,
       isPerfect,
     };
-  }, [resultLog, ammo, sirenCount, wrongInterceptAttempts, bestStreak, currentLevel]);
+  }, [resultLog, ammo, sirenCount, wrongInterceptAttempts, bestStreak, currentLevel, quizBonus]);
 
   // Running score — same formula as getLevelStats, usable during gameplay
   const getRunningScore = useCallback(() => {
@@ -1022,15 +1015,14 @@ export default function useGameEngine() {
     const ammoRemaining = Object.values(ammoRef.current).reduce((sum, v) => sum + v, 0);
 
     return Math.max(0,
-      (correctIntercepts * 100)
-      + (ammoRemaining * 50)
+      quizBonus
+      + (correctIntercepts * 100)
+      + (ammoRemaining * 75)
       + (bestStreak * 25)
       + (totalProcessed * 10)
       - (sirenCount * 100)
-      - (wrongInterceptAttempts * 50)
-      - (wastedIntercepts * 25)
     );
-  }, [resultLog, sirenCount, wrongInterceptAttempts, bestStreak]);
+  }, [resultLog, sirenCount, wrongInterceptAttempts, bestStreak, quizBonus]);
 
   // Get campaign summary (all levels combined)
   const getCampaignStats = useCallback(() => {
@@ -1064,6 +1056,7 @@ export default function useGameEngine() {
     c.totalWrongIntercepts += stats.wrongIntercepts;
     c.totalWastedIntercepts += stats.wastedIntercepts;
     c.overallBestStreak = Math.max(c.overallBestStreak, stats.bestStreak);
+    c.quizPoints = (c.quizPoints || 0) + (stats.quizBonus || 0);
   }, [getLevelStats]);
 
   // Start campaign from Level 1
@@ -1087,6 +1080,7 @@ export default function useGameEngine() {
     setFeedbackMessage(null);
     setEscapeRoomTime(escapeRoomStartTime);
     setTzevaAdomActive(false);
+    setQuizBonus(0);
     setSirenCount(0);
     setWrongInterceptAttempts(0);
     setStreak(0);
@@ -1135,6 +1129,7 @@ export default function useGameEngine() {
     setResultLog([]);
     setFeedbackMessage(null);
     setTzevaAdomActive(false);
+    setQuizBonus(0);
     setSirenCount(0);
     setWrongInterceptAttempts(0);
     setStreak(0);
@@ -1258,6 +1253,7 @@ export default function useGameEngine() {
     setFeedbackMessage(null);
     setEscapeRoomTime(escapeRoomStartTime);
     setTzevaAdomActive(false);
+    setQuizBonus(0);
     setSirenCount(0);
     setWrongInterceptAttempts(0);
     setStreak(0);
@@ -1303,6 +1299,7 @@ export default function useGameEngine() {
     setFeedbackMessage(null);
     setEscapeRoomTime(escapeRoomStartTime);
     setTzevaAdomActive(false);
+    setQuizBonus(0);
     setSirenCount(0);
     setWrongInterceptAttempts(0);
     setStreak(0);
@@ -1369,13 +1366,9 @@ export default function useGameEngine() {
     endCampaignEarlyRef.current();
   }, [escapeRoomTime, escapeRoomMode]);
 
-  // Add quiz points to campaign total
+  // Add quiz points as level bonus (flows into level score automatically)
   const addQuizPoints = useCallback((points) => {
-    campaignStatsRef.current.totalScore += points;
-    if (!campaignStatsRef.current.quizPoints) {
-      campaignStatsRef.current.quizPoints = 0;
-    }
-    campaignStatsRef.current.quizPoints += points;
+    setQuizBonus(points);
   }, []);
 
   return {

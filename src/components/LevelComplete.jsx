@@ -149,6 +149,9 @@ export default function LevelComplete({ levelStats, campaignStats, onNextLevel, 
           <StatRow label="SIRENS" value={levelStats.sirenCount}
             color={levelStats.sirenCount === 0 ? 'text-green-400' : 'text-red-400'} />
           <StatRow label="BEST STREAK" value={levelStats.bestStreak} color="text-yellow-400" />
+          {levelStats.quizBonus > 0 && (
+            <StatRow label="INTEL BONUS" value={`+${levelStats.quizBonus}`} color="text-cyan-300" />
+          )}
           {levelStats.wrongIntercepts > 0 && (
             <StatRow label="WRONG SYSTEM" value={levelStats.wrongIntercepts} color="text-red-400" />
           )}

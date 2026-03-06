@@ -12,10 +12,14 @@ const BRIEFING_CONTENT = {
       hebrewTitle: 'רַקֵּטוֹת',
       subtitle: 'Qassam & Grad Rockets',
       color: '#f97316',
-      bullets: [
-        { icon: '🚀', text: 'Qassam rockets are built in Gaza using basic materials like sugar and fertilizer' },
-        { icon: '📏', text: 'Range: 5-45 km — designed to strike nearby Israeli cities like Sderot and Ashkelon' },
-        { icon: '💰', text: 'A Qassam costs ~$800 to build. The Tamir that destroys it costs $50,000 — this cost imbalance is a strategic weapon' },
+      displayCount: 3,
+      factPool: [
+        { id: 'l1t1', icon: '🚀', text: 'Qassam rockets are built in Gaza using basic materials like sugar and fertilizer' },
+        { id: 'l1t2', icon: '📏', text: 'Range: 5-45 km — designed to strike nearby Israeli cities like Sderot and Ashkelon' },
+        { id: 'l1t3', icon: '💰', text: 'A Qassam costs ~$800 to build. The Tamir that destroys it costs $50,000 — this cost imbalance is a strategic weapon' },
+        { id: 'l1t4', icon: '⚠️', text: 'Qassam rockets are unguided — once launched, they cannot steer, making their exact impact point unpredictable' },
+        { id: 'l1t5', icon: '⏱️', text: 'From launch to impact, a Qassam gives residents only 15-45 seconds to reach shelter, depending on distance' },
+        { id: 'l1t6', icon: '🔢', text: 'Over 20,000 rockets and mortars have been fired from Gaza into Israel since 2001' },
       ],
       animation: 'rocket',
     },
@@ -24,10 +28,14 @@ const BRIEFING_CONTENT = {
       hebrewTitle: 'כִּפַּת בַּרְזֶל',
       subtitle: 'Short-Range Air Defense System',
       color: '#22c55e',
-      bullets: [
-        { icon: '📅', text: 'Became operational in 2011, after the 2006 Lebanon War' },
-        { icon: '🚀', text: 'Fires Tamir interceptor missiles — each costs approximately $50,000' },
-        { icon: '🎯', text: 'Over 90% success rate against rockets and drones' },
+      displayCount: 3,
+      factPool: [
+        { id: 'l1d1', icon: '📅', text: 'Became operational in 2011, after the 2006 Lebanon War' },
+        { id: 'l1d2', icon: '🚀', text: 'Fires Tamir interceptor missiles — each costs approximately $50,000' },
+        { id: 'l1d3', icon: '🎯', text: 'Over 90% success rate against rockets and drones' },
+        { id: 'l1d4', icon: '🏭', text: 'Developed by Rafael Advanced Defense Systems with financial backing from the United States' },
+        { id: 'l1d5', icon: '📡', text: 'Each battery includes a radar unit, a control center, and 3-4 launchers — a battery can protect a medium-sized city' },
+        { id: 'l1d6', icon: '🧠', text: 'Iron Dome calculates each rocket\'s trajectory and only fires if the rocket threatens a populated area — saving interceptors for real threats' },
       ],
       animation: 'iron_dome',
     },
@@ -48,10 +56,14 @@ const BRIEFING_CONTENT = {
       hebrewTitle: 'כטב"מ',
       subtitle: 'Shahed-136 & Samad-3 Drones',
       color: '#eab308',
-      bullets: [
-        { icon: '🇮🇷', text: 'Iran manufactures the Shahed-136 kamikaze drone — supplied to Hezbollah in Lebanon' },
-        { icon: '💥', text: 'Kamikaze drones ARE the weapon — they crash directly into their target' },
-        { icon: '🎯', text: 'Cheap to produce (~$20,000 each) — enemies launch them in swarms' },
+      displayCount: 3,
+      factPool: [
+        { id: 'l2t1', icon: '🇮🇷', text: 'Iran manufactures the Shahed-136 kamikaze drone — supplied to Hezbollah in Lebanon' },
+        { id: 'l2t2', icon: '💥', text: 'Kamikaze drones ARE the weapon — they crash directly into their target' },
+        { id: 'l2t3', icon: '🎯', text: 'Cheap to produce (~$20,000 each) — enemies launch them in swarms' },
+        { id: 'l2t4', icon: '📡', text: 'Drones fly at low altitude (under 1,000 m) and at slow speeds (~185 km/h) — making them hard to detect on radar but vulnerable to fighter jets' },
+        { id: 'l2t5', icon: '📏', text: 'The Shahed-136 has a range of up to 2,500 km — enough to reach Israel from Iran, Yemen, or Iraq' },
+        { id: 'l2t6', icon: '⏱️', text: 'A Shahed-136 drone takes over 4 hours to fly from Iran to Israel — giving defenders time to prepare if detected early' },
       ],
       animation: 'drone',
     },
@@ -71,10 +83,14 @@ const BRIEFING_CONTENT = {
       hebrewTitle: 'טִילֵי שִׁיּוּט',
       subtitle: 'Paveh & Quds Cruise Missiles',
       color: '#3b82f6',
-      bullets: [
-        { icon: '🇮🇷', text: 'Iran developed the Paveh and Quds cruise missiles for long-range strikes' },
-        { icon: '✈️', text: 'Cruise missiles fly like small aircraft — jet-powered, with wings for sustained flight' },
-        { icon: '🎯', text: 'Unlike rockets, cruise missiles are guided — they can navigate to precise targets' },
+      displayCount: 3,
+      factPool: [
+        { id: 'l3t1', icon: '🇮🇷', text: 'Iran developed the Paveh and Quds cruise missiles for long-range strikes' },
+        { id: 'l3t2', icon: '✈️', text: 'Cruise missiles fly like small aircraft — jet-powered, with wings for sustained flight' },
+        { id: 'l3t3', icon: '🎯', text: 'Unlike rockets, cruise missiles are guided — they can navigate to precise targets' },
+        { id: 'l3t4', icon: '📏', text: 'The Paveh cruise missile has a range of over 1,600 km — enough to reach Israel from deep inside Iranian territory' },
+        { id: 'l3t5', icon: '📡', text: 'Cruise missiles hug the terrain at low altitude, flying under radar coverage — this makes them extremely difficult to detect early' },
+        { id: 'l3t6', icon: '🛰️', text: 'Modern cruise missiles use GPS and terrain-matching navigation to strike targets with accuracy within a few meters' },
       ],
       animation: 'cruise',
     },
@@ -83,10 +99,14 @@ const BRIEFING_CONTENT = {
       hebrewTitle: 'קֶלַע דָּוִד',
       subtitle: 'Medium-Range Air Defense System',
       color: '#3b82f6',
-      bullets: [
-        { icon: '📅', text: 'Declared operational in 2017, filling the gap between Iron Dome and Arrow' },
-        { icon: '🚀', text: 'Fires Stunner interceptors — uses hit-to-kill technology (no explosive warhead)' },
-        { icon: '💰', text: 'Each Stunner interceptor costs approximately $1 million' },
+      displayCount: 3,
+      factPool: [
+        { id: 'l3d1', icon: '📅', text: 'Declared operational in 2017, filling the gap between Iron Dome and Arrow' },
+        { id: 'l3d2', icon: '🚀', text: 'Fires Stunner interceptors — uses hit-to-kill technology (no explosive warhead)' },
+        { id: 'l3d3', icon: '💰', text: 'Each Stunner interceptor costs approximately $1 million' },
+        { id: 'l3d4', icon: '🏭', text: 'Jointly developed by Rafael (Israel) and Raytheon (US) — a major US-Israel defense partnership' },
+        { id: 'l3d5', icon: '📏', text: 'Effective range of 40-300 km — designed to intercept cruise missiles, large rockets, and short-range ballistic missiles' },
+        { id: 'l3d6', icon: '👁️', text: 'The Stunner has a dual-seeker system — it uses both infrared and radar guidance to track and hit maneuvering targets' },
       ],
       animation: 'davids_sling',
     },
@@ -106,10 +126,14 @@ const BRIEFING_CONTENT = {
       hebrewTitle: 'טִילִים בָּלִיסְטִיִּם',
       subtitle: 'Shahab-3 & Fateh-110',
       color: '#ef4444',
-      bullets: [
-        { icon: '🎯', text: 'Adversaries target military bases — air fields, missile batteries, and intelligence sites — to cripple Israel\'s ability to fight back' },
-        { icon: '🇮🇷', text: "Iran's Shahab-3 can reach any base in Israel from Iranian soil — range over 1,300 km" },
-        { icon: '⚡', text: 'Ballistic missiles arc into space then plunge at Mach 7-10 — enormous kinetic energy on impact' },
+      displayCount: 3,
+      factPool: [
+        { id: 'l4t1', icon: '🎯', text: 'Adversaries target military bases — air fields, missile batteries, and intelligence sites — to cripple Israel\'s ability to fight back' },
+        { id: 'l4t2', icon: '🇮🇷', text: "Iran's Shahab-3 can reach any base in Israel from Iranian soil — range over 1,300 km" },
+        { id: 'l4t3', icon: '⚡', text: 'Ballistic missiles arc into space then plunge at Mach 7-10 — enormous kinetic energy on impact' },
+        { id: 'l4t4', icon: '🚀', text: 'The Shahab-3 is based on North Korea\'s Nodong missile — Iran acquired the technology in the 1990s and modified it for longer range' },
+        { id: 'l4t5', icon: '💣', text: 'Iran\'s Fateh-110 is a shorter-range ballistic missile (300 km) — accurate enough to strike specific buildings, supplied to Hezbollah' },
+        { id: 'l4t6', icon: '🛡️', text: 'Ballistic missiles can carry conventional, chemical, or nuclear warheads — making each incoming missile an unknown-severity threat' },
       ],
       animation: 'ballistic',
     },
@@ -118,10 +142,14 @@ const BRIEFING_CONTENT = {
       hebrewTitle: 'חֵץ 2',
       subtitle: 'Upper-Atmosphere Interceptor',
       color: '#ef4444',
-      bullets: [
-        { icon: '📅', text: "First operational in 2000 — the world's first deployed anti-ballistic missile system" },
-        { icon: '🚀', text: 'Intercepts ballistic missiles in the upper atmosphere during their descent' },
-        { icon: '📏', text: 'Effective range: up to 90 km altitude — targets are destroyed high above populated areas' },
+      displayCount: 3,
+      factPool: [
+        { id: 'l4d1', icon: '📅', text: "First operational in 2000 — the world's first deployed anti-ballistic missile system" },
+        { id: 'l4d2', icon: '🚀', text: 'Intercepts ballistic missiles in the upper atmosphere during their descent' },
+        { id: 'l4d3', icon: '📏', text: 'Effective range: up to 90 km altitude — targets are destroyed high above populated areas' },
+        { id: 'l4d4', icon: '🏭', text: 'Jointly developed by Israel Aerospace Industries (IAI) and Boeing as part of a US-Israel cooperation program' },
+        { id: 'l4d5', icon: '💥', text: 'Arrow 2 uses a directed fragmentation warhead — it detonates near the target, shredding it with shrapnel rather than requiring a direct hit' },
+        { id: 'l4d6', icon: '📡', text: 'Paired with the Green Pine radar — one of the most powerful tracking radars in the world, able to detect missiles at ranges over 500 km' },
       ],
       animation: 'arrow_2',
     },
@@ -140,10 +168,14 @@ const BRIEFING_CONTENT = {
       hebrewTitle: 'טִילִים הִיפֶּרְסוֹנִיִּם',
       subtitle: 'DF-ZF Class',
       color: '#a855f7',
-      bullets: [
-        { icon: '⚡', text: 'Hypersonic weapons travel at Mach 5+ — over 6,000 km/h' },
-        { icon: '🌍', text: 'They boost to the edge of space, then glide back at extreme speed while maneuvering' },
-        { icon: '📡', text: 'Their ability to change course mid-flight makes them nearly impossible to predict' },
+      displayCount: 3,
+      factPool: [
+        { id: 'l5t1', icon: '⚡', text: 'Hypersonic weapons travel at Mach 5+ — over 6,000 km/h' },
+        { id: 'l5t2', icon: '🌍', text: 'They boost to the edge of space, then glide back at extreme speed while maneuvering' },
+        { id: 'l5t3', icon: '📡', text: 'Their ability to change course mid-flight makes them nearly impossible to predict' },
+        { id: 'l5t4', icon: '🇷🇺', text: 'Russia, China, Iran, and North Korea are all developing hypersonic weapons — Russia\'s Avangard can reportedly reach Mach 20' },
+        { id: 'l5t5', icon: '🔥', text: 'At Mach 5+, air friction heats the weapon\'s surface to over 2,000\u00b0C — requiring special heat-resistant materials to survive the flight' },
+        { id: 'l5t6', icon: '⏱️', text: 'A hypersonic weapon at Mach 7 crosses 100 km in about 50 seconds — leaving almost no time for traditional defense systems to react' },
       ],
       animation: 'hypersonic',
     },
@@ -152,10 +184,14 @@ const BRIEFING_CONTENT = {
       hebrewTitle: 'חֵץ 3',
       subtitle: 'Exo-Atmospheric Interceptor',
       color: '#a855f7',
-      bullets: [
-        { icon: '🌌', text: 'Intercepts targets in space — outside the atmosphere, before reentry' },
-        { icon: '🚀', text: 'Uses hit-to-kill technology — pure kinetic energy, no explosive warhead needed' },
-        { icon: '📏', text: 'Can engage threats at altitudes over 100 km — the highest layer of Israeli defense' },
+      displayCount: 3,
+      factPool: [
+        { id: 'l5d1', icon: '🌌', text: 'Intercepts targets in space — outside the atmosphere, before reentry' },
+        { id: 'l5d2', icon: '🚀', text: 'Uses hit-to-kill technology — pure kinetic energy, no explosive warhead needed' },
+        { id: 'l5d3', icon: '📏', text: 'Can engage threats at altitudes over 100 km — the highest layer of Israeli defense' },
+        { id: 'l5d4', icon: '🏭', text: 'Developed by Israel Aerospace Industries (IAI) with support from the US Missile Defense Agency' },
+        { id: 'l5d5', icon: '🧪', text: 'Successfully tested against a real ballistic target in space in 2019 — proving the system works in actual combat conditions' },
+        { id: 'l5d6', icon: '🌐', text: 'Destroying threats in space means debris burns up on reentry — protecting people on the ground from falling warhead fragments' },
       ],
       animation: 'arrow_3',
     },
@@ -174,10 +210,14 @@ const BRIEFING_CONTENT = {
       hebrewTitle: 'מתקפת 13 באפריל',
       subtitle: 'Iran Launches 300+ Projectiles at Israel',
       color: '#22c55e',
-      bullets: [
-        { icon: '🇮🇷', text: 'On April 13, 2024, Iran launched its first-ever direct attack on Israel — over 300 projectiles' },
-        { icon: '📊', text: 'The salvo included 170 Shahed drones, 30+ cruise missiles, and 120+ ballistic missiles' },
-        { icon: '🌊', text: 'Drones were launched hours before the missiles — staggered timing designed so all 300+ projectiles arrive in the same window' },
+      displayCount: 3,
+      factPool: [
+        { id: 'l6t1', icon: '🇮🇷', text: 'On April 13, 2024, Iran launched its first-ever direct attack on Israel — over 300 projectiles' },
+        { id: 'l6t2', icon: '📊', text: 'The salvo included 170 Shahed drones, 30+ cruise missiles, and 120+ ballistic missiles' },
+        { id: 'l6t3', icon: '🌊', text: 'Drones were launched hours before the missiles — staggered timing designed so all 300+ projectiles arrive in the same window' },
+        { id: 'l6t4', icon: '🎯', text: 'Iran targeted Nevatim and Ramon airbases in the Negev desert — focusing on military airfields rather than civilian population centers' },
+        { id: 'l6t5', icon: '💰', text: 'Iran\'s total attack cost an estimated $80-100 million — while the coalition defense cost over $1 billion, roughly 10x more' },
+        { id: 'l6t6', icon: '⚠️', text: 'Iran gave several hours of advance warning through diplomatic channels — US and Israeli forces had time to position fighter jets and naval assets' },
       ],
       animation: 'layered',
     },
@@ -186,10 +226,14 @@ const BRIEFING_CONTENT = {
       hebrewTitle: 'יִירוּט רַב-לְאוּמִּי',
       subtitle: 'Coalition Defense — 99% Intercept Rate',
       color: '#22c55e',
-      bullets: [
-        { icon: '🛡️', text: '99% of all 300+ projectiles were intercepted — the most complex aerial defense operation in history' },
-        { icon: '🇺🇸', text: 'The US, UK, and Jordan all participated — intercepting drones and missiles before they reached Israel' },
-        { icon: '🧠', text: 'All 4 tiers activated simultaneously: Iron Dome, David\'s Sling, Arrow 2, and Arrow 3 all fired in a single night' },
+      displayCount: 3,
+      factPool: [
+        { id: 'l6d1', icon: '🛡️', text: '99% of all 300+ projectiles were intercepted — the most complex aerial defense operation in history' },
+        { id: 'l6d2', icon: '🇺🇸', text: 'The US, UK, and Jordan all participated — intercepting drones and missiles before they reached Israel' },
+        { id: 'l6d3', icon: '🧠', text: 'All 4 tiers activated simultaneously: Iron Dome, David\'s Sling, Arrow 2, and Arrow 3 all fired in a single night' },
+        { id: 'l6d4', icon: '✈️', text: 'US Navy destroyers in the Eastern Mediterranean fired SM-3 interceptors, and US and UK fighter jets shot down drones over Jordan and Iraq' },
+        { id: 'l6d5', icon: '🇯🇴', text: 'Jordan intercepted drones and missiles crossing its airspace — a historic first, as Jordan had never publicly engaged Iranian weapons before' },
+        { id: 'l6d6', icon: '💥', text: 'Only one ballistic missile struck its intended target — Nevatim airbase sustained minor damage to a taxiway, but the runway remained operational' },
       ],
       animation: 'wave_tactics',
     },
@@ -203,10 +247,14 @@ const BRIEFING_CONTENT = {
       hebrewTitle: 'בְּעָיַת הָעֲלוּת',
       subtitle: 'When Defense Costs More Than Attack',
       color: '#ef4444',
-      bullets: [
-        { icon: '💰', text: 'A Qassam rocket costs $800 to build — the Tamir that destroys it costs $50,000 (a 62:1 cost ratio favoring the attacker)' },
-        { icon: '🚀', text: 'An Arrow 3 interceptor costs ~$3.5 million — adversaries can force a launch with a $300,000 decoy missile' },
-        { icon: '🌊', text: 'During Oct 2023, Hamas launched ~3,000 rockets in 24 hours — at $50K per intercept, that would cost $150 million in one day' },
+      displayCount: 3,
+      factPool: [
+        { id: 'l7t1', icon: '💰', text: 'A Qassam rocket costs $800 to build — the Tamir that destroys it costs $50,000 (a 62:1 cost ratio favoring the attacker)' },
+        { id: 'l7t2', icon: '🚀', text: 'An Arrow 3 interceptor costs ~$3.5 million — adversaries can force a launch with a $300,000 decoy missile' },
+        { id: 'l7t3', icon: '🌊', text: 'During Oct 2023, Hamas launched ~3,000 rockets in 24 hours — at $50K per intercept, that would cost $150 million in one day' },
+        { id: 'l7t4', icon: '🧮', text: 'IDF commanders deliberately let rockets heading for open ground pass without intercepting — saving interceptors for threats to populated areas' },
+        { id: 'l7t5', icon: '📉', text: 'Adversaries can drain Israel\'s interceptor stockpile by launching cheap decoys — each decoy forces the system to decide if it\'s real or fake' },
+        { id: 'l7t6', icon: '🏭', text: 'Iran can produce Shahed drones for ~$20,000 each — for the price of one Arrow 3, they can build 175 drones' },
       ],
       animation: 'final_stand',
     },
@@ -215,10 +263,14 @@ const BRIEFING_CONTENT = {
       hebrewTitle: 'קֶרֶן בַּרְזֶל',
       subtitle: 'Solving the Cost Problem with Directed Energy',
       color: '#f97316',
-      bullets: [
-        { icon: '🔦', text: 'Iron Beam is a laser defense system under development by Rafael — it fires a focused energy beam to destroy threats' },
-        { icon: '💵', text: 'Each Iron Beam shot costs roughly $3.50 in electricity — compared to $50,000 for a Tamir missile' },
-        { icon: '⚡', text: 'It has no ammunition limit — as long as there is power, it can keep firing, eliminating the supply exhaustion problem' },
+      displayCount: 3,
+      factPool: [
+        { id: 'l7d1', icon: '🔦', text: 'Iron Beam is a laser defense system under development by Rafael — it fires a focused energy beam to destroy threats' },
+        { id: 'l7d2', icon: '💵', text: 'Each Iron Beam shot costs roughly $3.50 in electricity — compared to $50,000 for a Tamir missile' },
+        { id: 'l7d3', icon: '⚡', text: 'It has no ammunition limit — as long as there is power, it can keep firing, eliminating the supply exhaustion problem' },
+        { id: 'l7d4', icon: '🌧️', text: 'Iron Beam\'s main limitation is weather — lasers lose effectiveness in heavy cloud cover, rain, or sandstorms' },
+        { id: 'l7d5', icon: '📏', text: 'Iron Beam has a limited range of a few kilometers — it is designed to complement Iron Dome for close-range threats, not replace it' },
+        { id: 'l7d6', icon: '🔬', text: 'The US is co-investing in Iron Beam technology — the system may be deployed to protect US forces overseas as well' },
       ],
       animation: 'resource_mgmt',
     },
@@ -902,8 +954,8 @@ function DefenseBriefingPhase({ data, onComplete }) {
 // ============================================================
 // PHASE 3: Intel Check (Quiz) — UNCHANGED
 // ============================================================
-function IntelCheckPhase({ level, onComplete }) {
-  const [questions] = useState(() => getRandomQuestions(level, 2));
+function IntelCheckPhase({ level, shownFactIds, onComplete }) {
+  const [questions] = useState(() => getRandomQuestions(level, 2, shownFactIds));
   const [currentQ, setCurrentQ] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [showResult, setShowResult] = useState(false);
@@ -1538,6 +1590,16 @@ const LEVEL_NAMES = {
   7: { name: 'FINAL STAND', hebrewName: 'הַמַּעֲמָד הָאַחֲרוֹן', subtitle: 'Total Saturation Attack' },
 };
 
+// Helper: randomly select N items from an array (Fisher-Yates shuffle)
+function selectRandom(arr, count) {
+  const copy = [...arr];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy.slice(0, count);
+}
+
 export default function EducationalBriefing({ level, onComplete }) {
   const content = BRIEFING_CONTENT[level] || BRIEFING_CONTENT[1];
   const phases = content.phases;
@@ -1545,6 +1607,34 @@ export default function EducationalBriefing({ level, onComplete }) {
 
   const [phase, setPhase] = useState(phases[0]);
   const quizPointsRef = useRef(0);
+
+  // Randomly select facts from each phase's factPool (or use bullets as fallback)
+  const { selectedContent, shownFactIds } = (() => {
+    const ids = [];
+    const result = { ...content };
+
+    if (content.threat) {
+      const pool = content.threat.factPool || content.threat.bullets || [];
+      const count = content.threat.displayCount || pool.length;
+      const chosen = pool.length > count ? selectRandom(pool, count) : pool;
+      chosen.forEach(f => { if (f.id) ids.push(f.id); });
+      result.threat = { ...content.threat, bullets: chosen };
+    }
+
+    if (content.defense) {
+      const pool = content.defense.factPool || content.defense.bullets || [];
+      const count = content.defense.displayCount || pool.length;
+      const chosen = pool.length > count ? selectRandom(pool, count) : pool;
+      chosen.forEach(f => { if (f.id) ids.push(f.id); });
+      result.defense = { ...content.defense, bullets: chosen };
+    }
+
+    return { selectedContent: result, shownFactIds: ids };
+  })();
+
+  // Use memoized values so they don't re-randomize on re-render
+  const contentRef = useRef(selectedContent);
+  const factIdsRef = useRef(shownFactIds);
 
   // Advance to the next phase in the level's phase list
   const advancePhase = useCallback((currentPhaseKey) => {
@@ -1574,10 +1664,10 @@ export default function EducationalBriefing({ level, onComplete }) {
     advancePhase('exercise');
   }, [advancePhase]);
 
-  // Skip current phase — advances to next phase (or completes briefing)
-  const handleSkipPhase = useCallback(() => {
-    advancePhase(phase);
-  }, [phase, advancePhase]);
+  // Skip entire briefing — forfeits all quiz points
+  const handleSkipBriefing = useCallback(() => {
+    onComplete({ quizPoints: 0 });
+  }, [onComplete]);
 
   return (
     <div className="h-screen bg-[#0a0e1a] flex flex-col relative overflow-hidden">
@@ -1609,14 +1699,14 @@ export default function EducationalBriefing({ level, onComplete }) {
       {/* Phase content — scrollable if needed */}
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-2xl w-full mx-auto px-4 pb-4">
-          {phase === 'threat' && content.threat && (
-            <ThreatBriefingPhase data={content.threat} onComplete={handleThreatComplete} />
+          {phase === 'threat' && contentRef.current.threat && (
+            <ThreatBriefingPhase data={contentRef.current.threat} onComplete={handleThreatComplete} />
           )}
-          {phase === 'defense' && content.defense && (
-            <DefenseBriefingPhase data={content.defense} onComplete={handleDefenseComplete} />
+          {phase === 'defense' && contentRef.current.defense && (
+            <DefenseBriefingPhase data={contentRef.current.defense} onComplete={handleDefenseComplete} />
           )}
           {phase === 'quiz' && (
-            <IntelCheckPhase level={level} onComplete={handleQuizComplete} />
+            <IntelCheckPhase level={level} shownFactIds={factIdsRef.current} onComplete={handleQuizComplete} />
           )}
           {phase === 'exercise' && content.exerciseConfig && (
             <FieldExercisePhase config={content.exerciseConfig} onComplete={handleExerciseComplete} />
@@ -1627,14 +1717,14 @@ export default function EducationalBriefing({ level, onComplete }) {
       {/* SKIP button — fixed at bottom center */}
       <div className="flex-shrink-0 py-3 flex justify-center bg-[#0a0e1a]/90 border-t border-gray-800/50">
         <button
-          onClick={handleSkipPhase}
+          onClick={handleSkipBriefing}
           className="text-gray-300 hover:text-white font-mono text-sm tracking-widest
             transition-all cursor-pointer px-8 py-2.5 rounded-lg
             border-2 border-gray-600 hover:border-gray-400
             bg-gray-800/60 hover:bg-gray-700/80
             active:scale-95"
         >
-          SKIP ▸
+          SKIP BRIEFING ⚠
         </button>
       </div>
     </div>
