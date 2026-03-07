@@ -11,7 +11,7 @@ import LevelIntro from './components/LevelIntro.jsx';
 import LevelComplete from './components/LevelComplete.jsx';
 import ScoringIntro from './components/ScoringIntro.jsx';
 import FacilitatorControls from './components/FacilitatorControls.jsx';
-import { getLevelConfig } from './config/threats.js';
+import { getLevelConfig, LEVEL_ACCENT_COLORS } from './config/threats.js';
 import { getLeaderboard } from './utils/leaderboard.js';
 import {
   startMusic,
@@ -339,7 +339,7 @@ export default function App() {
   // ========================
   if (gameState === GAME_STATES.PRE_GAME) {
     return (
-      <div className="min-h-screen bg-[#0a0e1a] flex items-center justify-center relative">
+      <div key="screen-pre-game" className="screen-fade-in min-h-screen bg-[#0a0e1a] flex items-center justify-center relative">
         {/* Top-right controls */}
         <div className="absolute top-4 right-4 flex items-center gap-3">
           <button
@@ -436,7 +436,7 @@ export default function App() {
   // ========================
   if (gameState === GAME_STATES.SCORING_INTRO) {
     return (
-      <div className="relative">
+      <div key="screen-scoring-intro" className="screen-fade-in relative">
         <ScoringIntro onContinue={dismissScoringIntro} />
         {facilitatorOverlay}
       </div>
@@ -449,7 +449,7 @@ export default function App() {
   if (gameState === GAME_STATES.BRIEFING) {
     // Auto-skip on replay is handled by the useEffect above
     return (
-      <div className="relative">
+      <div key={`screen-briefing-${currentLevel}`} className="screen-fade-in relative">
         <div className="absolute top-4 right-4 z-10 flex items-center gap-3">
           <button
             onClick={() => setMusicMuted((m) => !m)}
@@ -480,7 +480,7 @@ export default function App() {
   // ========================
   if (gameState === GAME_STATES.LEVEL_INTRO) {
     return (
-      <div className="relative">
+      <div key={`screen-level-intro-${currentLevel}`} className="screen-fade-in relative">
         <div className="absolute top-4 right-4 z-10">
           {escapeRoomMode && <EscapeRoomTimer escapeRoomTime={escapeRoomTime} />}
         </div>
@@ -498,7 +498,7 @@ export default function App() {
   // ========================
   if (gameState === GAME_STATES.LEVEL_COMPLETE) {
     return (
-      <div className="relative">
+      <div key={`screen-level-complete-${currentLevel}`} className="screen-fade-in relative">
         <div className="absolute top-4 right-4 z-10">
           {escapeRoomMode && <EscapeRoomTimer escapeRoomTime={escapeRoomTime} />}
         </div>
@@ -518,13 +518,13 @@ export default function App() {
   // ========================
   if (gameState === GAME_STATES.SUMMARY) {
     return (
-      <>
+      <div key="screen-summary" className="screen-fade-in">
         <Summary stats={getCampaignStats()} levelStats={getLevelStats()} onReset={() => {
           seenBriefingsRef.current.clear();
           resetGame();
         }} />
         {facilitatorOverlay}
-      </>
+      </div>
     );
   }
 
@@ -532,7 +532,7 @@ export default function App() {
   // ACTIVE GAME / TZEVA ADOM
   // ========================
   return (
-    <div className={`h-screen bg-[#0a0e1a] flex flex-col overflow-hidden relative ${screenShake ? 'screen-shake border-flash-red' : ''}`}>
+    <div key={`screen-active-${currentLevel}`} className={`screen-fade-in h-screen bg-[#0a0e1a] flex flex-col overflow-hidden relative ${screenShake ? 'screen-shake border-flash-red' : ''}`}>
       {/* Floating top-right: gear icon + escape room timer */}
       <div className="absolute top-2 right-4 z-30 flex items-center gap-3">
         <button
@@ -549,7 +549,8 @@ export default function App() {
       </div>
 
       {/* Top bar */}
-      <div className="flex items-center justify-between px-4 py-2 border-b border-gray-800/50 bg-[#080c16]">
+      <div className="flex items-center justify-between px-4 py-2 bg-[#080c16]"
+        style={{ borderBottom: `1px solid ${LEVEL_ACCENT_COLORS[currentLevel] || '#22c55e'}40` }}>
         <div className="flex items-center gap-3 whitespace-nowrap">
           <span className="text-green-400 font-mono text-sm font-bold tracking-widest">
             LEVEL {currentLevel}

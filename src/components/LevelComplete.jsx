@@ -197,6 +197,40 @@ export default function LevelComplete({ levelStats, campaignStats, onNextLevel, 
           )}
         </div>
 
+        {/* Achievement Badges */}
+        {(() => {
+          const isIronWall = !isPerfect && levelStats.sirenCount === 0;
+          const hasStreakBadge = levelStats.bestStreak >= 10;
+          const isIntelMaster = levelStats.quizBonus >= 500;
+          const totalAmmoRemaining = Object.values(levelStats.ammoRemaining).reduce((s, v) => s + v, 0);
+          const totalAmmoStart = Object.values(config.ammo).reduce((s, v) => s + v, 0);
+          const isEfficient = totalAmmoRemaining >= totalAmmoStart * 0.5;
+          const badges = [];
+          if (isIronWall) badges.push({ label: 'IRON WALL', icon: '\u{1F6E1}\uFE0F', border: '#3b82f6', text: '#60a5fa', bg: 'rgba(59, 130, 246, 0.08)' });
+          if (hasStreakBadge) badges.push({ label: `${levelStats.bestStreak}x STREAK`, icon: '\u{1F525}', border: '#f97316', text: '#fb923c', bg: 'rgba(249, 115, 22, 0.08)' });
+          if (isIntelMaster) badges.push({ label: 'INTEL MASTER', icon: '\u{1F4E1}', border: '#06b6d4', text: '#22d3ee', bg: 'rgba(6, 182, 212, 0.08)' });
+          if (isEfficient) badges.push({ label: 'EFFICIENT', icon: '\u{1F3AF}', border: '#22c55e', text: '#4ade80', bg: 'rgba(34, 197, 94, 0.08)' });
+          if (badges.length === 0) return null;
+          return (
+            <div className="flex flex-wrap gap-2 mb-6 justify-center">
+              {badges.map((badge, i) => (
+                <div
+                  key={badge.label}
+                  className="achievement-badge inline-flex items-center gap-2 px-4 py-2 rounded-lg border font-mono text-sm tracking-wider"
+                  style={{
+                    borderColor: badge.border,
+                    color: badge.text,
+                    background: badge.bg,
+                    animationDelay: `${i * 0.15}s`,
+                  }}
+                >
+                  <span>{badge.icon}</span> {badge.label}
+                </div>
+              ))}
+            </div>
+          );
+        })()}
+
         {/* Campaign running total — always visible */}
         {campaignStats && (
           <div className="border border-green-900/50 rounded-lg p-5 mb-6 bg-green-950/20 text-center">

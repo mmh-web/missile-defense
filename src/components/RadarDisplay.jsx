@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect, useRef } from 'react';
-import { IMPACT_POSITIONS, THREAT_COLORS } from '../config/threats.js';
+import { IMPACT_POSITIONS, THREAT_COLORS, LEVEL_ACCENT_COLORS } from '../config/threats.js';
 import {
   CITIES,
   getVisibleCities,
@@ -234,9 +234,16 @@ function TrailEffect({ trail, viewport }) {
   const { color, duration } = trail;
   return (
     <g>
-      <line x1={s.x} y1={s.y} x2={e.x} y2={e.y} stroke={color} strokeWidth="0.4" opacity="0.6" className="trail-line"
+      {/* Glow line behind main trail */}
+      <line x1={s.x} y1={s.y} x2={e.x} y2={e.y} stroke={color} strokeWidth="1.5" opacity="0.15" className="trail-line"
+        style={{ '--trail-duration': `${duration}ms`, filter: 'url(#trail-glow)' }} />
+      {/* Main trail line */}
+      <line x1={s.x} y1={s.y} x2={e.x} y2={e.y} stroke={color} strokeWidth="0.6" opacity="0.6" className="trail-line"
         style={{ '--trail-duration': `${duration}ms` }} />
-      <circle cx={s.x} cy={s.y} r="0.8" fill="white" className="trail-warhead"
+      {/* Warhead — outer colored glow + inner white core */}
+      <circle cx={s.x} cy={s.y} r="1.2" fill={color} opacity="0.5" className="trail-warhead"
+        style={{ '--dx': `${e.x - s.x}px`, '--dy': `${e.y - s.y}px`, '--trail-duration': `${duration}ms` }} />
+      <circle cx={s.x} cy={s.y} r="0.5" fill="white" className="trail-warhead"
         style={{ '--dx': `${e.x - s.x}px`, '--dy': `${e.y - s.y}px`, '--trail-duration': `${duration}ms` }} />
       <circle cx={s.x} cy={s.y} r="1.5" fill={color} opacity="0.5" className="trail-launch-flash" />
     </g>
@@ -715,6 +722,7 @@ export default function RadarDisplay({
   bouncingThreats = [],
 }) {
   const viewport = getViewportForLevel(currentLevel);
+  const accentColor = LEVEL_ACCENT_COLORS[currentLevel] || '#22c55e';
   const visibleCities = useMemo(() => getVisibleCities(currentLevel), [currentLevel]);
   const visibleRegions = useMemo(() => getVisibleRegions(currentLevel), [currentLevel]);
   const visibleOrigins = useMemo(() => getVisibleThreatOrigins(currentLevel), [currentLevel]);
@@ -736,13 +744,17 @@ export default function RadarDisplay({
         <svg
           viewBox="0 0 100 100"
           className="w-full h-full"
-          style={{ filter: 'drop-shadow(0 0 20px rgba(0, 255, 136, 0.15))' }}
+          style={{ filter: `drop-shadow(0 0 20px rgba(0, 255, 136, 0.12)) drop-shadow(0 0 15px ${accentColor}18)` }}
         >
           {/* Clip path for radar circle */}
           <defs>
             <clipPath id="radar-clip">
               <circle cx="50" cy="50" r="49" />
             </clipPath>
+            {/* Trail glow blur filter */}
+            <filter id="trail-glow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="1" />
+            </filter>
             {/* Dvir shield dome gradient */}
             <radialGradient id="dvirShieldGrad" cx="50%" cy="30%" r="70%">
               <stop offset="0%" stopColor="#A5D6A7" stopOpacity="0.25" />
@@ -765,6 +777,16 @@ export default function RadarDisplay({
           <line x1="50" y1="1" x2="50" y2="99" stroke="#0f3d0f" strokeWidth="0.2" opacity="0.4" />
           <line x1="15" y1="15" x2="85" y2="85" stroke="#0f3d0f" strokeWidth="0.15" opacity="0.3" />
           <line x1="85" y1="15" x2="15" y2="85" stroke="#0f3d0f" strokeWidth="0.15" opacity="0.3" />
+
+          {/* Accent tint overlay on grid — subtle per-level color shift */}
+          <g opacity="0.12">
+            {rings.map((r, i) => (
+              <circle key={`accent-${i}`} cx="50" cy="50" r={r * 0.49}
+                fill="none" stroke={accentColor} strokeWidth="0.3" />
+            ))}
+            <line x1="1" y1="50" x2="99" y2="50" stroke={accentColor} strokeWidth="0.2" />
+            <line x1="50" y1="1" x2="50" y2="99" stroke={accentColor} strokeWidth="0.2" />
+          </g>
 
           {/* === All map content clipped to radar circle === */}
           <g clipPath="url(#radar-clip)">
@@ -983,6 +1005,28 @@ export default function RadarDisplay({
               return null;
             })}
 
+            {/* Score pop-ups — float up from intercept/impact point */}
+            {impactFlashes.filter(f => f.scoreText).map(flash => {
+              const p = mapToSVG(flash.cx, flash.cy, viewport);
+              const popColor = flash.type === 'city_hit' ? '#ef4444'
+                : flash.scoreText === '+75' ? '#eab308'
+                : '#22c55e';
+              return (
+                <text
+                  key={`score-${flash.id}`}
+                  x={p.x} y={p.y - 3}
+                  fill={popColor}
+                  fontSize="3.5"
+                  fontFamily="monospace"
+                  fontWeight="bold"
+                  textAnchor="middle"
+                  className="score-popup"
+                >
+                  {flash.scoreText}
+                </text>
+              );
+            })}
+
             {/* Interceptor trails */}
             {activeTrails.map((trail) => (
               <TrailEffect key={trail.id} trail={trail} viewport={viewport} />
@@ -1045,22 +1089,42 @@ export default function RadarDisplay({
                       className="selection-ring-spin"
                     />
                   )}
-                  {/* Pulse ring — scaled by threat type */}
-                  <circle
-                    cx={svgPos.x} cy={svgPos.y} r={(BLIP_RADIUS[threat.type] || 1.4) + 1.0}
-                    fill="none" stroke={color} strokeWidth="0.3" opacity="0.4"
-                    className="radar-pulse"
-                  />
-                  {/* Blip — sized by threat type (drones small, missiles large) */}
-                  <circle
-                    cx={svgPos.x} cy={svgPos.y}
-                    r={BLIP_RADIUS[threat.type] || 1.4}
-                    fill={color}
-                    stroke={isSelected ? '#ffffff' : color}
-                    strokeWidth={isSelected ? '0.6' : '0.3'}
-                    opacity={1}
-                    style={{ filter: `drop-shadow(0 0 ${isSelected ? '5' : '3'}px ${color})` }}
-                  />
+                  {/* Pulse ring — urgent when < 3s remaining */}
+                  {(() => {
+                    const isUrgent = !threat.intercepted && !threat.held && threat.timeLeft < 3;
+                    return (
+                      <circle
+                        cx={svgPos.x} cy={svgPos.y} r={(BLIP_RADIUS[threat.type] || 1.4) + 1.0}
+                        fill="none" stroke={isUrgent ? '#ef4444' : color}
+                        strokeWidth="0.3" opacity={isUrgent ? 0.6 : 0.4}
+                        className={isUrgent ? 'radar-pulse-urgent' : 'radar-pulse'}
+                      />
+                    );
+                  })()}
+                  {/* Danger ring — only when < 3s */}
+                  {!threat.intercepted && !threat.held && threat.timeLeft < 3 && (
+                    <circle
+                      cx={svgPos.x} cy={svgPos.y} r="3"
+                      fill="none" stroke="#ef4444" strokeWidth="0.3"
+                      className="radar-danger-ring"
+                    />
+                  )}
+                  {/* Blip — sized by threat type, turns red when urgent */}
+                  {(() => {
+                    const isUrgent = !threat.intercepted && !threat.held && threat.timeLeft < 3;
+                    const blipColor = isUrgent ? '#ef4444' : color;
+                    return (
+                      <circle
+                        cx={svgPos.x} cy={svgPos.y}
+                        r={BLIP_RADIUS[threat.type] || 1.4}
+                        fill={blipColor}
+                        stroke={isSelected ? '#ffffff' : blipColor}
+                        strokeWidth={isSelected ? '0.6' : '0.3'}
+                        opacity={1}
+                        style={{ filter: `drop-shadow(0 0 ${isSelected ? '5' : '3'}px ${blipColor})` }}
+                      />
+                    );
+                  })()}
                   {/* Label */}
                   <text
                     x={svgPos.x} y={svgPos.y - 3.5}

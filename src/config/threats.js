@@ -97,6 +97,17 @@ export const INTERCEPTOR_COLORS = {
   arrow_3:      '#a855f7',   // matches hypersonic purple
 };
 
+// Per-level accent colors — subtle mood shift per level
+export const LEVEL_ACCENT_COLORS = {
+  1: '#f97316', // Orange — rockets, close/hot
+  2: '#eab308', // Amber — drones, surveillance
+  3: '#3b82f6', // Blue — cruise missiles, cold precision
+  4: '#ef4444', // Red — ballistic, danger
+  5: '#a855f7', // Purple — hypersonic, sci-fi
+  6: '#06b6d4', // Cyan — mixed salvo, tactical
+  7: '#f43f5e', // Rose — final battle, critical
+};
+
 // -----------------------------------------------------------
 // Threat Builder
 // -----------------------------------------------------------

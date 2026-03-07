@@ -178,7 +178,7 @@ export default function useGameEngine() {
   // Add impact flash effect with pre-computed particles
   // overridePos: optional { x, y } in 0-1 coords to place the flash at a custom position (e.g. blip location for intercepts)
   // Stores mapX/mapY in 0-1 normalized space (RadarDisplay transforms to SVG via mapToSVG)
-  const addImpactFlash = useCallback((zone, type, threatType = 'ballistic', overridePos = null) => {
+  const addImpactFlash = useCallback((zone, type, threatType = 'ballistic', overridePos = null, scoreText = null) => {
     const flashId = Date.now() + Math.random();
     const pos = overridePos || IMPACT_POSITIONS[zone] || { x: 0.5, y: 0.5 };
     const cx = pos.x;
@@ -224,6 +224,7 @@ export default function useGameEngine() {
 
     setImpactFlashes((prev) => [...prev, {
       zone, type, id: flashId, cx, cy, threatType, particles,
+      scoreText: scoreText || (type === 'city_hit' ? '-100' : null),
     }]);
 
     if (type === 'city_hit') {
@@ -250,7 +251,7 @@ export default function useGameEngine() {
   }, []);
 
   // Launch interceptor trail with delayed impact flash
-  const addTrail = useCallback((action, threat, impactType) => {
+  const addTrail = useCallback((action, threat, impactType, scoreText = null) => {
     const { x: blipX, y: blipY } = getBlipPosition(threat);
 
     // Pick nearest battery to the threat's current position (blip on radar).
@@ -282,7 +283,7 @@ export default function useGameEngine() {
 
     if (impactType) {
       setTimeout(() => {
-        addImpactFlash(threat.impact_zone, impactType, threat.type, { x: blipX, y: blipY });
+        addImpactFlash(threat.impact_zone, impactType, threat.type, { x: blipX, y: blipY }, scoreText);
         if (impactType === 'intercept') playInterceptSound(volumeRef.current, threat.type);
       }, duration);
     }
@@ -313,7 +314,7 @@ export default function useGameEngine() {
 
         // No trail needed — the SVG beard strands already show the visual
         // connection from beard to threat. Just flash + sound on impact.
-        addImpactFlash(target.impact_zone, 'intercept', target.type, { x: blipX, y: blipY });
+        addImpactFlash(target.impact_zone, 'intercept', target.type, { x: blipX, y: blipY }, '+75');
         playBeardZapSound(volumeRef.current);
 
         // Mark intercepted
@@ -377,7 +378,7 @@ export default function useGameEngine() {
         const { x: blipX, y: blipY } = getBlipPosition(target);
 
         // No trail needed — SVG bullet tracers from glock handle the visual
-        addImpactFlash(target.impact_zone, 'intercept', target.type, { x: blipX, y: blipY });
+        addImpactFlash(target.impact_zone, 'intercept', target.type, { x: blipX, y: blipY }, '+75');
         playInterceptSound(volumeRef.current, target.type);
 
         // Mark intercepted
@@ -439,7 +440,7 @@ export default function useGameEngine() {
         const { x: blipX, y: blipY } = getBlipPosition(target);
 
         // No trail needed — SVG laser beams from cat eyes handle the visual
-        addImpactFlash(target.impact_zone, 'intercept', target.type, { x: blipX, y: blipY });
+        addImpactFlash(target.impact_zone, 'intercept', target.type, { x: blipX, y: blipY }, '+75');
         playInterceptSound(volumeRef.current, target.type);
 
         // Mark intercepted
@@ -517,7 +518,7 @@ export default function useGameEngine() {
         if (threat.is_populated) {
           const pos = IMPACT_POSITIONS[threat.impact_zone];
           if (pos) {
-            addImpactFlash(threat.impact_zone, 'intercept', pos.x, pos.y, threat.type);
+            addImpactFlash(threat.impact_zone, 'intercept', threat.type, { x: pos.x, y: pos.y }, '+75');
           }
           setResultLog((prev) => [...prev, { ...threat, result: 'correct_intercept', siren: false, cheatAssisted: true }]);
           setStreak((s) => {
@@ -591,7 +592,7 @@ export default function useGameEngine() {
     if (dvirActiveRef.current && threat.is_populated) {
       interceptedIdsRef.current.add(threat.id);
       setResultLog((prev) => [...prev, { ...threat, result: 'correct_intercept', siren: false, cheatAssisted: true }]);
-      addImpactFlash(threat.impact_zone, 'shield_deflect', threat.type);
+      addImpactFlash(threat.impact_zone, 'shield_deflect', threat.type, null, '+75');
       playShieldBounceSound(volumeRef.current);
       setStreak((s) => {
         const next = s + 1;
@@ -690,7 +691,7 @@ export default function useGameEngine() {
 
       if (threat.is_populated) {
         setResultLog((prev) => [...prev, { ...threat, result: 'correct_intercept', siren: false }]);
-        addTrail(action, threat, 'intercept');
+        addTrail(action, threat, 'intercept', '+100');
         setStreak((s) => {
           const next = s + 1;
           setBestStreak((b) => Math.max(b, next));
@@ -887,7 +888,7 @@ export default function useGameEngine() {
               setTimeout(() => {
                 setActiveThreats((prev) => prev.filter((at) => at.id !== t.id));
                 setResultLog((prev) => [...prev, { ...t, result: 'correct_intercept', siren: false, cheatAssisted: true }]);
-                addImpactFlash(t.impact_zone, 'shield_deflect', t.type);
+                addImpactFlash(t.impact_zone, 'shield_deflect', t.type, null, '+75');
                 playShieldBounceSound(volumeRef.current);
                 setStreak((s) => {
                   const next = s + 1;
