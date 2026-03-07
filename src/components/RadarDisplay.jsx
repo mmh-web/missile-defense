@@ -740,7 +740,7 @@ export default function RadarDisplay({
 
   return (
     <div className="relative w-full h-full flex items-center justify-center">
-      <div className="relative" style={{ width: '100%', maxWidth: '600px', aspectRatio: '1' }}>
+      <div className="relative radar-crt-glow" style={{ width: '100%', maxWidth: '600px', aspectRatio: '1' }}>
         <svg
           viewBox="0 0 100 100"
           className="w-full h-full"
@@ -761,6 +761,26 @@ export default function RadarDisplay({
               <stop offset="60%" stopColor="#4CAF50" stopOpacity="0.15" />
               <stop offset="100%" stopColor="#2E7D32" stopOpacity="0.08" />
             </radialGradient>
+            {/* CRT vignette — darkens edges of radar */}
+            <radialGradient id="radar-vignette" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="transparent" />
+              <stop offset="65%" stopColor="transparent" />
+              <stop offset="88%" stopColor="rgba(0,0,0,0.25)" />
+              <stop offset="100%" stopColor="rgba(0,0,0,0.6)" />
+            </radialGradient>
+            {/* CRT scan lines pattern */}
+            <pattern id="radar-scanlines" x="0" y="0" width="100" height="1.5" patternUnits="userSpaceOnUse">
+              <rect x="0" y="0" width="100" height="0.5" fill="rgba(0,0,0,0.12)" />
+            </pattern>
+            {/* CRT phosphor noise — fine static dots */}
+            <filter id="radar-noise" x="0%" y="0%" width="100%" height="100%">
+              <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" seed="2" result="noise" />
+              <feColorMatrix type="saturate" values="0" in="noise" result="gray" />
+              <feComponentTransfer in="gray" result="faint">
+                <feFuncA type="linear" slope="0.04" />
+              </feComponentTransfer>
+              <feBlend in="SourceGraphic" in2="faint" mode="screen" />
+            </filter>
           </defs>
 
           {/* Background */}
@@ -1391,6 +1411,19 @@ export default function RadarDisplay({
               style={{ transformOrigin: '50px 50px' }}
             />
           )}
+
+          {/* === CRT atmosphere overlays === */}
+          {/* Scan lines — horizontal bars */}
+          <circle cx="50" cy="50" r="49" fill="url(#radar-scanlines)" style={{ pointerEvents: 'none' }} />
+          {/* Vignette — darkened edges */}
+          <circle cx="50" cy="50" r="49" fill="url(#radar-vignette)" style={{ pointerEvents: 'none' }} />
+          {/* Outer rim highlight — phosphor glow at edge */}
+          <circle cx="50" cy="50" r="48.5" fill="none"
+            stroke={accentColor} strokeWidth="0.5" opacity="0.08"
+            style={{ pointerEvents: 'none' }} />
+          <circle cx="50" cy="50" r="49" fill="none"
+            stroke="rgba(0,255,136,0.15)" strokeWidth="0.3"
+            style={{ pointerEvents: 'none' }} />
         </svg>
 
         {/* Sweep overlay */}

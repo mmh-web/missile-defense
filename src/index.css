@@ -74,6 +74,22 @@ html, body, #root {
 }
 
 /* ============================================
+   CRT Radar Atmosphere — subtle phosphor glow
+   ============================================ */
+.radar-crt-glow {
+  position: relative;
+}
+.radar-crt-glow::before {
+  content: '';
+  position: absolute;
+  inset: 2%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 35% 30%, rgba(0, 255, 136, 0.03) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ============================================
    Radar Blip Pulse — Urgent (< 3s remaining)
    ============================================ */
 .radar-pulse-urgent {
