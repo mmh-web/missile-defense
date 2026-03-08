@@ -216,20 +216,20 @@ const LEVEL_TITLES = {
   1: 'SOUTHERN FRONT',
   2: 'NORTHERN FRONT',
   3: 'CENTRAL FRONT',
-  4: 'BALLISTIC ARC',
-  5: 'HYPERSONIC STRIKE',
+  4: 'THE HOME FRONT',
+  5: 'STRATEGIC TARGETS',
   6: 'WAVE ASSAULT',
-  7: 'FINAL STAND',
+  7: 'APRIL 13',
 };
 
 const LEVEL_TITLES_HE = {
   1: 'חֲזִית הַדָּרוֹם',
   2: 'חֲזִית הַצָּפוֹן',
   3: 'חֲזִית הַמֶּרְכָּז',
-  4: 'קֶשֶׁת בָּלִיסְטִית',
-  5: 'מַכַּת עַל-קוֹלִית',
+  4: 'חֲזִית הָעוֹרֶף',
+  5: 'מַטָּרוֹת אִסְטְרָטֶגִיּוֹת',
   6: 'מִתְקֶפֶת גַּלִּים',
-  7: 'הַמַּעֲמָד הָאַחֲרוֹן',
+  7: 'שְׁלוֹשָׁה עָשָׂר בְּאַפְּרִיל',
 };
 
 export default function LevelIntro({ level, onReady }) {

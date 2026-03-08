@@ -906,11 +906,11 @@ export default function RadarDisplay({
               // Visibility filtering:
               // - Tier 1 cities: always shown
               // - Tier 2 cities: shown when zoomed in or actively targeted
-              // - Key bases (keyBase): always shown at L5+ (Ramat David, Palmachim, Nevatim)
-              // - Other bases at L5+: hidden unless actively targeted (prevent clutter)
+              // - Key bases (keyBase): always shown at L6+ (Ramat David, Palmachim, Nevatim)
+              // - Other bases at L6+: hidden unless actively targeted (prevent clutter)
               const citiesToRender = Object.entries(visibleCities).filter(([name, city]) => {
-                // At L5+, hide non-key bases unless being targeted (clutter control)
-                if (city.isBase && currentLevel >= 5 && !city.keyBase && !activeThreatTargets.has(name)) return false;
+                // At L6+, hide non-key bases unless being targeted (clutter control)
+                if (city.isBase && currentLevel >= 6 && !city.keyBase && !activeThreatTargets.has(name)) return false;
                 if (city.tier === 1) return true;
                 if (viewport.scale >= 1.5) return true; // zoomed in (L1/L2)
                 if (activeThreatTargets.has(name)) return true; // being targeted
@@ -952,7 +952,7 @@ export default function RadarDisplay({
                 // Per-city label direction offset
                 const offset = LABEL_OFFSETS[city.labelDir || 'e'];
                 // Bases have larger diamond markers — push labels further to clear them
-                const baseBoost = isBase && currentLevel >= 5 ? 1.5 : 1.0;
+                const baseBoost = isBase && currentLevel >= 6 ? 1.5 : 1.0;
 
                 return (
                   <g key={name}>
@@ -995,11 +995,27 @@ export default function RadarDisplay({
                       paintOrder="stroke"
                     >
                       {currentLevel === 7 && city.he ? city.he : (
-                        currentLevel === 4 && isBase
+                        currentLevel === 5 && isBase
                           ? (name.includes('AFB') ? name.replace('AFB', 'Base') : name + ' Base')
                           : name
                       )}
                     </text>
+                    {/* Population label — shown only at L4 (Home Front) for cities with population data */}
+                    {currentLevel === 4 && city.population && !isBase && (
+                      <text
+                        x={p.x + offset.dx * offsetScale * baseBoost}
+                        y={p.y + offset.dy * offsetScale * baseBoost + fontSize * 1.1}
+                        fill="rgba(200, 220, 255, 0.4)"
+                        fontSize={fontSize * 0.6}
+                        fontFamily="monospace"
+                        textAnchor={offset.anchor}
+                        paintOrder="stroke"
+                        stroke="rgba(10, 14, 26, 0.6)"
+                        strokeWidth="0.3"
+                      >
+                        pop. {city.population}
+                      </text>
+                    )}
                   </g>
                 );
               });
@@ -1030,8 +1046,8 @@ export default function RadarDisplay({
                       transform={`rotate(45, ${hq.x}, ${hq.y})`}
                     />
                     {/* AFB label — positioned by labelDir to avoid overlap */}
-                    {/* Hide battery labels at L5+ where keyBase city labels already show the names */}
-                    {currentLevel < 5 && (() => {
+                    {/* Hide battery labels at L6+ where keyBase city labels already show the names */}
+                    {currentLevel < 6 && (() => {
                       const dir = battery.labelDir || 's';
                       const lx = dir.includes('e') ? hq.x + 3.5 : dir.includes('w') ? hq.x - 3.5 : hq.x;
                       const ly = dir.includes('s') ? hq.y + 3.5 : dir.includes('n') ? hq.y - 3.5 : hq.y + 0.7;
