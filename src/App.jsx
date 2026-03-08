@@ -354,8 +354,8 @@ export default function App() {
 
   // Hack HUD overlay — reusable across gameplay, level intro, level complete
   const hackOverlay = hackOverlayVisible && (
-    <div className="absolute inset-0 z-35 flex items-center justify-center pointer-events-none hack-overlay-appear">
-      <div className="bg-black/85 border border-green-500/60 rounded-lg px-8 py-6 font-mono max-w-md w-full shadow-[0_0_40px_rgba(0,255,136,0.15)]">
+    <div className="absolute inset-0 z-35 flex items-center justify-end pr-6 pointer-events-none hack-overlay-appear">
+      <div className="bg-black/85 border border-green-500/60 rounded-lg px-8 py-6 font-mono max-w-sm w-full shadow-[0_0_40px_rgba(0,255,136,0.15)]">
         <div className="text-center mb-4">
           <div className="text-green-400 text-xs tracking-[0.5em] mb-1">★ ★ ★</div>
           <div className="text-green-300 text-lg font-bold tracking-widest">AVAILABLE HACKS</div>
