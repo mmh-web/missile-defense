@@ -234,22 +234,17 @@ function TrailEffect({ trail, viewport }) {
   const { color, duration } = trail;
   return (
     <g>
-      {/* Wide glow trail — visible background glow */}
-      <line x1={s.x} y1={s.y} x2={e.x} y2={e.y} stroke={color} strokeWidth="3" opacity="0.12" className="trail-line"
+      {/* Soft glow behind trail */}
+      <line x1={s.x} y1={s.y} x2={e.x} y2={e.y} stroke={color} strokeWidth="1.8" opacity="0.15" className="trail-line"
         style={{ '--trail-duration': `${duration}ms`, filter: 'url(#trail-glow)' }} />
-      {/* Bright glow line */}
-      <line x1={s.x} y1={s.y} x2={e.x} y2={e.y} stroke={color} strokeWidth="1.5" opacity="0.3" className="trail-line"
-        style={{ '--trail-duration': `${duration}ms`, filter: 'url(#trail-glow)' }} />
-      {/* Main trail line — bright and visible */}
-      <line x1={s.x} y1={s.y} x2={e.x} y2={e.y} stroke={color} strokeWidth="0.8" opacity="0.8" className="trail-line"
+      {/* Main trail line */}
+      <line x1={s.x} y1={s.y} x2={e.x} y2={e.y} stroke={color} strokeWidth="0.5" opacity="0.7" className="trail-line"
         style={{ '--trail-duration': `${duration}ms` }} />
       {/* Warhead — outer colored glow + inner white core */}
-      <circle cx={s.x} cy={s.y} r="1.8" fill={color} opacity="0.4" className="trail-warhead"
+      <circle cx={s.x} cy={s.y} r="1.2" fill={color} opacity="0.4" className="trail-warhead"
         style={{ '--dx': `${e.x - s.x}px`, '--dy': `${e.y - s.y}px`, '--trail-duration': `${duration}ms` }} />
-      <circle cx={s.x} cy={s.y} r="0.7" fill="white" className="trail-warhead"
+      <circle cx={s.x} cy={s.y} r="0.5" fill="white" className="trail-warhead"
         style={{ '--dx': `${e.x - s.x}px`, '--dy': `${e.y - s.y}px`, '--trail-duration': `${duration}ms` }} />
-      {/* Launch flash — brighter and bigger */}
-      <circle cx={s.x} cy={s.y} r="2.5" fill={color} opacity="0.6" className="trail-launch-flash" />
     </g>
   );
 }
