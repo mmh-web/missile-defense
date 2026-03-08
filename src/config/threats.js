@@ -261,47 +261,53 @@ const THREATS_L1_B = [
 // Threats from Lebanon (north) and Syria (northeast). No Gaza threats.
 // ============================================================
 const THREATS_L2 = [
-  // Opening: familiar rockets from the north, then first drone
+  // === SINGLES — intro to drones (4 threats, 3-14s) ===
   threat(1,  3,  'rocket', 'Haifa',            true,  8, 'full', 1.0, { origin: 'north' }),         // Lebanon
-  threat(2,  8,  'rocket', 'Western Galilee',  false, 8, 'full', 1.0, { origin: 'north' }),         // hold fire, Lebanon
-  threat(3,  13, 'drone',  'Nahariya',         true,  12, 'full', 1.0, { origin: 'north' }),        // First drone! Lebanon
-  threat(4,  18, 'rocket', 'Kiryat Shmona',    true,  7, 'full', 1.0, { origin: 'north' }),         // Lebanon
-  // Pairs — mixed drones and rockets
-  threat(5,  24, 'drone',  'Akko',             true,  11, 'full', 1.0, { origin: 'north' }),        // Lebanon
-  threat(6,  26, 'rocket', 'Upper Galilee',    false, 7,  'full', 1.0, { origin: 'north' }),        // hold fire, Lebanon
-  threat(7,  30, 'rocket', 'Teveriah',         true,  7,  'full', 1.0, { origin: 'northeast' }),    // Syria
-  threat(8,  34, 'drone',  'Golan Heights',    false, 11, 'full', 1.0, { origin: 'northeast' }),    // hold fire, Syria
-  // Tempo up — 3-4s gaps
-  threat(9,  38, 'rocket', 'Tzfat',            true,  7,  'full', 1.0, { origin: 'north' }),        // Lebanon
-  threat(10, 42, 'drone',  'Haifa',            true,  10, 'full', 1.0, { origin: 'north' }),        // Lebanon
-  threat(11, 45, 'rocket', 'Katzrin',          true,  7,  'full', 1.0, { origin: 'northeast' }),    // Syria
-  threat(12, 48, 'drone',  'Nahariya',         true,  10, 'full', 1.0, { origin: 'north' }),        // Lebanon
-  threat(13, 51, 'rocket', 'Akko',             true,  7,  'full', 1.0, { origin: 'north' }),        // Lebanon
-  // Triple overlap
-  threat(14, 55, 'rocket', 'Kiryat Shmona',    true,  7,  'full', 1.0, { origin: 'north' }),       // Lebanon
-  threat(15, 55, 'drone',  'Majdal Shams',     true,  10, 'full', 1.0, { origin: 'northeast' }),   // Syria
-  threat(16, 57, 'rocket', 'Western Galilee',  false, 7,  'full', 1.0, { origin: 'north' }),       // hold fire, Lebanon
-  // Escalation — tighter 3-4s gaps
-  threat(17, 61, 'drone',  'Teveriah',         true,  10, 'full', 1.0, { origin: 'northeast' }),   // Syria
-  threat(18, 64, 'rocket', 'Haifa',            true,  6,  'full', 1.0, { origin: 'north' }),       // Lebanon
-  threat(19, 67, 'drone',  'Upper Galilee',    false, 10, 'full', 1.0, { origin: 'north' }),       // hold fire, Lebanon
-  threat(20, 70, 'rocket', 'Akko',             true,  6,  'full', 1.0, { origin: 'north' }),       // Lebanon
-  threat(21, 73, 'drone',  'Katzrin',          true,  10, 'full', 1.0, { origin: 'northeast' }),   // Syria
-  threat(22, 76, 'rocket', 'Nahariya',         true,  6,  'full', 1.0, { origin: 'north' }),       // Lebanon
-  // Heavy pairs
-  threat(23, 80, 'rocket', 'Tzfat',            true,  6,  'full', 1.0, { origin: 'north' }),       // Lebanon
-  threat(24, 80, 'drone',  'Kiryat Shmona',    true,  9,  'full', 1.0, { origin: 'north' }),       // Lebanon
-  threat(25, 83, 'drone',  'Haifa',            true,  9,  'full', 1.0, { origin: 'north' }),       // Lebanon
-  // === CLOSING SALVO — relentless ===
-  threat(26, 87, 'rocket', 'Haifa',            true,  5,  'full', 1.0, { origin: 'north' }),       // Lebanon
-  threat(27, 90, 'drone',  'Nahariya',         true,  9,  'full', 1.0, { origin: 'north' }),       // Lebanon
-  threat(28, 92, 'rocket', 'Majdal Shams',     true,  6,  'full', 1.0, { origin: 'northeast' }),   // Syria
-  threat(29, 95, 'drone',  'Teveriah',         true,  9,  'full', 1.0, { origin: 'northeast' }),   // Syria
-  threat(30, 97, 'rocket', 'Akko',             true,  5,  'full', 1.0, { origin: 'north' }),       // Lebanon
-  threat(31, 99, 'rocket', 'Kiryat Shmona',    true,  5,  'full', 1.0, { origin: 'north' }),       // Lebanon
-  threat(32, 102,'drone',  'Tzfat',            true,  9,  'full', 1.0, { origin: 'north' }),       // Lebanon
-  threat(33, 105,'rocket', 'Golan Heights',    false, 6,  'full', 1.0, { origin: 'northeast' }),   // hold fire, Syria
-  threat(34, 108,'drone',  'Haifa',            true,  9,  'full', 1.0, { origin: 'north' }),       // Lebanon
+  threat(2,  7,  'rocket', 'Western Galilee',  false, 8, 'full', 1.0, { origin: 'north' }),         // hold fire
+  threat(3,  11, 'drone',  'Nahariya',         true,  11, 'full', 1.0, { origin: 'north' }),        // First drone!
+  threat(4,  14, 'rocket', 'Kiryat Shmona',    true,  7, 'full', 1.0, { origin: 'north' }),
+  // === PAIRS — mixed drones + rockets (10 threats, 19-36s) ===
+  threat(5,  19, 'drone',  'Akko',             true,  10, 'full', 1.0, { origin: 'north' }),
+  threat(6,  19, 'rocket', 'Teveriah',         true,  7,  'full', 1.0, { origin: 'northeast' }),    // simultaneous pair
+  threat(7,  24, 'rocket', 'Tzfat',            true,  7,  'full', 1.0, { origin: 'north' }),
+  threat(8,  24, 'drone',  'Golan Heights',    false, 10, 'full', 1.0, { origin: 'northeast' }),    // hold fire pair
+  threat(9,  28, 'drone',  'Haifa',            true,  10, 'full', 1.0, { origin: 'north' }),
+  threat(10, 28, 'rocket', 'Katzrin',          true,  7,  'full', 1.0, { origin: 'northeast' }),    // pair
+  threat(11, 32, 'rocket', 'Nahariya',         true,  7,  'full', 1.0, { origin: 'north' }),
+  threat(12, 32, 'drone',  'Kiryat Shmona',    true,  10, 'full', 1.0, { origin: 'north' }),        // pair
+  threat(13, 36, 'rocket', 'Akko',             true,  6,  'full', 1.0, { origin: 'north' }),
+  threat(14, 36, 'rocket', 'Upper Galilee',    false, 7,  'full', 1.0, { origin: 'north' }),        // hold fire pair
+  // === TRIPLES — real pressure starts (12 threats, 41-60s) ===
+  threat(15, 41, 'rocket', 'Haifa',            true,  6,  'full', 1.0, { origin: 'north' }),
+  threat(16, 41, 'drone',  'Majdal Shams',     true,  9,  'full', 1.0, { origin: 'northeast' }),
+  threat(17, 41, 'rocket', 'Tzfat',            true,  6,  'full', 1.0, { origin: 'north' }),        // triple!
+  threat(18, 47, 'drone',  'Teveriah',         true,  9,  'full', 1.0, { origin: 'northeast' }),
+  threat(19, 47, 'rocket', 'Nahariya',         true,  6,  'full', 1.0, { origin: 'north' }),
+  threat(20, 47, 'drone',  'Akko',             true,  9,  'full', 1.0, { origin: 'north' }),        // triple!
+  threat(21, 53, 'rocket', 'Kiryat Shmona',    true,  6,  'full', 1.0, { origin: 'north' }),
+  threat(22, 53, 'rocket', 'Katzrin',          true,  6,  'full', 1.0, { origin: 'northeast' }),
+  threat(23, 53, 'drone',  'Western Galilee',  false, 9,  'full', 1.0, { origin: 'north' }),        // triple! (1 hold fire)
+  threat(24, 58, 'drone',  'Haifa',            true,  9,  'full', 1.0, { origin: 'north' }),
+  threat(25, 58, 'rocket', 'Majdal Shams',     true,  6,  'full', 1.0, { origin: 'northeast' }),
+  threat(26, 60, 'rocket', 'Tzfat',            true,  6,  'full', 1.0, { origin: 'north' }),        // near-triple overlap
+  // === HEAVY SALVOS — triples and quads (10 threats, 65-85s) ===
+  threat(27, 65, 'rocket', 'Haifa',            true,  5,  'full', 1.0, { origin: 'north' }),
+  threat(28, 65, 'drone',  'Kiryat Shmona',    true,  9,  'full', 1.0, { origin: 'north' }),
+  threat(29, 65, 'rocket', 'Akko',             true,  5,  'full', 1.0, { origin: 'north' }),        // triple!
+  threat(30, 72, 'drone',  'Nahariya',         true,  8,  'full', 1.0, { origin: 'north' }),
+  threat(31, 72, 'rocket', 'Teveriah',         true,  5,  'full', 1.0, { origin: 'northeast' }),
+  threat(32, 72, 'rocket', 'Katzrin',          true,  5,  'full', 1.0, { origin: 'northeast' }),
+  threat(33, 72, 'drone',  'Upper Galilee',    false, 8,  'full', 1.0, { origin: 'north' }),        // QUAD! (1 hold fire)
+  // === CLOSING BARRAGE — relentless overlapping (7 threats, 80-100s) ===
+  threat(34, 80, 'rocket', 'Haifa',            true,  5,  'full', 1.0, { origin: 'north' }),
+  threat(35, 80, 'drone',  'Tzfat',            true,  8,  'full', 1.0, { origin: 'north' }),
+  threat(36, 80, 'rocket', 'Kiryat Shmona',    true,  5,  'full', 1.0, { origin: 'north' }),        // triple!
+  threat(37, 86, 'drone',  'Teveriah',         true,  8,  'full', 1.0, { origin: 'northeast' }),
+  threat(38, 86, 'rocket', 'Akko',             true,  5,  'full', 1.0, { origin: 'north' }),
+  threat(39, 86, 'rocket', 'Golan Heights',    false, 5,  'full', 1.0, { origin: 'northeast' }),    // triple! (hold fire)
+  threat(40, 93, 'rocket', 'Nahariya',         true,  5,  'full', 1.0, { origin: 'north' }),
+  threat(41, 93, 'drone',  'Haifa',            true,  8,  'full', 1.0, { origin: 'north' }),
+  threat(42, 93, 'rocket', 'Majdal Shams',     true,  5,  'full', 1.0, { origin: 'northeast' }),    // closing triple!
 ];
 
 // ============================================================
@@ -595,7 +601,7 @@ export const LEVELS = [
   {
     id: 2,
     duration: 120,
-    ammo: { iron_dome: 30 },
+    ammo: { iron_dome: 36 },
     available_systems: ['iron_dome'],
     auto_end_delay: 3000,
     new_system: null,

@@ -80,7 +80,7 @@ export const LEVEL_VIEWPORTS = [
   null, // index 0 unused (levels are 1-indexed)
   { centerX: 0.27, centerY: 0.48, scale: 2.5 },   // L1: tight on Otef Aza, cities near Gaza arc on left
   { centerX: 0.48, centerY: 0.15, scale: 1.8 },   // L2: Galil/Golan + battery (slightly wider)
-  { centerX: 0.30, centerY: 0.37, scale: 2.0 },   // L3: Central Israel (wider) — Gaza border visible, Tel Aviv, Jerusalem corridor
+  { centerX: 0.34, centerY: 0.39, scale: 1.8 },   // L3: Central Israel — shifted right so Jerusalem isn't near Iran arc edge
   { centerX: 0.33, centerY: 0.44, scale: 0.80 },  // L4: military bases — full map, bases only
   { centerX: 0.43, centerY: 0.46, scale: 0.78 },  // L5: full geography — Jerusalem near center, Golan visible
   { centerX: 0.43, centerY: 0.46, scale: 0.78 },  // L6: same
@@ -140,7 +140,7 @@ export const REGIONS = [
       [0.35, 0.11], [0.52, 0.08], [0.55, 0.12],
       [0.55, 0.21], [0.36, 0.23], [0.33, 0.18],
     ],
-    labelPos: { x: 0.43, y: 0.17 },
+    labelPos: { x: 0.43, y: 0.22 },
   },
   {
     name: 'Golan Heights',

@@ -8,7 +8,7 @@ import {
   getVisibleRegions,
   getVisibleThreatOrigins,
 } from '../config/mapLayers.js';
-import { getSpawnOrigin } from '../config/spawnOrigins.js';
+import { getSpawnOrigin, SPAWN_NEAR } from '../config/spawnOrigins.js';
 
 // Per-city label offset directions
 const LABEL_OFFSETS = {
@@ -260,14 +260,36 @@ const ORIGIN_HEBREW = {
   Yemen: 'תֵּימָן',
 };
 
-function ThreatOriginArc({ origin, currentLevel }) {
-  // Draw a gradient wedge zone at the radar perimeter
+// Map origin display names to spawn direction keys
+const ORIGIN_SPAWN_KEY = {
+  Gaza: 'gaza',
+  Lebanon: 'north',
+  Syria: 'northeast',
+  Iran: 'east',
+  Yemen: 'southeast',
+};
+
+function ThreatOriginArc({ origin, viewport, currentLevel }) {
+  // Compute the arc angle dynamically from the spawn position + viewport
+  // so the arc always aligns with where threats actually enter the radar
   const cx = 50, cy = 50;
   const outerR = 49;
-  const innerR = 36;  // gradient zone starts here
-  const startAngle = (origin.angle - origin.arcSpan / 2) * Math.PI / 180;
-  const endAngle = (origin.angle + origin.arcSpan / 2) * Math.PI / 180;
-  const midAngle = origin.angle * Math.PI / 180;
+  const innerR = 36;
+
+  const spawnKey = ORIGIN_SPAWN_KEY[origin.name];
+  const spawnPos = SPAWN_NEAR[spawnKey];
+
+  let effectiveAngle = origin.angle; // fallback to static angle
+  if (spawnPos && viewport) {
+    const svgPos = mapToSVG(spawnPos.x, spawnPos.y, viewport);
+    const dx = svgPos.x - cx;
+    const dy = svgPos.y - cy;
+    effectiveAngle = Math.atan2(dx, -dy) * 180 / Math.PI;
+  }
+
+  const startAngle = (effectiveAngle - origin.arcSpan / 2) * Math.PI / 180;
+  const endAngle = (effectiveAngle + origin.arcSpan / 2) * Math.PI / 180;
+  const midAngle = effectiveAngle * Math.PI / 180;
 
   // Outer arc
   const x1o = cx + outerR * Math.sin(startAngle);
@@ -1125,42 +1147,36 @@ export default function RadarDisplay({
                       className="selection-ring-spin"
                     />
                   )}
-                  {/* Pulse ring — urgent when < 3s remaining */}
+                  {/* Pulse ring — keeps threat color, intensifies when urgent */}
                   {(() => {
                     const isUrgent = !threat.intercepted && !threat.held && threat.timeLeft < 3;
                     return (
                       <circle
                         cx={svgPos.x} cy={svgPos.y} r={(BLIP_RADIUS[threat.type] || 1.4) + 1.0}
-                        fill="none" stroke={isUrgent ? '#ef4444' : color}
-                        strokeWidth="0.3" opacity={isUrgent ? 0.6 : 0.4}
+                        fill="none" stroke={color}
+                        strokeWidth="0.3" opacity={isUrgent ? 0.7 : 0.4}
                         className={isUrgent ? 'radar-pulse-urgent' : 'radar-pulse'}
                       />
                     );
                   })()}
-                  {/* Danger ring — only when < 3s */}
+                  {/* Danger ring — white flash when < 3s, doesn't override threat color */}
                   {!threat.intercepted && !threat.held && threat.timeLeft < 3 && (
                     <circle
                       cx={svgPos.x} cy={svgPos.y} r="3"
-                      fill="none" stroke="#ef4444" strokeWidth="0.3"
+                      fill="none" stroke="#ffffff" strokeWidth="0.3" opacity="0.5"
                       className="radar-danger-ring"
                     />
                   )}
-                  {/* Blip — sized by threat type, turns red when urgent */}
-                  {(() => {
-                    const isUrgent = !threat.intercepted && !threat.held && threat.timeLeft < 3;
-                    const blipColor = isUrgent ? '#ef4444' : color;
-                    return (
-                      <circle
-                        cx={svgPos.x} cy={svgPos.y}
-                        r={BLIP_RADIUS[threat.type] || 1.4}
-                        fill={blipColor}
-                        stroke={isSelected ? '#ffffff' : blipColor}
-                        strokeWidth={isSelected ? '0.6' : '0.3'}
-                        opacity={1}
-                        style={{ filter: `drop-shadow(0 0 ${isSelected ? '5' : '3'}px ${blipColor})` }}
-                      />
-                    );
-                  })()}
+                  {/* Blip — sized by threat type, maintains type color always */}
+                  <circle
+                    cx={svgPos.x} cy={svgPos.y}
+                    r={BLIP_RADIUS[threat.type] || 1.4}
+                    fill={color}
+                    stroke={isSelected ? '#ffffff' : color}
+                    strokeWidth={isSelected ? '0.6' : '0.3'}
+                    opacity={1}
+                    style={{ filter: `drop-shadow(0 0 ${isSelected ? '5' : '3'}px ${color})` }}
+                  />
                   {/* Label */}
                   <text
                     x={svgPos.x} y={svgPos.y - 3.5}
