@@ -75,20 +75,21 @@ export default function useGameEngine() {
   const [activeTrails, setActiveTrails] = useState([]);
   const [screenShake, setScreenShake] = useState(false);
   const [tzurActive, setTzurActive] = useState(false);
-  const tzurUsedRef = useRef(false);
   const [sashaActive, setSashaActive] = useState(false);
-  const sashaUsedRef = useRef(false);
   const sashaIntervalRef = useRef(null);
   const [dvirActive, setDvirActive] = useState(false);
-  const dvirUsedRef = useRef(false);
   const dvirActiveRef = useRef(false);
   const [bouncingThreats, setBouncingThreats] = useState([]);
   const [sufrinActive, setSufrinActive] = useState(false);
-  const sufrinUsedRef = useRef(false);
+
+  // Campaign-wide cheat uses (3 each, persist across levels, reset on campaign start)
+  const CHEAT_MAX_USES = 3;
+  const [cheatUses, setCheatUses] = useState({ tzur: CHEAT_MAX_USES, sasha: CHEAT_MAX_USES, dvir: CHEAT_MAX_USES, sufrin: CHEAT_MAX_USES });
+  const cheatUsesRef = useRef({ tzur: CHEAT_MAX_USES, sasha: CHEAT_MAX_USES, dvir: CHEAT_MAX_USES, sufrin: CHEAT_MAX_USES });
 
   // Instant-effect cheat code refs (once per level)
-  const hhUsedRef = useRef(false);  // "hh" — clear all threats
-  const rlUsedRef = useRef(false);  // "rl" — resupply ammo
+  const hhUsedRef = useRef(false);  // "bh" — clear all threats
+  const rlUsedRef = useRef(false);  // "bsd" — resupply ammo
 
   // Refs for stale closure avoidance
   const gameStateRef = useRef(gameState);
@@ -293,10 +294,11 @@ export default function useGameEngine() {
   const sufrinIntervalRef = useRef(null);
 
   const triggerSufrinMode = useCallback(() => {
-    if (sufrinUsedRef.current) return;
+    if (cheatUsesRef.current.sufrin <= 0) return;
     if (gameStateRef.current !== GAME_STATES.ACTIVE) return;
 
-    sufrinUsedRef.current = true;
+    cheatUsesRef.current.sufrin--;
+    setCheatUses(prev => ({ ...prev, sufrin: cheatUsesRef.current.sufrin }));
     setSufrinActive(true);
 
     // After 1s (portrait drops in), start zapping threats every 300ms
@@ -358,10 +360,11 @@ export default function useGameEngine() {
   const tzurIntervalRef = useRef(null);
 
   const triggerTzurMode = useCallback(() => {
-    if (tzurUsedRef.current) return;
+    if (cheatUsesRef.current.tzur <= 0) return;
     if (gameStateRef.current !== GAME_STATES.ACTIVE) return;
 
-    tzurUsedRef.current = true;
+    cheatUsesRef.current.tzur--;
+    setCheatUses(prev => ({ ...prev, tzur: cheatUsesRef.current.tzur }));
     setTzurActive(true);
 
     // After 1.5s (bear drops in), start sustained zapping every 300ms
@@ -418,12 +421,13 @@ export default function useGameEngine() {
     setTimeout(() => setTzurActive(false), 12000);
   }, [addImpactFlash, getBlipPosition]);
 
-  // === SASHA MODE — laser cat cheat code (once per level, sustained 8s defense) ===
+  // === SASHA MODE — laser cat cheat code (campaign-limited, sustained 8s defense) ===
   const triggerSashaMode = useCallback(() => {
-    if (sashaUsedRef.current) return;
+    if (cheatUsesRef.current.sasha <= 0) return;
     if (gameStateRef.current !== GAME_STATES.ACTIVE) return;
 
-    sashaUsedRef.current = true;
+    cheatUsesRef.current.sasha--;
+    setCheatUses(prev => ({ ...prev, sasha: cheatUsesRef.current.sasha }));
     setSashaActive(true);
 
     // After 0.5s (cat lands), start zapping threats every 300ms
@@ -480,12 +484,13 @@ export default function useGameEngine() {
     setTimeout(() => setSashaActive(false), 12000);
   }, [addImpactFlash, getBlipPosition]);
 
-  // === DVIR MODE — turtle shield cheat code (once per level, passive 12s city defense) ===
+  // === DVIR MODE — turtle shield cheat code (campaign-limited, passive 12s city defense) ===
   const triggerDvirMode = useCallback(() => {
-    if (dvirUsedRef.current) return;
+    if (cheatUsesRef.current.dvir <= 0) return;
     if (gameStateRef.current !== GAME_STATES.ACTIVE) return;
 
-    dvirUsedRef.current = true;
+    cheatUsesRef.current.dvir--;
+    setCheatUses(prev => ({ ...prev, dvir: cheatUsesRef.current.dvir }));
     setDvirActive(true);
     dvirActiveRef.current = true;
 
@@ -1102,10 +1107,9 @@ export default function useGameEngine() {
     setPaused(false);
     spawnedIdsRef.current = new Set();
     interceptedIdsRef.current.clear();
-    tzurUsedRef.current = false;
-    sashaUsedRef.current = false;
-    dvirUsedRef.current = false;
-    sufrinUsedRef.current = false;
+    // Reset campaign-wide cheat uses
+    cheatUsesRef.current = { tzur: CHEAT_MAX_USES, sasha: CHEAT_MAX_USES, dvir: CHEAT_MAX_USES, sufrin: CHEAT_MAX_USES };
+    setCheatUses({ ...cheatUsesRef.current });
     hhUsedRef.current = false;
     rlUsedRef.current = false;
     if (tzurIntervalRef.current) { clearInterval(tzurIntervalRef.current); tzurIntervalRef.current = null; }
@@ -1151,10 +1155,7 @@ export default function useGameEngine() {
     setPaused(false);
     spawnedIdsRef.current = new Set();
     interceptedIdsRef.current.clear();
-    tzurUsedRef.current = false;
-    sashaUsedRef.current = false;
-    dvirUsedRef.current = false;
-    sufrinUsedRef.current = false;
+    // Note: cheat uses (tzur/sasha/dvir/sufrin) are campaign-wide — NOT reset per level
     hhUsedRef.current = false;
     rlUsedRef.current = false;
     if (tzurIntervalRef.current) { clearInterval(tzurIntervalRef.current); tzurIntervalRef.current = null; }
@@ -1326,10 +1327,9 @@ export default function useGameEngine() {
     setPaused(false);
     spawnedIdsRef.current = new Set();
     interceptedIdsRef.current.clear();
-    tzurUsedRef.current = false;
-    sashaUsedRef.current = false;
-    dvirUsedRef.current = false;
-    sufrinUsedRef.current = false;
+    // Reset campaign-wide cheat uses on full game reset
+    cheatUsesRef.current = { tzur: CHEAT_MAX_USES, sasha: CHEAT_MAX_USES, dvir: CHEAT_MAX_USES, sufrin: CHEAT_MAX_USES };
+    setCheatUses({ ...cheatUsesRef.current });
     hhUsedRef.current = false;
     rlUsedRef.current = false;
     if (tzurIntervalRef.current) { clearInterval(tzurIntervalRef.current); tzurIntervalRef.current = null; }
@@ -1413,6 +1413,7 @@ export default function useGameEngine() {
     bouncingThreats,
     triggerHHMode,
     triggerRLMode,
+    cheatUses,
     startCampaign,
     startLevel,
     advanceLevel,

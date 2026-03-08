@@ -44,6 +44,14 @@ export default function App() {
   const [cheatHints, setCheatHints] = useState(0);    // letters matched so far
   const [cheatMaxHints, setCheatMaxHints] = useState(4); // total letters in active code
   const [gameMusicOn, setGameMusicOn] = useState(true);
+  const [hackOverlayVisible, setHackOverlayVisible] = useState(false);
+  const hackTimerRef = useRef(null);
+
+  const showHackOverlay = useCallback(() => {
+    setHackOverlayVisible(true);
+    if (hackTimerRef.current) clearTimeout(hackTimerRef.current);
+    hackTimerRef.current = setTimeout(() => setHackOverlayVisible(false), 5000);
+  }, []);
 
   const {
     gameState,
@@ -75,6 +83,7 @@ export default function App() {
     bouncingThreats,
     triggerHHMode,
     triggerRLMode,
+    cheatUses,
     startCampaign,
     startLevel,
     advanceLevel,
@@ -161,25 +170,34 @@ export default function App() {
   // Keyboard handling
   useEffect(() => {
     const handleKeyDown = (e) => {
-      // === Cheat code detection (multi-code: tzur, sasha, dvir) ===
+      // === Cheat code detection (multi-code: tzur, sasha, dvir, hack, etc.) ===
+      const anyCheatActive = tzurActive || sashaActive || dvirActive || sufrinActive;
       const CHEAT_CODES = [
-        { keys: ['t', 'z', 'u', 'r'], trigger: triggerTzurMode, blocked: tzurActive },
-        { keys: ['b', 'e', 'a', 'r'], trigger: triggerTzurMode, blocked: tzurActive },
-        { keys: ['s', 'a', 's', 'h', 'a'], trigger: triggerSashaMode, blocked: sashaActive },
-        { keys: ['c', 'a', 't'], trigger: triggerSashaMode, blocked: sashaActive },
-        { keys: ['s', 'u', 'f', 'r', 'i', 'n'], trigger: triggerSufrinMode, blocked: sufrinActive },
-        { keys: ['d', 'v', 'i', 'r'], trigger: triggerDvirMode, blocked: dvirActive },
-        { keys: ['t', 'u', 'r', 't', 'l', 'e'], trigger: triggerDvirMode, blocked: dvirActive },
+        { keys: ['t', 'z', 'u', 'r'], trigger: triggerTzurMode, blocked: anyCheatActive || cheatUses.tzur <= 0 },
+        { keys: ['b', 'e', 'a', 'r'], trigger: triggerTzurMode, blocked: anyCheatActive || cheatUses.tzur <= 0 },
+        { keys: ['s', 'a', 's', 'h', 'a'], trigger: triggerSashaMode, blocked: anyCheatActive || cheatUses.sasha <= 0 },
+        { keys: ['c', 'a', 't'], trigger: triggerSashaMode, blocked: anyCheatActive || cheatUses.sasha <= 0 },
+        { keys: ['s', 'u', 'f', 'r', 'i', 'n'], trigger: triggerSufrinMode, blocked: anyCheatActive || cheatUses.sufrin <= 0 },
+        { keys: ['d', 'v', 'i', 'r'], trigger: triggerDvirMode, blocked: anyCheatActive || cheatUses.dvir <= 0 },
+        { keys: ['t', 'u', 'r', 't', 'l', 'e'], trigger: triggerDvirMode, blocked: anyCheatActive || cheatUses.dvir <= 0 },
+        { keys: ['h', 'a', 'c', 'k'], trigger: showHackOverlay, blocked: false, hackOnly: true },
         { keys: ['b', 'h'], trigger: triggerHHMode, blocked: false },
         { keys: ['b', 's', 'd'], trigger: triggerRLMode, blocked: false },
       ];
-      if (gameState === GAME_STATES.ACTIVE && !tzurActive && !sashaActive && !dvirActive && !sufrinActive) {
+      // "hack" works on more screens (level start, level end, active); combat cheats only during ACTIVE
+      const hackScreens = [GAME_STATES.ACTIVE, GAME_STATES.LEVEL_INTRO, GAME_STATES.LEVEL_COMPLETE];
+      if (hackScreens.includes(gameState)) {
         const buf = cheatBufferRef.current;
         const key = e.key.toLowerCase();
         buf.push(key);
 
+        // On non-ACTIVE screens, only hack command is available
+        const availableCodes = gameState === GAME_STATES.ACTIVE
+          ? CHEAT_CODES
+          : CHEAT_CODES.filter(c => c.hackOnly);
+
         // Check if buffer matches any code completely
-        const complete = CHEAT_CODES.find((c) => !c.blocked && c.keys.length === buf.length && c.keys.every((k, i) => k === buf[i]));
+        const complete = availableCodes.find((c) => !c.blocked && c.keys.length === buf.length && c.keys.every((k, i) => k === buf[i]));
         if (complete) {
           cheatBufferRef.current = [];
           setCheatHints(0);
@@ -189,13 +207,13 @@ export default function App() {
         }
 
         // Check if buffer is a prefix of any code
-        const prefixMatch = CHEAT_CODES.find((c) => !c.blocked && buf.length < c.keys.length && c.keys.slice(0, buf.length).every((k, i) => k === buf[i]));
+        const prefixMatch = availableCodes.find((c) => !c.blocked && buf.length < c.keys.length && c.keys.slice(0, buf.length).every((k, i) => k === buf[i]));
         if (prefixMatch) {
           setCheatHints(buf.length);
           setCheatMaxHints(prefixMatch.keys.length);
         } else {
           // No prefix match — check if single key starts any code
-          const restart = CHEAT_CODES.find((c) => !c.blocked && c.keys[0] === key);
+          const restart = availableCodes.find((c) => !c.blocked && c.keys[0] === key);
           if (restart) {
             cheatBufferRef.current = [key];
             setCheatHints(1);
@@ -278,7 +296,7 @@ export default function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [gameState, paused, togglePause, handleAction, activeThreats, selectedThreatId, setSelectedThreatId, GAME_STATES, config, currentLevel, tzurActive, triggerTzurMode, sashaActive, triggerSashaMode, dvirActive, triggerDvirMode, sufrinActive, triggerSufrinMode, triggerHHMode, triggerRLMode]);
+  }, [gameState, paused, togglePause, handleAction, activeThreats, selectedThreatId, setSelectedThreatId, GAME_STATES, config, currentLevel, tzurActive, triggerTzurMode, sashaActive, triggerSashaMode, dvirActive, triggerDvirMode, sufrinActive, triggerSufrinMode, triggerHHMode, triggerRLMode, cheatUses, showHackOverlay]);
 
   const handleCloseFacilitator = useCallback(() => {
     setShowFacilitator(false);
@@ -332,6 +350,51 @@ export default function App() {
       skipBriefings={skipBriefings}
       onToggleSkipBriefings={() => setSkipBriefings((prev) => !prev)}
     />
+  );
+
+  // Hack HUD overlay — reusable across gameplay, level intro, level complete
+  const hackOverlay = hackOverlayVisible && (
+    <div className="absolute inset-0 z-35 flex items-center justify-center pointer-events-none hack-overlay-appear">
+      <div className="bg-black/85 border border-green-500/60 rounded-lg px-8 py-6 font-mono max-w-md w-full shadow-[0_0_40px_rgba(0,255,136,0.15)]">
+        <div className="text-center mb-4">
+          <div className="text-green-400 text-xs tracking-[0.5em] mb-1">★ ★ ★</div>
+          <div className="text-green-300 text-lg font-bold tracking-widest">AVAILABLE HACKS</div>
+          <div className="h-px bg-green-500/30 mt-3" />
+        </div>
+        {[
+          { label: 'TEDDY PROTOCOL', key: 'tzur', icon: '🐻', code: 'TZUR' },
+          { label: 'LASER CAT', key: 'sasha', icon: '🐱', code: 'SASHA' },
+          { label: 'TURTLE SHELL', key: 'dvir', icon: '🐢', code: 'DVIR' },
+          { label: 'BEARD DEFENSE', key: 'sufrin', icon: '🧔', code: 'SUFRIN' },
+        ].map(({ label, key, icon, code }) => {
+          const remaining = cheatUses[key];
+          const exhausted = remaining <= 0;
+          return (
+            <div key={key} className={`flex items-center justify-between py-2 px-2 rounded ${exhausted ? 'opacity-30' : ''}`}>
+              <div className="flex items-center gap-2">
+                <span className={`text-xs tracking-wider ${exhausted ? 'text-gray-600 line-through' : 'text-green-400'}`}>
+                  {label}
+                </span>
+                <span className={`text-[10px] ${exhausted ? 'text-gray-700' : 'text-gray-500'}`}>
+                  [{code}]
+                </span>
+              </div>
+              <div className="flex gap-1.5">
+                {Array.from({ length: 3 }, (_, i) => (
+                  <span key={i} className={`text-lg transition-all ${i < remaining ? '' : 'opacity-15 grayscale'}`}>
+                    {i < remaining ? icon : '·'}
+                  </span>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+        <div className="h-px bg-green-500/30 mt-3 mb-3" />
+        <div className="text-center text-[10px] text-gray-500 tracking-widest">
+          TYPE CODE TO ACTIVATE
+        </div>
+      </div>
+    </div>
   );
 
   // ========================
@@ -488,6 +551,7 @@ export default function App() {
           level={currentLevel}
           onReady={() => startLevel(currentLevel)}
         />
+        {hackOverlay}
         {facilitatorOverlay}
       </div>
     );
@@ -508,6 +572,7 @@ export default function App() {
           onNextLevel={advanceLevel}
           onViewResults={finishCampaign}
         />
+        {hackOverlay}
         {facilitatorOverlay}
       </div>
     );
@@ -725,6 +790,9 @@ export default function App() {
           ))}
         </div>
       )}
+
+      {/* HACK HUD overlay — shows remaining cheat uses */}
+      {hackOverlay}
 
       {/* PAUSE overlay */}
       {paused && (

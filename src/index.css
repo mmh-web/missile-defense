@@ -162,6 +162,23 @@ html, body, #root {
 }
 
 /* ============================================
+   Hack HUD Overlay — fade in/out with glow
+   ============================================ */
+.hack-overlay-appear {
+  animation: hackFadeIn 300ms ease-out forwards, hackFadeOut 600ms ease-in 4400ms forwards;
+}
+
+@keyframes hackFadeIn {
+  0%   { opacity: 0; transform: scale(0.95); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes hackFadeOut {
+  0%   { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.97); }
+}
+
+/* ============================================
    Level Complete — Achievement Badges
    ============================================ */
 .achievement-badge {
