@@ -70,7 +70,8 @@ threat(id, appear_time, type, impact_zone, is_populated, countdown, intel, revea
 - Hypersonic: 0-10% hold-fire (precision weapons)
 
 ### Ammo Budget Philosophy
-- **L1-L6**: +2 surplus per interceptor type above live threat count
+- **L1-L2**: +3 surplus per interceptor type above live threat count (blip overlap makes mis-clicks common)
+- **L3-L6**: +2 surplus per interceptor type above live threat count
 - **L7**: Zero margin — exactly enough ammo (no room for error)
 
 ### L1 Variant System

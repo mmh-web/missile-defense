@@ -211,7 +211,8 @@ Each entry in the `LEVELS` array (in `threats.js`) defines:
 ```
 
 ### Ammo Budget Philosophy
-- **Levels 1-6**: +2 surplus per interceptor type above the number of live (populated) threats
+- **Levels 1-2**: +3 surplus per interceptor type above live threat count (forgiving — blip overlap makes mis-clicks common)
+- **Levels 3-6**: +2 surplus per interceptor type above live threat count
 - **Level 7**: Zero margin — exactly enough ammo for every populated threat (no room for error)
 
 ---
