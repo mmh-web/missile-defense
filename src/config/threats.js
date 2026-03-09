@@ -720,7 +720,7 @@ export const LEVELS = [
   {
     id: 1,
     duration: 80,
-    ammo: { iron_dome: 23 },
+    ammo: { iron_dome: 24 },
     available_systems: ['iron_dome'],
     auto_end_delay: 3000,
     new_system: null,
@@ -734,7 +734,7 @@ export const LEVELS = [
   {
     id: 2,
     duration: 120,
-    ammo: { iron_dome: 43 },
+    ammo: { iron_dome: 44 },
     available_systems: ['iron_dome'],
     auto_end_delay: 3000,
     new_system: null,
