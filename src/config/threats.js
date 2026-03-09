@@ -734,7 +734,7 @@ export const LEVELS = [
   {
     id: 2,
     duration: 120,
-    ammo: { iron_dome: 44 },
+    ammo: { iron_dome: 43 },
     available_systems: ['iron_dome'],
     auto_end_delay: 3000,
     new_system: null,

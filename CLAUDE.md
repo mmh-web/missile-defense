@@ -70,7 +70,8 @@ threat(id, appear_time, type, impact_zone, is_populated, countdown, intel, revea
 - Hypersonic: 0-10% hold-fire (precision weapons)
 
 ### Ammo Budget Philosophy
-- **L1-L2**: +4 surplus per interceptor type above live threat count (blip overlap makes mis-clicks common)
+- **L1**: +4 surplus per interceptor type (beginner level, blip overlap makes mis-clicks common)
+- **L2**: +3 surplus per interceptor type (still learning, new threat type)
 - **L3-L6**: +2 surplus per interceptor type above live threat count
 - **L7**: Zero margin — exactly enough ammo (no room for error)
 
@@ -200,7 +201,7 @@ Shared language for tuning level difficulty. Five weighted dimensions:
 - Delayed reveal (% with reveal_pct < 1.0): L1-3=0%, L4=42%, L5=38%, L6=25%, L7=34%
 
 **C. Ammo Pressure (20%)** — How much room for error?
-- Surplus ratio: L1=20%, L2=10%, L3=10.8%, L4=18.2%, L5=11.4%, L6=10.3%, L7=0%
+- Surplus ratio: L1=20%, L2=7.5%, L3=10.8%, L4=18.2%, L5=11.4%, L6=10.3%, L7=0%
 - Zero margin (L7) = automatic 10.0 score — one wasted shot means guaranteed failure
 
 **D. Sustained Intensity (15%)** — How relentless is the pace?
