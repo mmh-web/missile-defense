@@ -192,8 +192,11 @@ export default function ThreatPanel({
 
   return (
     <div className="h-full flex flex-col">
-      <div className="text-xs text-green-500/50 font-mono tracking-widest mb-3 uppercase">
+      <div className="text-xs text-green-500/50 font-mono tracking-widest mb-1 uppercase">
         Threat Analysis — {activeThreats.filter((t) => !t.intercepted).length} Active
+      </div>
+      <div className="text-[10px] text-cyan-400/50 font-mono mb-3">
+        Click a threat card or radar blip to select, then fire
       </div>
       <div className="flex-1 overflow-y-auto pr-1 custom-scrollbar">
         {[...activeThreats]

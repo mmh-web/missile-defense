@@ -187,9 +187,9 @@ function threat(id, time, type, zone, populated, cdn, intel, reveal, extra = {})
 
 // ============================================================
 // LEVEL 1: Otef Aza — Short-range ROCKETS only, Iron Dome
-// Duration: 80s | 40 threats (22 live, 18 hold-fire) | Teaches: intercept + hold fire
-// Rocket hold-fire ratio: ~45% — mirrors real Qassam inaccuracy (unguided, most miss)
-// Pacing: singles 0-15s → pairs 18-32s → triples 37-51s → surge 58-65s
+// Duration: 80s | 38 threats (20 live, 18 hold-fire) | Teaches: intercept + hold fire
+// Rocket hold-fire ratio: ~47% — mirrors real Qassam inaccuracy (unguided, most miss)
+// Pacing: singles 0-15s → pairs 18-32s → triples 37-51s → pairs 58-65s
 // Geography: Gaza border communities. Viewport zoomed tight on south.
 // All threats from Gaza. Only Otef Aza cities targeted.
 // ============================================================
@@ -213,32 +213,30 @@ const THREATS_L1 = [
   threat(14, 37, 'rocket', 'Netivot',         true,  6, 'full', 1.0, { origin: 'gaza' }),
   threat(15, 37, 'rocket', 'Northern Negev',  false, 6, 'full', 1.0, { origin: 'gaza' }),     // triple! (1 hold fire)
   threat(16, 44, 'rocket', 'Ashkelon',        true,  5, 'full', 1.0, { origin: 'gaza' }),
-  threat(17, 44, 'rocket', "Re'im",           true,  5, 'full', 1.0, { origin: 'gaza' }),
-  threat(18, 44, 'rocket', 'Kfar Aza',        true,  5, 'full', 1.0, { origin: 'gaza' }),     // triple!
+  threat(17, 44, 'rocket', "Re'im",           true,  5, 'full', 1.0, { origin: 'gaza' }),     // pair (was triple — removed 1 for pacing)
   threat(19, 51, 'rocket', "Be'eri",          true,  5, 'full', 1.0, { origin: 'gaza' }),
   threat(20, 51, 'rocket', 'Sderot',          true,  5, 'full', 1.0, { origin: 'gaza' }),
   threat(21, 51, 'rocket', 'Northern Negev',  false, 5, 'full', 1.0, { origin: 'gaza' }),     // triple! (1 hold fire)
-  // === FINAL SURGE — dense triple salvos (5 threats, 58-65s) ===
+  // === FINAL SURGE — dense pair salvos (4 threats, 58-65s) ===
   threat(22, 58, 'rocket', 'Ashkelon',        true,  5, 'full', 1.0, { origin: 'gaza' }),
-  threat(23, 58, 'rocket', 'Netivot',         true,  5, 'full', 1.0, { origin: 'gaza' }),
-  threat(24, 58, 'rocket', 'Kfar Aza',        true,  5, 'full', 1.0, { origin: 'gaza' }),     // triple!
+  threat(23, 58, 'rocket', 'Netivot',         true,  5, 'full', 1.0, { origin: 'gaza' }),     // pair (was triple — removed 1 for pacing)
   threat(25, 65, 'rocket', 'Sderot',          true,  5, 'full', 1.0, { origin: 'gaza' }),
   threat(26, 65, 'rocket', "Be'eri",          true,  5, 'full', 1.0, { origin: 'gaza' }),     // closing pair
   // === HOLD-FIRE — unguided Qassams landing in open ground (~45% of all rockets miss) ===
-  threat(27, 5,  'rocket', 'Northern Negev',           false, 8, 'full', 1.0, { origin: 'gaza' }),
+  threat(27, 5,  'rocket', 'Coastal Plain',             false, 8, 'full', 1.0, { origin: 'gaza' }),
   threat(28, 12, 'rocket', 'Mediterranean (off-coast)',false, 7, 'full', 1.0, { origin: 'gaza' }),
   threat(29, 16, 'rocket', 'Negev Desert',             false, 7, 'full', 1.0, { origin: 'gaza' }),
-  threat(30, 21, 'rocket', 'Northern Negev',           false, 7, 'full', 1.0, { origin: 'gaza' }),
+  threat(30, 21, 'rocket', 'Southern Negev',           false, 7, 'full', 1.0, { origin: 'gaza' }),
   threat(31, 25, 'rocket', 'Sinai Border Region',      false, 7, 'full', 1.0, { origin: 'gaza' }),
   threat(32, 31, 'rocket', 'Negev Desert',             false, 6, 'full', 1.0, { origin: 'gaza' }),
-  threat(33, 35, 'rocket', 'Northern Negev',           false, 6, 'full', 1.0, { origin: 'gaza' }),
+  threat(33, 35, 'rocket', 'Judean Hills',             false, 6, 'full', 1.0, { origin: 'gaza' }),
   threat(34, 40, 'rocket', 'Mediterranean (off-coast)',false, 6, 'full', 1.0, { origin: 'gaza' }),
   threat(35, 43, 'rocket', 'Central Negev',            false, 6, 'full', 1.0, { origin: 'gaza' }),
   threat(36, 47, 'rocket', 'Negev Desert',             false, 5, 'full', 1.0, { origin: 'gaza' }),
-  threat(37, 53, 'rocket', 'Northern Negev',           false, 5, 'full', 1.0, { origin: 'gaza' }),
+  threat(37, 53, 'rocket', 'Arava Valley',             false, 5, 'full', 1.0, { origin: 'gaza' }),
   threat(38, 57, 'rocket', 'Sinai Border Region',      false, 5, 'full', 1.0, { origin: 'gaza' }),
   threat(39, 61, 'rocket', 'Negev Desert',             false, 5, 'full', 1.0, { origin: 'gaza' }),
-  threat(40, 68, 'rocket', 'Northern Negev',           false, 5, 'full', 1.0, { origin: 'gaza' }),
+  threat(40, 68, 'rocket', 'Dead Sea Region',          false, 5, 'full', 1.0, { origin: 'gaza' }),
 ];
 
 // ============================================================
@@ -267,37 +265,35 @@ const THREATS_L1_B = [
   threat(14, 37, 'rocket', "Be'eri",          true,  6, 'full', 1.0, { origin: 'gaza' }),
   threat(15, 37, 'rocket', 'Northern Negev',  false, 6, 'full', 1.0, { origin: 'gaza' }),     // triple! (1 hold fire)
   threat(16, 44, 'rocket', 'Sderot',          true,  5, 'full', 1.0, { origin: 'gaza' }),
-  threat(17, 44, 'rocket', 'Kfar Aza',        true,  5, 'full', 1.0, { origin: 'gaza' }),
-  threat(18, 44, 'rocket', 'Netivot',         true,  5, 'full', 1.0, { origin: 'gaza' }),     // triple!
+  threat(17, 44, 'rocket', 'Kfar Aza',        true,  5, 'full', 1.0, { origin: 'gaza' }),     // pair (was triple — removed 1 for pacing)
   threat(19, 51, 'rocket', "Re'im",           true,  5, 'full', 1.0, { origin: 'gaza' }),
   threat(20, 51, 'rocket', 'Ashkelon',        true,  5, 'full', 1.0, { origin: 'gaza' }),
   threat(21, 51, 'rocket', 'Northern Negev',  false, 5, 'full', 1.0, { origin: 'gaza' }),     // triple! (1 hold fire)
-  // === FINAL SURGE — dense triple salvos (5 threats, 58-65s) ===
+  // === FINAL SURGE — dense pair salvos (4 threats, 58-65s) ===
   threat(22, 58, 'rocket', 'Sderot',          true,  5, 'full', 1.0, { origin: 'gaza' }),
-  threat(23, 58, 'rocket', "Be'eri",          true,  5, 'full', 1.0, { origin: 'gaza' }),
-  threat(24, 58, 'rocket', "Re'im",           true,  5, 'full', 1.0, { origin: 'gaza' }),     // triple!
+  threat(23, 58, 'rocket', "Be'eri",          true,  5, 'full', 1.0, { origin: 'gaza' }),     // pair (was triple — removed 1 for pacing)
   threat(25, 65, 'rocket', 'Kfar Aza',        true,  5, 'full', 1.0, { origin: 'gaza' }),
   threat(26, 65, 'rocket', 'Netivot',         true,  5, 'full', 1.0, { origin: 'gaza' }),     // closing pair
   // === HOLD-FIRE — unguided Qassams landing in open ground (~45% of all rockets miss) ===
-  threat(27, 5,  'rocket', 'Northern Negev',           false, 8, 'full', 1.0, { origin: 'gaza' }),
+  threat(27, 5,  'rocket', 'Coastal Plain',             false, 8, 'full', 1.0, { origin: 'gaza' }),
   threat(28, 12, 'rocket', 'Mediterranean (off-coast)',false, 7, 'full', 1.0, { origin: 'gaza' }),
   threat(29, 16, 'rocket', 'Negev Desert',             false, 7, 'full', 1.0, { origin: 'gaza' }),
-  threat(30, 21, 'rocket', 'Northern Negev',           false, 7, 'full', 1.0, { origin: 'gaza' }),
+  threat(30, 21, 'rocket', 'Southern Negev',           false, 7, 'full', 1.0, { origin: 'gaza' }),
   threat(31, 25, 'rocket', 'Sinai Border Region',      false, 7, 'full', 1.0, { origin: 'gaza' }),
   threat(32, 31, 'rocket', 'Negev Desert',             false, 6, 'full', 1.0, { origin: 'gaza' }),
-  threat(33, 35, 'rocket', 'Northern Negev',           false, 6, 'full', 1.0, { origin: 'gaza' }),
+  threat(33, 35, 'rocket', 'Judean Hills',             false, 6, 'full', 1.0, { origin: 'gaza' }),
   threat(34, 40, 'rocket', 'Mediterranean (off-coast)',false, 6, 'full', 1.0, { origin: 'gaza' }),
   threat(35, 43, 'rocket', 'Central Negev',            false, 6, 'full', 1.0, { origin: 'gaza' }),
   threat(36, 47, 'rocket', 'Negev Desert',             false, 5, 'full', 1.0, { origin: 'gaza' }),
-  threat(37, 53, 'rocket', 'Northern Negev',           false, 5, 'full', 1.0, { origin: 'gaza' }),
+  threat(37, 53, 'rocket', 'Arava Valley',             false, 5, 'full', 1.0, { origin: 'gaza' }),
   threat(38, 57, 'rocket', 'Sinai Border Region',      false, 5, 'full', 1.0, { origin: 'gaza' }),
   threat(39, 61, 'rocket', 'Negev Desert',             false, 5, 'full', 1.0, { origin: 'gaza' }),
-  threat(40, 68, 'rocket', 'Northern Negev',           false, 5, 'full', 1.0, { origin: 'gaza' }),
+  threat(40, 68, 'rocket', 'Dead Sea Region',          false, 5, 'full', 1.0, { origin: 'gaza' }),
 ];
 
 // ============================================================
 // LEVEL 2: Galil, Haifa & Golan — Drones + Rockets, Iron Dome
-// Duration: 120s | 64 threats (43 live, 21 hold-fire) | Introduces: drones
+// Duration: 120s | 61 threats (40 live, 21 hold-fire) | Introduces: drones
 // Rocket hold-fire ratio: ~40% (unguided). Drone hold-fire: ~16% (GPS-guided, more accurate).
 // Geography: Northern Israel. Viewport zoomed tight on north.
 // Threats from Lebanon (north) and Syria (northeast). No Gaza threats.
@@ -334,12 +330,10 @@ const THREATS_L2 = [
   threat(26, 60, 'rocket', 'Tzfat',            true,  6,  'full', 1.0, { origin: 'north' }),        // near-triple overlap
   // === HEAVY SALVOS — triples and quads (10 threats, 65-85s) ===
   threat(27, 65, 'rocket', 'Haifa',            true,  5,  'full', 1.0, { origin: 'north' }),
-  threat(28, 65, 'drone',  'Kiryat Shmona',    true,  9,  'full', 1.0, { origin: 'north' }),
-  threat(29, 65, 'rocket', 'Akko',             true,  5,  'full', 1.0, { origin: 'north' }),        // triple!
+  threat(28, 65, 'drone',  'Kiryat Shmona',    true,  9,  'full', 1.0, { origin: 'north' }),        // pair (was triple — removed 1 for pacing)
   threat(30, 72, 'drone',  'Nahariya',         true,  8,  'full', 1.0, { origin: 'north' }),
   threat(31, 72, 'rocket', 'Teveriah',         true,  5,  'full', 1.0, { origin: 'northeast' }),
-  threat(32, 72, 'rocket', 'Katzrin',          true,  5,  'full', 1.0, { origin: 'northeast' }),
-  threat(33, 72, 'drone',  'Upper Galilee',    false, 8,  'full', 1.0, { origin: 'north' }),        // QUAD! (1 hold fire)
+  threat(33, 72, 'drone',  'Upper Galilee',    false, 8,  'full', 1.0, { origin: 'north' }),        // triple (was quad — removed 1 for pacing)
   // === CLOSING BARRAGE — relentless overlapping (7 threats, 80-100s) ===
   threat(34, 80, 'rocket', 'Haifa',            true,  5,  'full', 1.0, { origin: 'north' }),
   threat(35, 80, 'drone',  'Tzfat',            true,  8,  'full', 1.0, { origin: 'north' }),
@@ -354,8 +348,7 @@ const THREATS_L2 = [
   threat(43, 100,'drone',  'Kiryat Shmona',    true,  8,  'full', 1.0, { origin: 'north' }),
   threat(44, 100,'rocket', 'Tzfat',            true,  5,  'full', 1.0, { origin: 'north' }),        // pair!
   threat(45, 105,'rocket', 'Haifa',            true,  5,  'full', 1.0, { origin: 'north' }),
-  threat(46, 105,'drone',  'Akko',             true,  8,  'full', 1.0, { origin: 'north' }),
-  threat(47, 105,'rocket', 'Katzrin',          true,  5,  'full', 1.0, { origin: 'northeast' }),    // triple!
+  threat(46, 105,'drone',  'Akko',             true,  8,  'full', 1.0, { origin: 'north' }),        // pair (was triple — removed 1 for pacing)
   threat(48, 112,'drone',  'Teveriah',         true,  7,  'full', 1.0, { origin: 'northeast' }),
   threat(49, 112,'rocket', 'Nahariya',         true,  5,  'full', 1.0, { origin: 'north' }),        // closing pair!
   // === HOLD-FIRE ROCKETS — unguided rockets landing in open ground (~40% miss rate) ===
@@ -378,7 +371,7 @@ const THREATS_L2 = [
 
 // ============================================================
 // LEVEL 3: Central Israel — Cruise Missiles + all previous
-// Duration: 120s | 53 threats (39 live, 14 hold-fire) | Introduces: David's Sling + cruise missiles
+// Duration: 120s | 51 threats (37 live, 14 hold-fire) | Introduces: David's Sling + cruise missiles
 // Rocket hold-fire ratio: ~41%. Drone: ~20%. Cruise: ~6%.
 // Geography: Wider Central Region — Gaza border visible, Tel Aviv, Jerusalem,
 // Modi'in, Ra'anana, Gush Etzion corridor.
@@ -406,8 +399,7 @@ const THREATS_L3 = [
   threat(16, 48, 'rocket', 'Holon',           true,  6,  'full', 1.0, { origin: 'gaza' }),         // Gaza (pair!)
   threat(17, 51, 'cruise', 'Gush Etzion',     true,  10, 'full', 1.0, { origin: 'east' }),         // Iran
   threat(18, 54, 'rocket', 'Netanya',         true,  6,  'full', 1.0, { origin: 'gaza' }),         // Gaza
-  threat(19, 54, 'cruise', "Modi'in",         true,  9,  'full', 1.0, { origin: 'east' }),         // Iran (pair!)
-  threat(20, 54, 'drone',  'Holon',           true,  10, 'full', 1.0, { origin: 'north' }),        // Lebanon (triple!)
+  threat(19, 54, 'cruise', "Modi'in",         true,  9,  'full', 1.0, { origin: 'east' }),         // Iran (pair — was triple, removed drone for pacing)
   // === Phase 4: Heavy overlap — heartland under fire (9 threats, 58-73s) ===
   threat(21, 58, 'cruise', 'Jerusalem',       true,  9,  'full', 1.0, { origin: 'east' }),         // Iran
   threat(22, 58, 'rocket', 'Ashdod',          true,  6,  'full', 1.0, { origin: 'gaza' }),         // Gaza (pair!)
@@ -420,8 +412,7 @@ const THREATS_L3 = [
   threat(29, 73, 'cruise', 'Tel Aviv',        true,  8,  'full', 1.0, { origin: 'east' }),         // Iran (pair!)
   // === Phase 5: Intense closing — triples and rapid fire (14 threats, 77-110s) ===
   threat(30, 77, 'rocket', 'Ashdod',          true,  6,  'full', 1.0, { origin: 'gaza' }),         // Gaza
-  threat(31, 77, 'cruise', 'Jerusalem',       true,  8,  'full', 1.0, { origin: 'east' }),         // Iran
-  threat(32, 77, 'drone',  'Petah Tikva',     true,  9,  'full', 1.0, { origin: 'north' }),        // Lebanon (triple!)
+  threat(31, 77, 'cruise', 'Jerusalem',       true,  8,  'full', 1.0, { origin: 'east' }),         // Iran (pair — was triple, removed drone for pacing)
   threat(33, 82, 'rocket', 'Netanya',         true,  6,  'full', 1.0, { origin: 'gaza' }),         // Gaza
   threat(34, 82, 'cruise', 'Coastal Plain',   false, 9,  'full', 1.0, { origin: 'east' }),         // hold fire (pair)
   threat(35, 86, 'drone',  'Netanya',         true,  9,  'full', 1.0, { origin: 'north' }),        // Lebanon
@@ -448,7 +439,7 @@ const THREATS_L3 = [
 
 // ============================================================
 // LEVEL 4: Strategic Threats — Ballistic + all previous, introduces Arrow 2
-// Duration: 120s | 43 threats (36 live, 7 hold-fire)
+// Duration: 120s | 38 threats (33 live, 5 hold-fire)
 // Drone hold-fire: ~8%. Cruise: ~8%. Ballistic: ~19%.
 // Geography: Full country view. Critical infrastructure targets.
 // NEW: ballistic missiles from Iran targeting strategic infrastructure.
@@ -495,9 +486,7 @@ const THREATS_L4 = [
   threat(30, 99, 'cruise',    'Orot Rabin Power Station', true,  9,  'full', 1.0, { origin: 'east' }),         // Iran → energy
   threat(31, 103,'ballistic', 'Dimona Nuclear Reactor',   true,  10, 'full', 0.35, { origin: 'east', priority: true }),  // Iran → nuclear
   threat(32, 106,'drone',     'Haifa',                    true,  10, 'full', 1.0, { origin: 'north' }),        // Hezbollah → population
-  threat(33, 106,'cruise',    'Rutenberg Power Station',  true,  9,  'full', 1.0, { origin: 'east' }),         // Iran → energy (pair!)
   threat(34, 109,'ballistic', 'Ben Gurion Airport',    true,  10, 'full', 0.40, { origin: 'east' }),        // Iran → defense industry
-  threat(35, 109,'drone',     'Ashdod Port',              true,  10, 'full', 1.0, { origin: 'north' }),        // Hezbollah → transport (pair!)
   threat(36, 112,'cruise',    'Tel Aviv',                 true,  9,  'full', 1.0, { origin: 'east' }),         // Iran → population
   threat(37, 112,'ballistic', 'Jerusalem',                true,  10, 'full', 0.40, { origin: 'east' }),        // Iran → population (pair!)
   // === HOLD-FIRE BALLISTIC — ~19% miss rate for guided ballistics ===
@@ -731,7 +720,7 @@ export const LEVELS = [
   {
     id: 1,
     duration: 80,
-    ammo: { iron_dome: 23 },
+    ammo: { iron_dome: 22 },
     available_systems: ['iron_dome'],
     auto_end_delay: 3000,
     new_system: null,
@@ -745,7 +734,7 @@ export const LEVELS = [
   {
     id: 2,
     duration: 120,
-    ammo: { iron_dome: 44 },
+    ammo: { iron_dome: 42 },
     available_systems: ['iron_dome'],
     auto_end_delay: 3000,
     new_system: null,
@@ -758,7 +747,7 @@ export const LEVELS = [
   {
     id: 3,
     duration: 120,
-    ammo: { iron_dome: 25, davids_sling: 16 },
+    ammo: { iron_dome: 24, davids_sling: 17 },
     available_systems: ['iron_dome', 'davids_sling'],
     auto_end_delay: 5000,
     new_system: { key: 'davids_sling', name: "DAVID'S SLING", shortcut: '2', color: '#3b82f6' },
@@ -771,7 +760,7 @@ export const LEVELS = [
   {
     id: 4,
     duration: 120,
-    ammo: { iron_dome: 12, davids_sling: 12, arrow_2: 14 },
+    ammo: { iron_dome: 12, davids_sling: 12, arrow_2: 15 },
     available_systems: ['iron_dome', 'davids_sling', 'arrow_2'],
     auto_end_delay: 5000,
     new_system: { key: 'arrow_2', name: 'ARROW 2', shortcut: '3', color: '#ef4444' },
