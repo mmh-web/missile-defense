@@ -242,6 +242,7 @@ To make a level **harder** (higher score):
 - L7: 8.5-9.5 (brutal finale)
 
 ## Important Conventions
+- **MUTE GAME IN PREVIEW**: Always mute audio before playtesting: `document.querySelectorAll('audio,video').forEach(a=>{a.muted=true;a.pause()})`
 - `window.__game = game` debug hook exists in App.jsx — useful for testing (`window.__game.startLevel(3)`)
 - Sound files in `public/sounds/` (music-level-1.mp3 through music-level-7.mp3, briefing-music.mp3, siren.mp3, etc.)
 - Images in `public/images/` (sufrin.png for cheat portrait)
