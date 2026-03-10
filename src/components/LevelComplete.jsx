@@ -1,6 +1,7 @@
-import { useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getLevelConfig, TOTAL_LEVELS } from '../config/threats.js';
 import { playPerfectFanfare } from '../utils/soundEffects.js';
+import { saveScore } from '../utils/leaderboard.js';
 
 function ScoreRow({ label, stat, points, color = 'text-gray-300', pointsColor = 'text-green-400' }) {
   return (
@@ -80,6 +81,36 @@ export default function LevelComplete({ levelStats, campaignStats, effectiveTota
   const nextConfig = getLevelConfig(levelStats.level + 1);
   const isLastLevel = levelStats.level >= (effectiveTotalLevels || TOTAL_LEVELS);
   const isPerfect = levelStats.rating?.perfect;
+
+  const [teamName, setCallsign] = useState('');
+  const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const runningTotal = (campaignStats?.totalScore || 0) + levelStats.score;
+  const canSave = teamName.length >= 1 && !saved && !saving;
+
+  const handleSave = async () => {
+    if (!canSave) return;
+    setSaving(true);
+    try {
+      await saveScore({
+        name: teamName,
+        score: runningTotal,
+        stars: levelStats.rating.stars,
+        rating: levelStats.rating.label,
+        gameMode: 'CAMPAIGN',
+        levelsCompleted: levelStats.level,
+        correctIntercepts: (campaignStats?.totalCorrectIntercepts || 0) + levelStats.correctIntercepts,
+        sirenCount: (campaignStats?.totalSirens || 0) + levelStats.sirenCount,
+        bestStreak: Math.max(campaignStats?.overallBestStreak || 0, levelStats.bestStreak),
+      });
+      setSaved(true);
+    } catch (err) {
+      console.warn('Save failed:', err);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   // Play fanfare once on mount if perfect
   const fanfarePlayed = useRef(false);
@@ -285,6 +316,38 @@ export default function LevelComplete({ levelStats, campaignStats, effectiveTota
             </div>
           </div>
         )}
+
+        {/* Save Score (mid-campaign) */}
+        <div className="mb-6 p-4 border border-gray-800 rounded-lg bg-gray-900/20">
+          <div className="flex items-center justify-center gap-3">
+            <input
+              type="text"
+              maxLength={10}
+              value={teamName}
+              onChange={(e) => setCallsign(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
+              placeholder="NAME"
+              disabled={saved}
+              className="w-36 px-2 py-1.5 bg-gray-900 border border-green-800 rounded font-mono text-sm
+                text-center text-green-400 tracking-widest uppercase
+                focus:border-green-500 focus:outline-none
+                disabled:opacity-50 disabled:cursor-not-allowed
+                placeholder:text-gray-700"
+            />
+            <button
+              onClick={handleSave}
+              disabled={!canSave}
+              className={`px-4 py-1.5 rounded font-mono text-xs font-bold tracking-wider border transition-all
+                ${saved
+                  ? 'border-green-700 bg-green-900/30 text-green-500 cursor-default'
+                  : canSave
+                    ? 'border-green-500 bg-green-900/30 text-green-400 cursor-pointer hover:bg-green-900/50 active:scale-95'
+                    : 'border-gray-700 bg-gray-900 text-gray-600 cursor-not-allowed'
+                }`}
+            >
+              {saved ? '✓ SAVED' : saving ? 'SAVING...' : 'SAVE SCORE'}
+            </button>
+          </div>
+        </div>
 
         {/* Next Level Preview */}
         {!isLastLevel && nextConfig && (
