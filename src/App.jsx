@@ -11,7 +11,7 @@ import LevelIntro from './components/LevelIntro.jsx';
 import LevelComplete from './components/LevelComplete.jsx';
 import ScoringIntro from './components/ScoringIntro.jsx';
 import FacilitatorControls from './components/FacilitatorControls.jsx';
-import { getLevelConfig, LEVEL_ACCENT_COLORS, THREAT_COLORS } from './config/threats.js';
+import { getLevelConfig, LEVEL_ACCENT_COLORS } from './config/threats.js';
 import { getLeaderboard } from './utils/leaderboard.js';
 import {
   startMusic,
@@ -27,70 +27,6 @@ function formatCountdown(seconds) {
   const m = Math.floor(seconds / 60);
   const s = Math.floor(seconds % 60);
   return `${m}:${String(s).padStart(2, '0')}`;
-}
-
-/** Mobile-only: compact strip showing selected threat info + active threat count */
-function MobileSelectedThreat({ activeThreats, selectedThreatId }) {
-  const live = activeThreats.filter(t => !t.intercepted && !t.held);
-  const selected = live.find(t => t.id === selectedThreatId);
-
-  if (live.length === 0) {
-    return (
-      <div className="md:hidden flex-shrink-0 px-2 py-1.5 bg-[#080c16] border-t border-gray-800/50">
-        <div className="text-center text-green-500/40 font-mono text-xs tracking-wider">NO ACTIVE THREATS</div>
-      </div>
-    );
-  }
-
-  if (!selected) {
-    return (
-      <div className="md:hidden flex-shrink-0 px-2 py-1.5 bg-[#080c16] border-t border-gray-800/50">
-        <div className="text-center text-gray-500 font-mono text-xs tracking-wider">
-          TAP A BLIP — {live.length} THREAT{live.length !== 1 ? 'S' : ''} ACTIVE
-        </div>
-      </div>
-    );
-  }
-
-  const color = THREAT_COLORS[selected.type] || '#94a3b8';
-  const isCritical = selected.timeLeft < 5;
-  const timeStr = `${Math.max(0, Math.ceil(selected.timeLeft))}s`;
-
-  return (
-    <div className="md:hidden flex-shrink-0 px-2 py-1.5 bg-[#080c16] border-t border-gray-800/50">
-      <div className="flex items-center gap-2">
-        {/* Threat ID */}
-        <div
-          className="flex-shrink-0 w-8 h-8 rounded flex items-center justify-center font-mono font-bold text-sm"
-          style={{ backgroundColor: `${color}20`, color, border: `1px solid ${color}50` }}
-        >
-          T{selected.id}
-        </div>
-        {/* Type + impact */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider"
-              style={{ backgroundColor: `${color}30`, color }}>
-              {selected.type.toUpperCase()}
-            </span>
-            <span className={`text-xs font-bold font-mono truncate ${selected.is_populated ? 'text-amber-500' : 'text-gray-500'}`}>
-              {selected.impactRevealed ? selected.impact_zone.toUpperCase() : 'CALCULATING...'}
-            </span>
-          </div>
-        </div>
-        {/* Countdown */}
-        <div className={`flex-shrink-0 text-xl font-bold font-mono tabular-nums ${
-          isCritical ? 'text-amber-500 animate-pulse' : 'text-green-400'
-        }`}>
-          {timeStr}
-        </div>
-        {/* Active count */}
-        <div className="flex-shrink-0 text-[10px] text-gray-600 font-mono">
-          {live.length}
-        </div>
-      </div>
-    </div>
-  );
 }
 
 export default function App() {
@@ -739,9 +675,9 @@ export default function App() {
       </div>
 
       {/* Main content area */}
-      <div className="flex-1 flex flex-col md:flex-row min-h-0 overflow-hidden">
-        {/* ZONE A: Radar — fixed height on mobile, larger share on tablet, standard on desktop */}
-        <div className="h-[60vh] md:h-auto md:flex-[3] lg:flex-[6] p-1 sm:p-2 md:p-4 flex items-center justify-center md:border-r border-gray-800/30 flex-shrink-0 md:flex-shrink-1">
+      <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden">
+        {/* ZONE A: Radar — fills remaining space, side-by-side only at lg+ (1024px) */}
+        <div className="flex-1 min-h-0 lg:flex-[5] p-1 sm:p-2 md:p-4 flex items-center justify-center lg:border-r border-gray-800/30">
           <RadarDisplay
             activeThreats={activeThreats}
             selectedThreatId={selectedThreatId}
@@ -758,8 +694,8 @@ export default function App() {
           />
         </div>
 
-        {/* ZONE B: Threat Panel — hidden on mobile, narrow on tablet, wider on desktop */}
-        <div className="hidden md:block md:flex-[1] lg:flex-[4] p-1 sm:p-2 md:p-4 overflow-y-auto">
+        {/* ZONE B: Compact threat table — visible on ALL breakpoints */}
+        <div className="flex-shrink-0 max-h-[240px] overflow-y-auto lg:flex-shrink-1 lg:max-h-none lg:flex-[3] p-1 sm:p-2 md:p-3 border-t lg:border-t-0 border-gray-800/30">
           <ThreatPanel
             activeThreats={activeThreats}
             selectedThreatId={selectedThreatId}
@@ -767,12 +703,6 @@ export default function App() {
           />
         </div>
       </div>
-
-      {/* Mobile-only: compact selected threat info strip */}
-      <MobileSelectedThreat
-        activeThreats={activeThreats}
-        selectedThreatId={selectedThreatId}
-      />
 
       {/* ZONE C: Controls — flex-shrink-0 ensures it never gets pushed off screen */}
       <div className="flex-shrink-0 px-2 md:px-4 py-2 md:py-3 border-t border-gray-800/50 bg-[#080c16]">
