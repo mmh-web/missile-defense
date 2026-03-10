@@ -634,24 +634,11 @@ export default function App() {
         {escapeRoomMode && <EscapeRoomTimer escapeRoomTime={escapeRoomTime} />}
       </div>
 
-      {/* Top bar */}
-      <div className="flex items-center justify-between px-2 md:px-4 py-1 md:py-2 bg-[#080c16]"
+      {/* Top bar — level name centered prominently, score/timer on sides */}
+      <div className="flex items-center justify-between px-2 md:px-4 py-1.5 md:py-2 bg-[#080c16] relative"
         style={{ borderBottom: `2px solid ${LEVEL_ACCENT_COLORS[currentLevel] || '#22c55e'}70` }}>
-        <div className="flex items-center gap-1.5 md:gap-3 whitespace-nowrap min-w-0">
-          <span className="text-green-400 font-mono text-xs md:text-sm font-bold tracking-widest">
-            L{currentLevel}
-          </span>
-          <span className="text-gray-600 font-mono text-xs md:text-sm hidden sm:inline">|</span>
-          <span className="font-mono text-xs md:text-sm tracking-wider text-green-400 font-bold hidden sm:inline">
-            {({ 1: 'SOUTHERN FRONT', 2: 'NORTHERN FRONT', 3: 'CENTRAL FRONT', 4: 'STRATEGIC TARGETS', 5: 'ARMY BASES', 6: 'WAVE ASSAULT', 7: 'APRIL 13' })[currentLevel] || ''}
-          </span>
-          <span className="text-green-400/80 text-xs md:text-sm font-bold hidden md:inline" style={{ fontFamily: 'Arial, sans-serif' }}>
-            {({ 1: 'חֲזִית הַדָּרוֹם', 2: 'חֲזִית הַצָּפוֹן', 3: 'חֲזִית הַמֶּרְכָּז', 4: 'מַטָּרוֹת אִסְטְרָטֶגִיּוֹת', 5: 'בְּסִיסֵי צָבָא', 6: 'מִתְקֶפֶת גַּלִּים', 7: 'שְׁלוֹשָׁה עָשָׂר בְּאַפְּרִיל' })[currentLevel] || ''}
-          </span>
-        </div>
-
-        {/* Music toggle + Score + Level timer — right (margin-right for gear icon + escape room pill) */}
-        <div className="flex items-center gap-2 md:gap-4 mr-10 md:mr-16 lg:mr-52">
+        {/* Left: score + music */}
+        <div className="flex items-center gap-2 md:gap-3 min-w-0">
           <button
             onClick={() => {
               const nowEnabled = toggleMusicEnabled();
@@ -670,9 +657,29 @@ export default function App() {
             <span className="text-gray-600 hidden sm:inline">SCORE </span>
             <span className="text-cyan-400 text-xs md:text-sm font-bold tabular-nums">{getRunningScore()}</span>
           </div>
-          <span className="text-gray-700 font-mono text-xs hidden sm:inline">|</span>
+        </div>
+
+        {/* Center: level number + name (prominent) */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="text-center">
+            <div className="flex items-center gap-2 md:gap-3 justify-center">
+              <span className="text-green-400 font-mono text-sm md:text-xl lg:text-2xl font-bold tracking-widest">
+                L{currentLevel}
+              </span>
+              <span className="text-gray-600 font-mono text-sm md:text-lg hidden sm:inline">|</span>
+              <span className="font-mono text-sm md:text-xl lg:text-2xl tracking-wider text-green-400 font-bold hidden sm:inline">
+                {({ 1: 'SOUTHERN FRONT', 2: 'NORTHERN FRONT', 3: 'CENTRAL FRONT', 4: 'STRATEGIC TARGETS', 5: 'ARMY BASES', 6: 'WAVE ASSAULT', 7: 'APRIL 13' })[currentLevel] || ''}
+              </span>
+            </div>
+            <span className="text-green-400/70 text-xs md:text-base lg:text-lg font-bold hidden md:inline-block tracking-wider" style={{ fontFamily: 'Arial, sans-serif' }}>
+              {({ 1: 'חֲזִית הַדָּרוֹם', 2: 'חֲזִית הַצָּפוֹן', 3: 'חֲזִית הַמֶּרְכָּז', 4: 'מַטָּרוֹת אִסְטְרָטֶגִיּוֹת', 5: 'בְּסִיסֵי צָבָא', 6: 'מִתְקֶפֶת גַּלִּים', 7: 'שְׁלוֹשָׁה עָשָׂר בְּאַפְּרִיל' })[currentLevel] || ''}
+            </span>
+          </div>
+        </div>
+
+        {/* Right: timer (margin-right for gear icon + escape room pill) */}
+        <div className="flex items-center gap-2 md:gap-3 mr-10 md:mr-16">
           <div className="font-mono text-[10px] md:text-xs">
-            <span className="text-gray-600 hidden sm:inline">LVL {currentLevel} </span>
             <span className="text-green-400 text-xs md:text-sm font-bold tabular-nums">
               {formatCountdown(Math.max(0, (config?.duration || 0) - sessionTime))}
             </span>
@@ -681,13 +688,10 @@ export default function App() {
         </div>
       </div>
 
-      {/* Main content area */}
-      <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden">
-        {/* Left spacer — mirrors threat panel width to center the radar */}
-        <div className="hidden lg:block lg:flex-[3]" />
-
-        {/* ZONE A: Radar — fills remaining space, side-by-side only at lg+ (1024px) */}
-        <div className="flex-1 min-h-0 lg:flex-[5] p-1 sm:p-2 md:p-4 flex items-center justify-center">
+      {/* Main content area — on desktop: threat panel LEFT (fixed width), radar CENTERED */}
+      <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden relative">
+        {/* ZONE A: Radar — centered in full area */}
+        <div className="flex-1 min-h-0 p-1 sm:p-2 md:p-4 flex items-center justify-center">
           <RadarDisplay
             activeThreats={activeThreats}
             selectedThreatId={selectedThreatId}
@@ -704,8 +708,8 @@ export default function App() {
           />
         </div>
 
-        {/* ZONE B: Compact threat table — visible on ALL breakpoints */}
-        <div className="flex-shrink-0 max-h-[240px] overflow-y-auto lg:flex-shrink-1 lg:max-h-none lg:flex-[3] p-1 sm:p-2 md:p-3 border-t lg:border-t-0 lg:border-l border-gray-800/30">
+        {/* ZONE B: Threat table — mobile: below radar; desktop: fixed-width overlay on left */}
+        <div className="flex-shrink-0 max-h-[240px] overflow-y-auto lg:absolute lg:left-0 lg:top-0 lg:bottom-0 lg:w-[260px] lg:max-h-none p-1 sm:p-2 md:p-3 border-t lg:border-t-0 lg:border-r border-gray-800/30 lg:bg-[#0a0e1a]/90 lg:backdrop-blur-sm">
           <ThreatPanel
             activeThreats={activeThreats}
             selectedThreatId={selectedThreatId}
