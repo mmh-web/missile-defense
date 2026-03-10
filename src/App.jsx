@@ -582,6 +582,7 @@ export default function App() {
         <LevelComplete
           levelStats={getLevelStats()}
           campaignStats={getCampaignStats()}
+          effectiveTotalLevels={bonusLevelEnabled ? 7 : 6}
           onNextLevel={advanceLevel}
           onViewResults={finishCampaign}
         />

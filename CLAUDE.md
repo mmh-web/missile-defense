@@ -7,7 +7,8 @@ Built for classroom/escape-room use with facilitator controls and escape room ti
 ## Tech Stack
 - React 19 + Vite 7 + Tailwind CSS 4 (no component library)
 - Single-page app, no router, no backend
-- GitHub Pages deployment at `https://mmh-cyber.github.io/missile-defense/`
+- GitHub Pages deployment at `https://mmh-web.github.io/missile-defense/`
+- Firebase Firestore for shared cloud leaderboard (project: `missile-defense-41ed4`)
 - Base path: `/missile-defense/` (set in vite.config.js)
 
 ## Key Files
@@ -27,6 +28,8 @@ Built for classroom/escape-room use with facilitator controls and escape room ti
 | `src/components/LevelIntro.jsx` | Level intro screen (L2+ — no quiz, just context) |
 | `src/components/TzevaAdom.jsx` | Red alert siren overlay when city is hit |
 | `src/components/FacilitatorControls.jsx` | Teacher/facilitator panel (ESC to toggle) |
+| `src/utils/firebase.js` | Firebase config + Firestore init |
+| `src/utils/leaderboard.js` | Shared leaderboard (Firestore + localStorage fallback) |
 
 ## Level Progression
 
@@ -186,26 +189,23 @@ PRE_GAME → SCORING_INTRO → BRIEFING (L1 only, has quiz)
 
 ## Deployment Workflow
 
-### Git Remotes
-- **origin** → `mmh-web/missile-defense` (primary, user's main GitHub account)
-- **mmh-cyber-backup** → `mmh-cyber/missile-defense` (backup copy)
-- **Always push to BOTH remotes** on every deploy
+### Git Remote
+- **origin** → `mmh-web/missile-defense` (primary, only active remote)
+- mmh-cyber repo exists but gh-pages is deleted — site is offline
 
-### Live URLs
-- https://mmh-web.github.io/missile-defense/ (primary)
-- https://mmh-cyber.github.io/missile-defense/ (backup)
+### Live URL
+- https://mmh-web.github.io/missile-defense/
 
 ### Steps
 1. Edit source files in `/Users/mhecht/Desktop/missile-defense/`
-2. If using a worktree, copy changed files to worktree for dev server preview
-3. Build: `npx vite build` (outputs to `dist/`)
-4. Commit source + dist to `main`, push to both: `git push origin main && git push mmh-cyber-backup main`
-5. Deploy to gh-pages:
-   - `git stash && git checkout gh-pages`
-   - Copy `dist/assets/*` → `assets/` and `dist/index.html` → `index.html` (flat structure, no dist/ prefix)
-   - Remove old asset files, add new ones
-   - Commit, push to both: `git push origin gh-pages && git push mmh-cyber-backup gh-pages`
-   - Switch back: `git checkout main && git stash pop`
+2. Build: `npx vite build` (outputs to `dist/`)
+3. Commit source + dist to `main`, push: `git push origin main`
+4. Deploy to gh-pages:
+   - `git stash && git checkout gh-pages && git pull origin gh-pages`
+   - `git show main:dist/index.html > index.html`
+   - `rm -rf assets && mkdir assets` then copy new asset files from `dist/assets/`
+   - `git add index.html assets/ && git commit && git push origin gh-pages`
+   - `git checkout main && git stash pop`
 
 **gh-pages structure is FLAT**: `index.html` + `assets/` at repo root, NOT inside `dist/`.
 
@@ -287,6 +287,15 @@ To make a level **harder** (higher score):
 - L5: 6.5-7.0 (very hard)
 - L6: 7.0-7.5 (intense)
 - L7: 8.5-9.5 (brutal finale)
+
+## Shared Leaderboard (Firebase Firestore)
+- Scores save to both Firestore cloud AND localStorage (offline fallback)
+- Summary screen subscribes to real-time updates via `onSnapshot` — scores from other devices appear live
+- Firestore collection: `scores`, indexed by `gameMode` + `score` (desc)
+- Firebase project: `missile-defense-41ed4` (config in `src/utils/firebase.js`)
+- Security rules: test mode (read/write open for 30 days from creation)
+- `isHighScore()` uses localStorage only for instant sync check
+- If Firestore is down, everything degrades gracefully to localStorage-only
 
 ## Important Conventions
 - **MUTE GAME IN PREVIEW**: Always mute audio before playtesting: `document.querySelectorAll('audio,video').forEach(a=>{a.muted=true;a.pause()})`

@@ -13,10 +13,11 @@ export default function Summary({ stats, levelStats, onReset }) {
     overallBestStreak,
     rating,
     levelsCompleted,
+    effectiveTotalLevels = 7,
     endedEarly,
   } = stats;
 
-  const isIncomplete = levelsCompleted < 7;
+  const isIncomplete = levelsCompleted < effectiveTotalLevels;
 
   const [callsign, setCallsign] = useState('');
   const [saved, setSaved] = useState(false);
@@ -75,7 +76,7 @@ export default function Summary({ stats, levelStats, onReset }) {
           </div>
           {isIncomplete && (
             <div className="text-lg font-mono text-gray-400 tracking-wider mb-2">
-              {levelsCompleted} / 7 LEVELS COMPLETED
+              {levelsCompleted} / {effectiveTotalLevels} LEVELS COMPLETED
             </div>
           )}
           <div className={`h-px w-48 mx-auto ${isIncomplete ? 'bg-red-900' : 'bg-green-900'}`} />
@@ -168,8 +169,8 @@ export default function Summary({ stats, levelStats, onReset }) {
           )}
           <StatRow
             label="LEVELS COMPLETED"
-            value={`${levelsCompleted} / 7`}
-            good={levelsCompleted === 7}
+            value={`${levelsCompleted} / ${effectiveTotalLevels}`}
+            good={levelsCompleted === effectiveTotalLevels}
           />
         </div>
 
@@ -229,7 +230,7 @@ export default function Summary({ stats, levelStats, onReset }) {
             ))}
           </div>
           <div className="text-xs text-gray-500 font-mono mt-2">
-            {totalCorrectIntercepts} intercepts &bull; {totalCorrectHolds} holds &bull; {levelsCompleted}/7 levels
+            {totalCorrectIntercepts} intercepts &bull; {totalCorrectHolds} holds &bull; {levelsCompleted}/{effectiveTotalLevels} levels
           </div>
         </div>
 

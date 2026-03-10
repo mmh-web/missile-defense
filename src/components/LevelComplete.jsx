@@ -75,10 +75,10 @@ function PerfectParticles() {
   );
 }
 
-export default function LevelComplete({ levelStats, campaignStats, onNextLevel, onViewResults }) {
+export default function LevelComplete({ levelStats, campaignStats, effectiveTotalLevels, onNextLevel, onViewResults }) {
   const config = getLevelConfig(levelStats.level);
   const nextConfig = getLevelConfig(levelStats.level + 1);
-  const isLastLevel = levelStats.level >= TOTAL_LEVELS;
+  const isLastLevel = levelStats.level >= (effectiveTotalLevels || TOTAL_LEVELS);
   const isPerfect = levelStats.rating?.perfect;
 
   // Play fanfare once on mount if perfect

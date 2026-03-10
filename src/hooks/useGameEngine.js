@@ -1117,6 +1117,7 @@ export default function useGameEngine({ bonusLevelEnabled = false } = {}) {
       ...campaign,
       rating,
       levelsCompleted: campaign.levelScores.length,
+      effectiveTotalLevels: effectiveTotalLevelsRef.current,
       endedEarly: campaign.endedEarly || false,
     };
   }, []);
