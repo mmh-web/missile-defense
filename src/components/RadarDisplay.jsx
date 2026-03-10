@@ -789,7 +789,7 @@ export default function RadarDisplay({
 
   return (
     <div className="relative w-full h-full flex items-center justify-center">
-      <div className="relative radar-crt-glow" style={{ width: '100%', maxWidth: '600px', aspectRatio: '1' }}>
+      <div className="relative radar-crt-glow w-full lg:w-auto lg:h-full" style={{ maxWidth: '600px', maxHeight: '600px', aspectRatio: '1' }}>
         <svg
           viewBox="0 0 100 100"
           className="w-full h-full"

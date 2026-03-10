@@ -14,6 +14,7 @@ function ThreatRow({ threat, isSelected, onSelect }) {
   const isWarning = threat.timeLeft < 10 && !isCritical;
   const isHeld = threat.held;
   const timeStr = `${Math.max(0, Math.ceil(threat.timeLeft))}s`;
+  const intel = threat.intel || 'full';
 
   const bgClass = isCritical
     ? 'bg-amber-950/25'
@@ -23,11 +24,27 @@ function ThreatRow({ threat, isSelected, onSelect }) {
         ? 'bg-white/10'
         : 'bg-transparent';
 
+  const impactColor = isHeld
+    ? 'text-gray-600'
+    : !threat.impactRevealed
+      ? 'text-yellow-600 animate-pulse'
+      : threat.is_populated
+        ? 'text-amber-500'
+        : 'text-gray-500';
+
+  const impactText = isHeld
+    ? `${threat.impactRevealed ? threat.impact_zone.toUpperCase() : '—'} [HELD]`
+    : threat.impactRevealed
+      ? threat.impact_zone.toUpperCase()
+      : 'CALCULATING...';
+
+  const threatName = intel === 'minimal' ? 'UNKNOWN DESIGNATION' : threat.name.toUpperCase();
+
   return (
     <div
       onClick={() => !isHeld && onSelect(threat.id)}
       className={`
-        flex items-center gap-1.5 px-2 py-1.5 rounded transition-all
+        px-2 py-1.5 lg:py-2 rounded transition-all
         ${isHeld ? 'opacity-50 cursor-default' : 'cursor-pointer'}
         ${!isHeld && !isSelected && !isCritical && !isWarning ? 'hover:bg-white/5' : ''}
         ${isCritical ? 'animate-pulse' : ''}
@@ -38,59 +55,61 @@ function ThreatRow({ threat, isSelected, onSelect }) {
         boxShadow: isSelected && !isHeld ? `0 0 10px ${color}30` : 'none',
       }}
     >
-      {/* Threat ID */}
-      <span
-        className="w-7 text-xs font-mono font-bold flex-shrink-0 text-center"
-        style={{ color }}
-      >
-        T{threat.id}{threat.priority ? '*' : ''}
-      </span>
+      {/* Line 1: ID, type, impact zone, countdown */}
+      <div className="flex items-center gap-1.5">
+        {/* Threat ID */}
+        <span
+          className="w-7 text-xs font-mono font-bold flex-shrink-0 text-center"
+          style={{ color }}
+        >
+          T{threat.id}{threat.priority ? '*' : ''}
+        </span>
 
-      {/* Type abbreviation */}
-      <span
-        className="w-9 text-[10px] font-mono font-bold uppercase tracking-wider flex-shrink-0"
-        style={{ color }}
-      >
-        {TYPE_ABBR[threat.type] || '???'}
-      </span>
+        {/* Type abbreviation */}
+        <span
+          className="w-9 text-[10px] font-mono font-bold uppercase tracking-wider flex-shrink-0"
+          style={{ color }}
+        >
+          {TYPE_ABBR[threat.type] || '???'}
+        </span>
 
-      {/* Arrow separator */}
-      <span className="text-gray-600 text-xs flex-shrink-0">▸</span>
+        {/* Arrow separator */}
+        <span className="text-gray-600 text-xs flex-shrink-0">▸</span>
 
-      {/* Impact zone */}
-      <span
-        className={`flex-1 min-w-0 truncate text-xs font-mono font-bold ${
-          isHeld
-            ? 'text-gray-600'
-            : !threat.impactRevealed
-              ? 'text-yellow-600 animate-pulse'
-              : threat.is_populated
-                ? 'text-amber-500'
-                : 'text-gray-500'
-        }`}
-      >
-        {isHeld
-          ? `${threat.impactRevealed ? threat.impact_zone.toUpperCase() : '—'} [HELD]`
-          : threat.impactRevealed
-            ? threat.impact_zone.toUpperCase()
-            : 'CALCULATING...'}
-      </span>
+        {/* Impact zone */}
+        <span className={`flex-1 min-w-0 truncate text-xs font-mono font-bold ${impactColor}`}>
+          {impactText}
+        </span>
 
-      {/* Countdown */}
-      <span
-        className={`w-9 text-right text-sm font-mono font-bold tabular-nums flex-shrink-0 ${
-          isCritical ? 'text-amber-500' : isWarning ? 'text-yellow-500' : 'text-green-400'
-        }`}
-        style={
-          isCritical
-            ? { textShadow: '0 0 8px rgba(245, 158, 11, 0.5)' }
-            : isWarning
-              ? { textShadow: '0 0 6px rgba(234, 179, 8, 0.3)' }
-              : {}
-        }
-      >
-        {timeStr}
-      </span>
+        {/* Countdown */}
+        <span
+          className={`w-9 text-right text-sm font-mono font-bold tabular-nums flex-shrink-0 ${
+            isCritical ? 'text-amber-500' : isWarning ? 'text-yellow-500' : 'text-green-400'
+          }`}
+          style={
+            isCritical
+              ? { textShadow: '0 0 8px rgba(245, 158, 11, 0.5)' }
+              : isWarning
+                ? { textShadow: '0 0 6px rgba(234, 179, 8, 0.3)' }
+                : {}
+          }
+        >
+          {timeStr}
+        </span>
+      </div>
+
+      {/* Line 2 (desktop only): threat name + full type */}
+      <div className="hidden lg:flex items-center gap-1.5 mt-0.5 pl-7">
+        <span
+          className="text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider"
+          style={{ backgroundColor: `${color}20`, color }}
+        >
+          {threat.type === 'hypersonic' ? 'HYPERSONIC' : threat.type.toUpperCase()}
+        </span>
+        <span className="text-[10px] font-mono text-green-400/70 truncate">
+          {threatName}
+        </span>
+      </div>
     </div>
   );
 }

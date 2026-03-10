@@ -301,19 +301,32 @@ To make a level **harder** (higher score):
 
 | Breakpoint | Width | Layout |
 |-----------|-------|--------|
-| Phone | < 768px | Stacked: radar (60vh) → mobile threat strip → controls. No threat panel. |
-| Tablet (iPad portrait) | 768-1023px | Side-by-side: radar + threat panel, controls at bottom. No keyboard shortcuts shown. |
-| Desktop | ≥ 1024px | Full layout with keyboard shortcut badges and hints. |
+| Phone | < 768px | Stacked: radar (flex-1) → compact threat table (max-h-240px) → controls. |
+| Tablet (iPad portrait) | 768-1023px | Stacked: radar → compact threat table → controls. No keyboard shortcuts. |
+| Desktop | ≥ 1024px | Side-by-side: radar (flex-5) + threat table (flex-3). Keyboard shortcuts shown. |
+
+### Compact Threat Table (ThreatPanel.jsx)
+Replaced verbose cards with compact single-line rows per threat: `T{id} TYPE ▸ IMPACT_ZONE countdown`.
+- On desktop (`lg:`): two-line rows — line 1 is the compact row, line 2 shows full type badge + threat name
+- On phone/tablet: single-line rows only (~32px each, all threats fit without scrolling)
+- Sorted by urgency (ascending timeLeft), held threats sorted to bottom
+- Visible at ALL breakpoints (no more hidden panel on mobile)
 
 ### Key responsive patterns:
 - **Viewport**: `width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no`
-- **Mobile threat strip** (`MobileSelectedThreat` in App.jsx): Shows selected threat type, impact zone, countdown + active count. Uses `md:hidden`.
-- **Threat panel**: `hidden md:block` — hidden on phone, visible on tablet+
+- **Side-by-side layout**: `lg:flex-row` — only at 1024px+ (desktop/tablet landscape)
 - **Keyboard shortcut badges**: `hidden lg:flex` — only shown on desktop
 - **Keyboard hint text**: `hidden lg:block` — only shown on desktop
 - **Radar blip tap targets**: Invisible circle `r=10` for touch (r=10 in 100-unit SVG viewBox)
+- **Radar sizing**: `maxWidth: 600px, maxHeight: 100%, aspectRatio: 1` — fits container without clipping
 - **Top bar**: Hebrew names hidden on phone (`hidden md:inline`), front names hidden on smallest screens (`hidden sm:inline`)
 - **Control buttons**: Compact text on phone (`text-[10px] md:text-sm`), no ammo dots on phone (`hidden sm:flex`)
+
+## Workflow Rules
+- **Never ask for permission** — just do the work and show results. User will playtest and give feedback.
+- Keep dev server running after changes so user can playtest immediately.
+- When making UI changes, test at all 3 breakpoints (phone 375×812, tablet 768×1024, desktop 1366×800).
+- Deploy fully when asked (commit main → build → push → gh-pages deploy cycle).
 
 ## Important Conventions
 - **MUTE GAME IN PREVIEW**: Always mute audio before playtesting: `document.querySelectorAll('audio,video').forEach(a=>{a.muted=true;a.pause()})`
