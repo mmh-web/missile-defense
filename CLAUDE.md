@@ -38,18 +38,27 @@ Built for classroom/escape-room use with facilitator controls and escape room ti
 | L4 | Strategic infrastructure | Ballistic missiles | Arrow 2 (key 3) | `THREATS_L4` |
 | L5 | Military bases | Hypersonic glide vehicles | Arrow 3 (key 4) | **`THREATS_L6`** (swapped!) |
 | L6 | Full map, all fronts | — | — | **`THREATS_L5`** (swapped!) |
-| L7 | Full map, multi-front salvos | — | — | `THREATS_L7` |
+| L7 ★ | Full map, multi-front salvos | — | — | `THREATS_L7` |
+
+**★ L7 is a BONUS LEVEL** — disabled by default, toggled on via facilitator panel. Campaign ends after L6 unless bonus is enabled.
 
 **CRITICAL: THREATS_L5 and THREATS_L6 arrays are SWAPPED.** Level 5 in-game uses `THREATS_L6`, Level 6 uses `THREATS_L5`. This is intentional — the arrays were restructured but keeping IDs stable was prioritized over renaming.
 
 ## Interceptor-to-Threat Mapping
 
-| System | Key | Intercepts | Color |
-|--------|-----|-----------|-------|
-| Iron Dome | 1 | Rockets + Drones | `#eab308` (yellow) |
-| David's Sling | 2 | Cruise missiles | `#3b82f6` (blue) |
-| Arrow 2 | 3 | Ballistic missiles | `#ef4444` (red) |
-| Arrow 3 | 4 | Hypersonic glide vehicles | `#a855f7` (purple) |
+| System | Key | Primary Targets | Cross-Compatible | Color |
+|--------|-----|----------------|-----------------|-------|
+| Iron Dome | 1 | Rockets + Drones | — | `#eab308` (yellow) |
+| David's Sling | 2 | Cruise missiles | Also intercepts rockets & drones (wasteful) | `#3b82f6` (blue) |
+| Arrow 2 | 3 | Ballistic missiles | — (can't engage low-altitude threats) | `#ef4444` (red) |
+| Arrow 3 | 4 | Hypersonic glide vehicles | Also intercepts ballistic missiles (both high-altitude) | `#a855f7` (purple) |
+
+### Cross-Compatibility Rules (realistic physics)
+- **David's Sling → rockets/drones**: Works but wastes $1M interceptor on a $50K target. Shows warning.
+- **Arrow 3 → ballistic missiles**: Works — both operate at high altitude/exoatmospheric.
+- **Arrow 2 → low-altitude**: FAILS — operates at 15-80km, can't engage rockets/drones below 10km.
+- **Arrow 3 → low-altitude**: FAILS — operates in space (100km+), can't engage atmospheric threats.
+- The natural ammo cost IS the penalty — no artificial point deduction for cross-compatible intercepts.
 
 ## Threat System
 
@@ -74,6 +83,15 @@ threat(id, appear_time, type, impact_zone, is_populated, countdown, intel, revea
 - **L2**: +3 surplus per interceptor type (still learning, new threat type)
 - **L3-L6**: +2 surplus per interceptor type above live threat count
 - **L7**: Zero margin — exactly enough ammo (no room for error)
+
+### Respite Design
+Each level has designed breathing gaps (5-11s with no threats on screen) between dense phases:
+- **L1**: 11s respite between pair phase and final surge (t≈47-58)
+- **L2**: Multiple gaps in first 2/3 of level (HF rockets removed from gap periods)
+- **L3**: Gaps between 3 phases (HF removed from inter-phase periods)
+- **L4**: 4 clear phases with 3 respites (8s, 7s, 6s between phases)
+- **L5**: Inter-wave gaps preserved (HF + some live threats removed)
+- **CRITICAL**: Never place HF rockets in designed respite gaps — they fill the screen and defeat the purpose. HF should only appear DURING active phases.
 
 ### L1 Variant System
 Level 1 has two threat arrays: `THREATS_L1` and `THREATS_L1_B`. One is randomly selected each playthrough via `pickThreatVariant()`. Same timing/countdowns/HF rockets, different city target assignments so repeat players can't memorize.
@@ -109,11 +127,13 @@ Level 1 has two threat arrays: `THREATS_L1` and `THREATS_L1_B`. One is randomly 
 PRE_GAME → SCORING_INTRO → BRIEFING (L1 only, has quiz)
                           → LEVEL_INTRO (L2+, no quiz)
 → ACTIVE (gameplay) → LEVEL_COMPLETE → next level's BRIEFING/INTRO
-                                      → SUMMARY (after L7 or escape room timeout)
+                                      → SUMMARY (after L6, or L7 if bonus enabled, or escape room timeout)
 ```
 
 ## Scoring
 - Correct intercept (populated target): +100 points, streak++
+- Cross-compatible intercept: +100 points, streak++ (but ammo wasted from wrong tier)
+- Combo bonus: +50 when 2 intercepts within 2 seconds ("DOUBLE INTERCEPT")
 - Correct hold (open ground): streak++, no points
 - Wrong interceptor: streak reset, ammo wasted
 - Wasted intercept (correct system on open ground): streak++, warning
@@ -121,6 +141,21 @@ PRE_GAME → SCORING_INTRO → BRIEFING (L1 only, has quiz)
 - Quiz bonus: +250 per correct answer (2 questions per level)
 - Surplus ammo bonus: +250 per unused interceptor (only surplus beyond what was needed)
 - Streak bonus: bestStreak x 25
+
+## Gameplay Feedback Features
+- **Near-miss callout**: "CLOSE CALL!" when intercepting with <2s remaining on countdown
+- **Combo system**: 2 intercepts within 2 seconds → "DOUBLE INTERCEPT!" cyan flash overlay, +50 bonus points
+- **Tzeva Adom city name**: Red alert overlay now shows which city was hit (e.g., "Sderot HIT")
+- **Tactical debrief**: LevelComplete screen shows real-world cost connections (e.g., "3 correct holds saved ~$150K")
+- **Cheat code hints**: L2/L3 complete screens show subtle classified intel teasing keyboard sequences
+- **Shareable results card**: Campaign summary has screenshot-friendly score box for classroom sharing
+
+## Quiz System
+- 2 questions per level, randomly selected from pool of 12-14
+- L1-L3: Primarily factual recall (geography, system specs, costs)
+- L4-L6: Mix of recall + application/analysis questions (e.g., "Why can't Iron Dome intercept a ballistic missile?")
+- L7: Cost-exchange ratio and strategic doctrine questions
+- `linkedFacts` system ensures questions relate to facts shown in that session's briefing
 
 ## Blip Animation
 - Position: `spawn + (target - spawn) * progress` where progress = timeElapsed / countdown
@@ -150,15 +185,27 @@ PRE_GAME → SCORING_INTRO → BRIEFING (L1 only, has quiz)
 - Facilitator can add/remove time via controls panel
 
 ## Deployment Workflow
+
+### Git Remotes
+- **origin** → `mmh-web/missile-defense` (primary, user's main GitHub account)
+- **mmh-cyber-backup** → `mmh-cyber/missile-defense` (backup copy)
+- **Always push to BOTH remotes** on every deploy
+
+### Live URLs
+- https://mmh-web.github.io/missile-defense/ (primary)
+- https://mmh-cyber.github.io/missile-defense/ (backup)
+
+### Steps
 1. Edit source files in `/Users/mhecht/Desktop/missile-defense/`
 2. If using a worktree, copy changed files to worktree for dev server preview
 3. Build: `npx vite build` (outputs to `dist/`)
-4. Commit source + dist to `main`, push
+4. Commit source + dist to `main`, push to both: `git push origin main && git push mmh-cyber-backup main`
 5. Deploy to gh-pages:
    - `git stash && git checkout gh-pages`
    - Copy `dist/assets/*` → `assets/` and `dist/index.html` → `index.html` (flat structure, no dist/ prefix)
    - Remove old asset files, add new ones
-   - Commit, push, switch back: `git checkout main && git stash pop`
+   - Commit, push to both: `git push origin gh-pages && git push mmh-cyber-backup gh-pages`
+   - Switch back: `git checkout main && git stash pop`
 
 **gh-pages structure is FLAT**: `index.html` + `assets/` at repo root, NOT inside `dist/`.
 
