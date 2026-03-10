@@ -39,6 +39,11 @@ export default function App() {
   useEffect(() => { showFacilitatorRef.current = showFacilitator; }, [showFacilitator]);
   const [facilitatorUnlocked, setFacilitatorUnlocked] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [leaderboardEntries, setLeaderboardEntries] = useState([]);
+  const openLeaderboard = useCallback(() => {
+    setShowLeaderboard(true);
+    getLeaderboard('CAMPAIGN').then(setLeaderboardEntries);
+  }, []);
   const [skipBriefings, setSkipBriefings] = useState(false);
   const seenBriefingsRef = useRef(new Set());
   const briefingMusicRef = useRef(null);
@@ -414,7 +419,7 @@ export default function App() {
         {/* Top-right controls */}
         <div className="absolute top-4 right-4 flex items-center gap-3">
           <button
-            onClick={() => setShowLeaderboard(true)}
+            onClick={openLeaderboard}
             className="text-gray-600 hover:text-yellow-400 transition-colors cursor-pointer text-2xl"
             title="Leaderboard"
           >
@@ -456,7 +461,7 @@ export default function App() {
           </button>
 
           <button
-            onClick={() => setShowLeaderboard(true)}
+            onClick={openLeaderboard}
             className="mt-4 px-6 py-2 border border-gray-700 text-gray-500
               font-mono text-xs tracking-widest rounded
               hover:border-gray-500 hover:text-gray-400 transition-all
@@ -479,7 +484,7 @@ export default function App() {
           <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/80 backdrop-blur-sm">
             <div className="max-w-lg w-full mx-4">
               <LeaderboardTable
-                entries={getLeaderboard('CAMPAIGN')}
+                entries={leaderboardEntries}
                 gameMode="CAMPAIGN"
               />
               <div className="text-center mt-4">

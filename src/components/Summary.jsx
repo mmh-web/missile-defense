@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getLeaderboard, saveScore, isHighScore } from '../utils/leaderboard.js';
+import { getLeaderboard, saveScore, isHighScore, subscribeLeaderboard } from '../utils/leaderboard.js';
 
 export default function Summary({ stats, levelStats, onReset }) {
   const {
@@ -20,46 +20,46 @@ export default function Summary({ stats, levelStats, onReset }) {
 
   const [callsign, setCallsign] = useState('');
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [leaderboard, setLeaderboard] = useState([]);
   const [savedEntryTimestamp, setSavedEntryTimestamp] = useState(null);
 
+  // Subscribe to real-time leaderboard updates
   useEffect(() => {
-    setLeaderboard(getLeaderboard('CAMPAIGN'));
+    // Load initial data
+    getLeaderboard('CAMPAIGN').then(setLeaderboard);
+    // Subscribe for live updates from other devices
+    const unsub = subscribeLeaderboard('CAMPAIGN', setLeaderboard);
+    return () => unsub();
   }, []);
 
   const stars = Array.from({ length: 5 }, (_, i) => i < rating.stars);
-  const canSave = callsign.length >= 1 && !saved;
+  const canSave = callsign.length >= 1 && !saved && !saving;
   const madeHighScore = isHighScore(totalScore, 'CAMPAIGN');
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!canSave) return;
-    const entry = saveScore({
-      name: callsign,
-      score: totalScore,
-      stars: rating.stars,
-      rating: rating.label,
-      gameMode: 'CAMPAIGN',
-      levelsCompleted,
-      correctIntercepts: totalCorrectIntercepts,
-      sirenCount: totalSirens,
-      bestStreak: overallBestStreak,
-    });
-    setSaved(true);
-    setSavedEntryTimestamp(entry.timestamp);
-    setLeaderboard(getLeaderboard('CAMPAIGN'));
-  };
-
-  const handleSubmit = () => {
-    if (!teamName.trim()) return;
-    saveToLeaderboard({
-      teamName: teamName.trim().toUpperCase(),
-      score,
-      stars: rating.stars,
-      sirenCount,
-      gameMode,
-      date: new Date().toISOString(),
-    });
-    setSubmitted(true);
+    setSaving(true);
+    try {
+      const entry = await saveScore({
+        name: callsign,
+        score: totalScore,
+        stars: rating.stars,
+        rating: rating.label,
+        gameMode: 'CAMPAIGN',
+        levelsCompleted,
+        correctIntercepts: totalCorrectIntercepts,
+        sirenCount: totalSirens,
+        bestStreak: overallBestStreak,
+      });
+      setSaved(true);
+      setSavedEntryTimestamp(entry.timestamp);
+      // Leaderboard auto-updates via subscription
+    } catch (err) {
+      console.warn('Save failed:', err);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -203,7 +203,7 @@ export default function Summary({ stats, levelStats, onReset }) {
                     : 'border-gray-700 bg-gray-900 text-gray-600 cursor-not-allowed'
                 }`}
             >
-              {saved ? 'SAVED' : 'SAVE SCORE'}
+              {saved ? 'SAVED' : saving ? 'SAVING...' : 'SAVE SCORE'}
             </button>
           </div>
         </div>
