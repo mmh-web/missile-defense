@@ -30,7 +30,8 @@ function formatCountdown(seconds) {
 }
 
 export default function App() {
-  const game = useGameEngine();
+  const [bonusLevelEnabled, setBonusLevelEnabled] = useState(false);
+  const game = useGameEngine({ bonusLevelEnabled });
   // TEMP DEBUG: expose game to console for visual testing
   window.__game = game;
   const [showFacilitator, setShowFacilitator] = useState(false);
@@ -352,6 +353,8 @@ export default function App() {
       onAddTime={addEscapeTime}
       skipBriefings={skipBriefings}
       onToggleSkipBriefings={() => setSkipBriefings((prev) => !prev)}
+      bonusLevelEnabled={bonusLevelEnabled}
+      onToggleBonusLevel={() => setBonusLevelEnabled((prev) => !prev)}
     />
   );
 

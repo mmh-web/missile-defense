@@ -50,7 +50,13 @@ export function clearLeaderboard() {
   localStorage.removeItem(LB_KEY);
 }
 
-export default function useGameEngine() {
+export default function useGameEngine({ bonusLevelEnabled = false } = {}) {
+  // When bonus is OFF, campaign ends after L6 (effectiveTotalLevels = 6)
+  // When bonus is ON, L7 is included (effectiveTotalLevels = 7)
+  const effectiveTotalLevels = bonusLevelEnabled ? TOTAL_LEVELS : TOTAL_LEVELS - 1;
+  const effectiveTotalLevelsRef = useRef(effectiveTotalLevels);
+  effectiveTotalLevelsRef.current = effectiveTotalLevels;
+
   const [currentLevel, setCurrentLevel] = useState(1);
   const [gameState, setGameState] = useState(GAME_STATES.PRE_GAME);
   const [sessionTime, setSessionTime] = useState(0);
@@ -674,7 +680,18 @@ export default function useGameEngine() {
     if (ammoRef.current[action] <= 0) return;
     setAmmo((prev) => ({ ...prev, [action]: prev[action] - 1 }));
 
-    const isCorrect = action === threat.correct_action;
+    // Cross-compatibility: higher-tier systems CAN engage lower-tier threats (realistic physics)
+    // David's Sling can intercept rockets & drones (upgraded for versatility, but wastes expensive ammo)
+    // Arrow 3 can intercept ballistic missiles (both operate at high altitude/exoatmospheric)
+    // Arrow 2 CANNOT engage low-altitude threats (operates at 15-80km, rockets/drones fly below 10km)
+    // Arrow 3 CANNOT engage low-altitude threats (operates in space, 100km+)
+    const CROSS_COMPATIBLE = {
+      davids_sling: ['iron_dome'],   // David's Sling can also do Iron Dome's job
+      arrow_3: ['arrow_2'],          // Arrow 3 can also do Arrow 2's job
+    };
+    const isExactMatch = action === threat.correct_action;
+    const isCrossCompatible = !isExactMatch && (CROSS_COMPATIBLE[action] || []).includes(threat.correct_action);
+    const isCorrect = isExactMatch || isCrossCompatible;
 
     if (isCorrect) {
       // Synchronously mark as intercepted BEFORE any async state updates
@@ -694,15 +711,21 @@ export default function useGameEngine() {
         setActiveThreats((prev) => prev.filter((t) => t.id !== threatId));
       }, 650);
 
+      // Cross-compatible intercept feedback: works but warns about wasted expensive ammo
+      const SYSTEM_NAMES_FB = { iron_dome: 'Iron Dome', davids_sling: "David's Sling", arrow_2: 'Arrow 2', arrow_3: 'Arrow 3' };
+      const crossWarning = isCrossCompatible
+        ? ` — ${SYSTEM_NAMES_FB[action]} works but costs far more than ${SYSTEM_NAMES_FB[threat.correct_action]}!`
+        : '';
+
       if (threat.is_populated) {
-        setResultLog((prev) => [...prev, { ...threat, result: 'correct_intercept', siren: false }]);
+        setResultLog((prev) => [...prev, { ...threat, result: isCrossCompatible ? 'cross_intercept' : 'correct_intercept', siren: false }]);
         addTrail(action, threat, 'intercept', '+100');
         setStreak((s) => {
           const next = s + 1;
           setBestStreak((b) => Math.max(b, next));
           return next;
         });
-        showFeedback('INTERCEPTION SUCCESSFUL', 'success');
+        showFeedback(isCrossCompatible ? `INTERCEPTION SUCCESSFUL${crossWarning}` : 'INTERCEPTION SUCCESSFUL', isCrossCompatible ? 'warning' : 'success');
       } else {
         setResultLog((prev) => [...prev, { ...threat, result: 'wasted_intercept', siren: false }]);
         addTrail(action, threat, 'intercept');
@@ -788,7 +811,7 @@ export default function useGameEngine() {
 
     // End level — time ran out
     if (sessionTime >= config.duration) {
-      if (currentLevel >= TOTAL_LEVELS) {
+      if (currentLevel >= effectiveTotalLevelsRef.current) {
         setGameState(GAME_STATES.SUMMARY);
       } else {
         setGameState(GAME_STATES.LEVEL_COMPLETE);
@@ -813,7 +836,7 @@ export default function useGameEngine() {
         const delay = Math.max(config.auto_end_delay, remainingMs + 1000);
         autoEndTimerRef.current = setTimeout(() => {
           if (gameStateRef.current === GAME_STATES.ACTIVE) {
-            if (currentLevelRef.current >= TOTAL_LEVELS) {
+            if (currentLevelRef.current >= effectiveTotalLevelsRef.current) {
               setGameState(GAME_STATES.SUMMARY);
             } else {
               setGameState(GAME_STATES.LEVEL_COMPLETE);
@@ -961,9 +984,9 @@ export default function useGameEngine() {
   // Get current level stats
   const getLevelStats = useCallback(() => {
     const totalThreats = resultLog.length;
-    const correctIntercepts = resultLog.filter((r) => r.result === 'correct_intercept').length;
-    const regularIntercepts = resultLog.filter((r) => r.result === 'correct_intercept' && !r.cheatAssisted).length;
-    const cheatIntercepts = resultLog.filter((r) => r.result === 'correct_intercept' && r.cheatAssisted).length;
+    const correctIntercepts = resultLog.filter((r) => r.result === 'correct_intercept' || r.result === 'cross_intercept').length;
+    const regularIntercepts = resultLog.filter((r) => (r.result === 'correct_intercept' || r.result === 'cross_intercept') && !r.cheatAssisted).length;
+    const cheatIntercepts = resultLog.filter((r) => (r.result === 'correct_intercept' || r.result === 'cross_intercept') && r.cheatAssisted).length;
     const populatedThreats = resultLog.filter((r) => r.is_populated).length;
     const correctHolds = resultLog.filter((r) => r.result === 'correct_hold').length;
     const openGroundThreats = resultLog.filter((r) => !r.is_populated).length;
@@ -1024,8 +1047,8 @@ export default function useGameEngine() {
 
   // Running score — same formula as getLevelStats, usable during gameplay
   const getRunningScore = useCallback(() => {
-    const regularIntercepts = resultLog.filter((r) => r.result === 'correct_intercept' && !r.cheatAssisted).length;
-    const cheatIntercepts = resultLog.filter((r) => r.result === 'correct_intercept' && r.cheatAssisted).length;
+    const regularIntercepts = resultLog.filter((r) => (r.result === 'correct_intercept' || r.result === 'cross_intercept') && !r.cheatAssisted).length;
+    const cheatIntercepts = resultLog.filter((r) => (r.result === 'correct_intercept' || r.result === 'cross_intercept') && r.cheatAssisted).length;
 
     const ammoRemaining = Object.values(ammoRef.current).reduce((sum, v) => sum + v, 0);
     const levelConfig = getLevelConfig(currentLevelRef.current);
@@ -1191,7 +1214,7 @@ export default function useGameEngine() {
   const advanceLevel = useCallback(() => {
     saveLevelToCampaign();
     const nextLevel = currentLevelRef.current + 1;
-    if (nextLevel > TOTAL_LEVELS) {
+    if (nextLevel > effectiveTotalLevelsRef.current) {
       setGameState(GAME_STATES.SUMMARY);
     } else {
       setCurrentLevel(nextLevel);

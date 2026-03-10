@@ -23,9 +23,9 @@ function ThreatCard({ threat, isSelected, onSelect }) {
   const intel = threat.intel || 'full';
   const isHeld = threat.held;
 
-  // Urgency background tint
+  // Urgency background tint — uses amber (not red) to avoid conflict with ballistic missile color
   const urgencyBg = isCritical
-    ? 'bg-red-950/30'
+    ? 'bg-amber-950/30'
     : isWarning
       ? 'bg-yellow-950/20'
       : isSelected && !isHeld
@@ -47,11 +47,11 @@ function ThreatCard({ threat, isSelected, onSelect }) {
         ${urgency}
       `}
       style={{
-        borderTop: `2px solid ${isCritical ? '#ef4444' : isSelected ? color : '#374151'}`,
-        borderRight: `2px solid ${isCritical ? '#ef4444' : isSelected ? color : '#374151'}`,
-        borderBottom: `2px solid ${isCritical ? '#ef4444' : isSelected ? color : '#374151'}`,
-        borderLeft: `4px solid ${isCritical ? '#ef4444' : color}`,
-        boxShadow: isCritical ? '0 0 20px rgba(239, 68, 68, 0.3)' : isSelected ? `0 0 15px ${color}40` : 'none',
+        borderTop: `2px solid ${isCritical ? '#f59e0b' : isSelected ? color : '#374151'}`,
+        borderRight: `2px solid ${isCritical ? '#f59e0b' : isSelected ? color : '#374151'}`,
+        borderBottom: `2px solid ${isCritical ? '#f59e0b' : isSelected ? color : '#374151'}`,
+        borderLeft: `4px solid ${isCritical ? '#f59e0b' : color}`,
+        boxShadow: isCritical ? '0 0 20px rgba(245, 158, 11, 0.3)' : isSelected ? `0 0 15px ${color}40` : 'none',
       }}
     >
       {/* Prominent Threat ID */}
@@ -124,7 +124,7 @@ function ThreatCard({ threat, isSelected, onSelect }) {
         {threat.impactRevealed ? (
           <span
             className={`text-sm font-bold font-mono ${
-              threat.is_populated ? 'text-red-500' : 'text-gray-500'
+              threat.is_populated ? 'text-amber-500' : 'text-gray-500'
             }`}
           >
             {threat.impact_zone.toUpperCase()}
@@ -138,14 +138,14 @@ function ThreatCard({ threat, isSelected, onSelect }) {
 
       {/* Countdown */}
       <div className="mt-2 flex items-center justify-between">
-        <div className={`text-xs font-mono ${isCritical ? 'text-red-400 font-bold tracking-widest' : 'text-gray-500'}`}>
+        <div className={`text-xs font-mono ${isCritical ? 'text-amber-400 font-bold tracking-widest' : 'text-gray-500'}`}>
           {isCritical ? '⚠ TIME LEFT' : 'TIME LEFT'}
         </div>
         <div
           className={`text-2xl font-bold font-mono tabular-nums ${
-            isCritical ? 'text-red-500 animate-pulse' : isWarning ? 'text-yellow-500' : 'text-green-400'
+            isCritical ? 'text-amber-500 animate-pulse' : isWarning ? 'text-yellow-500' : 'text-green-400'
           }`}
-          style={isCritical ? { textShadow: '0 0 12px rgba(239, 68, 68, 0.6)' } : isWarning ? { textShadow: '0 0 8px rgba(234, 179, 8, 0.3)' } : {}}
+          style={isCritical ? { textShadow: '0 0 12px rgba(245, 158, 11, 0.6)' } : isWarning ? { textShadow: '0 0 8px rgba(234, 179, 8, 0.3)' } : {}}
         >
           {formatTime(threat.timeLeft)}
         </div>
@@ -195,8 +195,8 @@ export default function ThreatPanel({
       <div className="text-xs text-green-500/50 font-mono tracking-widest mb-1 uppercase">
         Threat Analysis — {activeThreats.filter((t) => !t.intercepted).length} Active
       </div>
-      <div className="text-[10px] text-cyan-400/50 font-mono mb-3">
-        Click a threat card or radar blip to select, then fire
+      <div className="text-xs text-cyan-400/80 font-mono mb-3 tracking-wide">
+        ▸ Click a threat card or radar blip to select, then fire
       </div>
       <div className="flex-1 overflow-y-auto pr-1 custom-scrollbar">
         {[...activeThreats]

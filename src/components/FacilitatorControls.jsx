@@ -23,6 +23,8 @@ export default function FacilitatorControls({
   onAddTime,
   skipBriefings,
   onToggleSkipBriefings,
+  bonusLevelEnabled,
+  onToggleBonusLevel,
 }) {
   const [codeInput, setCodeInput] = useState('');
   const [codeError, setCodeError] = useState(false);
@@ -106,7 +108,7 @@ export default function FacilitatorControls({
               </button>
             </div>
             <div className="text-[10px] text-gray-600 font-mono mb-3">
-              {escapeRoomMode ? 'TIMER ACTIVE — CAMPAIGN AUTO-ENDS AT 0:00' : 'NO TIMER — PLAY ALL 7 LEVELS'}
+              {escapeRoomMode ? 'TIMER ACTIVE — CAMPAIGN AUTO-ENDS AT 0:00' : `NO TIMER — PLAY ALL ${bonusLevelEnabled ? 7 : 6} LEVELS`}
             </div>
 
             {/* Timer duration slider + add time — only when escape room mode ON */}
@@ -174,6 +176,31 @@ export default function FacilitatorControls({
           </div>
         )}
 
+        {/* Bonus Level (L7) toggle — unlocked only */}
+        {unlocked && (
+          <div className="mb-6">
+            <div className="h-px bg-gray-800 mb-4" />
+            <div className="flex items-center justify-between">
+              <label className="text-xs text-gray-500 font-mono tracking-wider">
+                BONUS LEVEL (L7)
+              </label>
+              <button
+                onClick={onToggleBonusLevel}
+                className={`relative w-11 h-6 rounded-full transition-colors cursor-pointer ${
+                  bonusLevelEnabled ? 'bg-amber-600' : 'bg-gray-700'
+                }`}
+              >
+                <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform ${
+                  bonusLevelEnabled ? 'translate-x-5' : ''
+                }`} />
+              </button>
+            </div>
+            <div className="text-[10px] text-gray-600 font-mono mt-1">
+              {bonusLevelEnabled ? 'L7 ENABLED — ZERO-MARGIN FINAL CHALLENGE' : 'CAMPAIGN ENDS AFTER L6'}
+            </div>
+          </div>
+        )}
+
         {/* Game controls — pause/resume during active game, always behind unlock */}
         {unlocked && !isPreGame && (
           <div className="space-y-3 mb-6">
@@ -201,7 +228,7 @@ export default function FacilitatorControls({
               JUMP TO LEVEL
             </label>
             <div className="grid grid-cols-5 gap-2">
-              {Array.from({ length: TOTAL_LEVELS }, (_, i) => i + 1).map((level) => (
+              {Array.from({ length: bonusLevelEnabled ? TOTAL_LEVELS : TOTAL_LEVELS - 1 }, (_, i) => i + 1).map((level) => (
                 <button
                   key={level}
                   onClick={() => handleJump(level)}

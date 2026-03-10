@@ -203,7 +203,7 @@ export const THREAT_ORIGINS = [
   { name: 'Gaza',    angle: 270, arcSpan: 20, activeLevels: [1, 3, 4, 5, 6, 7] },    // W (verified: ~270°)
   { name: 'Lebanon', angle: 0,   arcSpan: 35, activeLevels: [2, 3, 4, 5, 6, 7] },    // N — spans northern border (~342.5° to 17.5°)
   { name: 'Syria',   angle: 48,  arcSpan: 35, activeLevels: [2, 4, 5, 6, 7] },       // NE — Golan/eastern border (~30° to 66°)
-  { name: 'Iran',    angle: 100, arcSpan: 25, activeLevels: [3, 4, 5, 6, 7] },        // E-ESE — between Syria and Yemen (~87° to 113°)
+  { name: 'Iran',    angle: 100, arcSpan: 40, activeLevels: [3, 4, 5, 6, 7] },        // E-ESE — wide arc covers SPAWN_FAR entry (~80° to 120°)
   { name: 'Yemen',   angle: 155, arcSpan: 25, activeLevels: [5, 6, 7] },              // SSE (~142° to 168°) — first appears at L5
 ];
 

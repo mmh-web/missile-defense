@@ -8,7 +8,7 @@ import {
   getVisibleRegions,
   getVisibleThreatOrigins,
 } from '../config/mapLayers.js';
-import { getSpawnOrigin, SPAWN_NEAR } from '../config/spawnOrigins.js';
+import { getSpawnOrigin, SPAWN_NEAR, SPAWN_FAR } from '../config/spawnOrigins.js';
 
 // Per-city label offset directions
 const LABEL_OFFSETS = {
@@ -60,12 +60,29 @@ function getBlipPosition(threat) {
   const timeLeft = threat.intercepted ? threat.frozenTimeLeft : threat.timeLeft;
   const linearProgress = 1 - timeLeft / threat.countdown;
   const progress = easeProgress(linearProgress, threat.type);
-  const start = getSpawnOrigin(threat.type, threat.origin);
+  const baseStart = getSpawnOrigin(threat.type, threat.origin);
+  // Spread simultaneous threats from the same origin so blips don't perfectly overlap.
+  // Deterministic offset based on threat ID — perpendicular to the flight path.
+  const dx = target.x - baseStart.x;
+  const dy = target.y - baseStart.y;
+  const len = Math.sqrt(dx * dx + dy * dy) || 1;
+  // Perpendicular unit vector
+  const perpX = -dy / len;
+  const perpY = dx / len;
+  // Spread: each threat gets a unique offset along the perpendicular axis
+  const spreadAmount = 0.018; // map units — enough to separate blips visually
+  const idOffset = ((threat.id * 7 + 3) % 5 - 2) * spreadAmount; // range: -0.036 to +0.036
+  // Offset fades as threat approaches target (fully gone at 40% progress)
+  const fadeFactor = Math.max(0, 1 - progress / 0.4);
+  const start = {
+    x: baseStart.x + perpX * idOffset * fadeFactor,
+    y: baseStart.y + perpY * idOffset * fadeFactor,
+  };
   return {
     x: start.x + (target.x - start.x) * progress,
     y: start.y + (target.y - start.y) * progress,
-    originX: start.x,
-    originY: start.y,
+    originX: baseStart.x,
+    originY: baseStart.y,
   };
 }
 
@@ -277,7 +294,12 @@ function ThreatOriginArc({ origin, viewport, currentLevel }) {
   const innerR = 36;
 
   const spawnKey = ORIGIN_SPAWN_KEY[origin.name];
-  const spawnPos = SPAWN_NEAR[spawnKey];
+  // Far-range origins (Iran, Yemen) should compute angle from SPAWN_FAR,
+  // since their threats enter the radar from the far spawn point, not the border.
+  const FAR_ORIGINS = ['Iran', 'Yemen'];
+  const spawnPos = FAR_ORIGINS.includes(origin.name)
+    ? (SPAWN_FAR[spawnKey] || SPAWN_NEAR[spawnKey])
+    : SPAWN_NEAR[spawnKey];
 
   let effectiveAngle = origin.angle; // fallback to static angle
   if (spawnPos && viewport) {
@@ -903,9 +925,9 @@ export default function RadarDisplay({
               // Bases/infra get larger labels/dots when they're the focus
               const baseDotRadius = currentLevel === 5 ? 1.2 : dotRadius;
               const baseLabelSize = currentLevel === 5 ? 2.2 : labelSize;
-              // Infrastructure gets slightly prominent labels at L4 (but not oversized)
-              const infraDotRadius = currentLevel === 4 ? 1.0 : dotRadius;
-              const infraLabelSize = currentLevel === 4 ? 1.8 : labelSize;
+              // Infrastructure gets prominent labels at L4 (matching city label size)
+              const infraDotRadius = currentLevel === 4 ? 1.1 : dotRadius;
+              const infraLabelSize = currentLevel === 4 ? 2.2 : labelSize;
 
               // Visibility filtering:
               // - Tier 1 cities: always shown
@@ -1037,13 +1059,13 @@ export default function RadarDisplay({
                       <text
                         x={p.x + offset.dx * offsetScale * baseBoost}
                         y={p.y + offset.dy * offsetScale * baseBoost + fontSize * 1.15}
-                        fill="rgba(180, 210, 255, 0.55)"
-                        fontSize={fontSize * 0.65}
+                        fill="rgba(180, 210, 255, 0.8)"
+                        fontSize={fontSize * 0.85}
                         fontFamily="monospace"
                         textAnchor={offset.anchor}
                         paintOrder="stroke"
-                        stroke="rgba(10, 14, 26, 0.7)"
-                        strokeWidth="0.35"
+                        stroke="rgba(10, 14, 26, 0.8)"
+                        strokeWidth="0.45"
                       >
                         pop. {city.population}
                       </text>
