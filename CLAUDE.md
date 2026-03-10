@@ -297,6 +297,24 @@ To make a level **harder** (higher score):
 - `isHighScore()` uses localStorage only for instant sync check
 - If Firestore is down, everything degrades gracefully to localStorage-only
 
+## Responsive Design (Mobile + Tablet + Desktop)
+
+| Breakpoint | Width | Layout |
+|-----------|-------|--------|
+| Phone | < 768px | Stacked: radar (60vh) → mobile threat strip → controls. No threat panel. |
+| Tablet (iPad portrait) | 768-1023px | Side-by-side: radar + threat panel, controls at bottom. No keyboard shortcuts shown. |
+| Desktop | ≥ 1024px | Full layout with keyboard shortcut badges and hints. |
+
+### Key responsive patterns:
+- **Viewport**: `width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no`
+- **Mobile threat strip** (`MobileSelectedThreat` in App.jsx): Shows selected threat type, impact zone, countdown + active count. Uses `md:hidden`.
+- **Threat panel**: `hidden md:block` — hidden on phone, visible on tablet+
+- **Keyboard shortcut badges**: `hidden lg:flex` — only shown on desktop
+- **Keyboard hint text**: `hidden lg:block` — only shown on desktop
+- **Radar blip tap targets**: Invisible circle `r=10` for touch (r=10 in 100-unit SVG viewBox)
+- **Top bar**: Hebrew names hidden on phone (`hidden md:inline`), front names hidden on smallest screens (`hidden sm:inline`)
+- **Control buttons**: Compact text on phone (`text-[10px] md:text-sm`), no ammo dots on phone (`hidden sm:flex`)
+
 ## Important Conventions
 - **MUTE GAME IN PREVIEW**: Always mute audio before playtesting: `document.querySelectorAll('audio,video').forEach(a=>{a.muted=true;a.pause()})`
 - `window.__game = game` debug hook exists in App.jsx — useful for testing (`window.__game.startLevel(3)`)

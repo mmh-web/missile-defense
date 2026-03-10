@@ -1197,9 +1197,9 @@ export default function RadarDisplay({
                   style={{ cursor: (threat.intercepted || threat.held) ? 'default' : 'pointer' }}
                   className={`${threat.intercepted ? 'intercepted-blip-fade' : threat.held ? 'held-blip-fade' : 'blip-hover'}`}
                 >
-                  {/* Invisible hit target — large for easy clicking */}
+                  {/* Invisible hit target — large for easy clicking/tapping on touch devices */}
                   {!threat.intercepted && !threat.held && (
-                    <circle cx={svgPos.x} cy={svgPos.y} r="8" fill="transparent" stroke="none" />
+                    <circle cx={svgPos.x} cy={svgPos.y} r="10" fill="transparent" stroke="none" />
                   )}
                   {/* Trajectory trail */}
                   <line

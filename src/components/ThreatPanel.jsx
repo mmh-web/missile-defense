@@ -36,7 +36,7 @@ function ThreatCard({ threat, isSelected, onSelect }) {
     <div
       onClick={() => !isHeld && onSelect(threat.id)}
       className={`
-        relative rounded p-3 mb-2 transition-all flex gap-3
+        relative rounded p-2 md:p-3 mb-1 md:mb-2 transition-all flex gap-2 md:gap-3
         ${isHeld
           ? 'opacity-50 cursor-default'
           : 'cursor-pointer'
@@ -56,7 +56,7 @@ function ThreatCard({ threat, isSelected, onSelect }) {
     >
       {/* Prominent Threat ID */}
       <div
-        className="flex-shrink-0 flex items-center justify-center w-12 h-12 rounded font-mono font-bold text-lg"
+        className="flex-shrink-0 flex items-center justify-center w-9 h-9 md:w-12 md:h-12 rounded font-mono font-bold text-sm md:text-lg"
         style={{ backgroundColor: `${color}20`, color, border: `1px solid ${color}50` }}
       >
         T{threat.id}
@@ -65,7 +65,7 @@ function ThreatCard({ threat, isSelected, onSelect }) {
       {/* Card content */}
       <div className="flex-1 min-w-0">
       {/* Type badge + Priority */}
-      <div className="flex items-center gap-2 mb-2 flex-wrap">
+      <div className="flex items-center gap-1 md:gap-2 mb-1 md:mb-2 flex-wrap">
           <span
             className="text-xs font-bold px-2 py-0.5 rounded uppercase tracking-wider"
             style={{ backgroundColor: `${color}30`, color }}
@@ -90,12 +90,12 @@ function ThreatCard({ threat, isSelected, onSelect }) {
       </div>
 
       {/* Threat name */}
-      <div className="text-sm font-bold font-mono text-green-400 mb-2 tracking-wide">
+      <div className="text-xs md:text-sm font-bold font-mono text-green-400 mb-1 md:mb-2 tracking-wide">
         {intel === 'minimal' ? 'UNKNOWN DESIGNATION' : threat.name.toUpperCase()}
       </div>
 
-      {/* Stats — variable based on intel level */}
-      {(
+      {/* Stats — variable based on intel level, hidden on small screens */}
+      <div className="hidden sm:block">
         <div className="text-xs font-mono space-y-1">
           <div className="flex justify-between">
             <span className="text-gray-500">SPEED</span>
@@ -116,10 +116,10 @@ function ThreatCard({ threat, isSelected, onSelect }) {
             </div>
           )}
         </div>
-      )}
+      </div>
 
       {/* Impact zone — progressive reveal */}
-      <div className="mt-2 flex items-center gap-2">
+      <div className="mt-1 md:mt-2 flex items-center gap-2">
         <span className="text-xs text-gray-500 font-mono">IMPACT:</span>
         {threat.impactRevealed ? (
           <span
@@ -137,12 +137,12 @@ function ThreatCard({ threat, isSelected, onSelect }) {
       </div>
 
       {/* Countdown */}
-      <div className="mt-2 flex items-center justify-between">
-        <div className={`text-xs font-mono ${isCritical ? 'text-amber-400 font-bold tracking-widest' : 'text-gray-500'}`}>
+      <div className="mt-1 md:mt-2 flex items-center justify-between">
+        <div className={`text-[10px] md:text-xs font-mono ${isCritical ? 'text-amber-400 font-bold tracking-widest' : 'text-gray-500'}`}>
           {isCritical ? '⚠ TIME LEFT' : 'TIME LEFT'}
         </div>
         <div
-          className={`text-2xl font-bold font-mono tabular-nums ${
+          className={`text-xl md:text-2xl font-bold font-mono tabular-nums ${
             isCritical ? 'text-amber-500 animate-pulse' : isWarning ? 'text-yellow-500' : 'text-green-400'
           }`}
           style={isCritical ? { textShadow: '0 0 12px rgba(245, 158, 11, 0.6)' } : isWarning ? { textShadow: '0 0 8px rgba(234, 179, 8, 0.3)' } : {}}
@@ -192,10 +192,10 @@ export default function ThreatPanel({
 
   return (
     <div className="h-full flex flex-col">
-      <div className="text-xs text-green-500/50 font-mono tracking-widest mb-1 uppercase">
-        Threat Analysis — {activeThreats.filter((t) => !t.intercepted).length} Active
+      <div className="text-[10px] md:text-xs text-green-500/50 font-mono tracking-widest mb-1 uppercase">
+        Threats — {activeThreats.filter((t) => !t.intercepted).length} Active
       </div>
-      <div className="text-xs text-cyan-400/80 font-mono mb-3 tracking-wide">
+      <div className="hidden md:block text-xs text-cyan-400/80 font-mono mb-3 tracking-wide">
         ▸ Click a threat card or radar blip to select, then fire
       </div>
       <div className="flex-1 overflow-y-auto pr-1 custom-scrollbar">

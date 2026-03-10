@@ -11,7 +11,7 @@ import LevelIntro from './components/LevelIntro.jsx';
 import LevelComplete from './components/LevelComplete.jsx';
 import ScoringIntro from './components/ScoringIntro.jsx';
 import FacilitatorControls from './components/FacilitatorControls.jsx';
-import { getLevelConfig, LEVEL_ACCENT_COLORS } from './config/threats.js';
+import { getLevelConfig, LEVEL_ACCENT_COLORS, THREAT_COLORS } from './config/threats.js';
 import { getLeaderboard } from './utils/leaderboard.js';
 import {
   startMusic,
@@ -27,6 +27,70 @@ function formatCountdown(seconds) {
   const m = Math.floor(seconds / 60);
   const s = Math.floor(seconds % 60);
   return `${m}:${String(s).padStart(2, '0')}`;
+}
+
+/** Mobile-only: compact strip showing selected threat info + active threat count */
+function MobileSelectedThreat({ activeThreats, selectedThreatId }) {
+  const live = activeThreats.filter(t => !t.intercepted && !t.held);
+  const selected = live.find(t => t.id === selectedThreatId);
+
+  if (live.length === 0) {
+    return (
+      <div className="md:hidden flex-shrink-0 px-2 py-1.5 bg-[#080c16] border-t border-gray-800/50">
+        <div className="text-center text-green-500/40 font-mono text-xs tracking-wider">NO ACTIVE THREATS</div>
+      </div>
+    );
+  }
+
+  if (!selected) {
+    return (
+      <div className="md:hidden flex-shrink-0 px-2 py-1.5 bg-[#080c16] border-t border-gray-800/50">
+        <div className="text-center text-gray-500 font-mono text-xs tracking-wider">
+          TAP A BLIP — {live.length} THREAT{live.length !== 1 ? 'S' : ''} ACTIVE
+        </div>
+      </div>
+    );
+  }
+
+  const color = THREAT_COLORS[selected.type] || '#94a3b8';
+  const isCritical = selected.timeLeft < 5;
+  const timeStr = `${Math.max(0, Math.ceil(selected.timeLeft))}s`;
+
+  return (
+    <div className="md:hidden flex-shrink-0 px-2 py-1.5 bg-[#080c16] border-t border-gray-800/50">
+      <div className="flex items-center gap-2">
+        {/* Threat ID */}
+        <div
+          className="flex-shrink-0 w-8 h-8 rounded flex items-center justify-center font-mono font-bold text-sm"
+          style={{ backgroundColor: `${color}20`, color, border: `1px solid ${color}50` }}
+        >
+          T{selected.id}
+        </div>
+        {/* Type + impact */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider"
+              style={{ backgroundColor: `${color}30`, color }}>
+              {selected.type.toUpperCase()}
+            </span>
+            <span className={`text-xs font-bold font-mono truncate ${selected.is_populated ? 'text-amber-500' : 'text-gray-500'}`}>
+              {selected.impactRevealed ? selected.impact_zone.toUpperCase() : 'CALCULATING...'}
+            </span>
+          </div>
+        </div>
+        {/* Countdown */}
+        <div className={`flex-shrink-0 text-xl font-bold font-mono tabular-nums ${
+          isCritical ? 'text-amber-500 animate-pulse' : 'text-green-400'
+        }`}>
+          {timeStr}
+        </div>
+        {/* Active count */}
+        <div className="flex-shrink-0 text-[10px] text-gray-600 font-mono">
+          {live.length}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function App() {
@@ -628,23 +692,23 @@ export default function App() {
       </div>
 
       {/* Top bar */}
-      <div className="flex items-center justify-between px-4 py-2 bg-[#080c16]"
+      <div className="flex items-center justify-between px-2 md:px-4 py-1 md:py-2 bg-[#080c16]"
         style={{ borderBottom: `2px solid ${LEVEL_ACCENT_COLORS[currentLevel] || '#22c55e'}70` }}>
-        <div className="flex items-center gap-3 whitespace-nowrap">
-          <span className="text-green-400 font-mono text-sm font-bold tracking-widest">
-            LEVEL {currentLevel}
+        <div className="flex items-center gap-1.5 md:gap-3 whitespace-nowrap min-w-0">
+          <span className="text-green-400 font-mono text-xs md:text-sm font-bold tracking-widest">
+            L{currentLevel}
           </span>
-          <span className="text-gray-600 font-mono text-sm">|</span>
-          <span className="font-mono text-sm tracking-wider text-green-400 font-bold">
+          <span className="text-gray-600 font-mono text-xs md:text-sm hidden sm:inline">|</span>
+          <span className="font-mono text-xs md:text-sm tracking-wider text-green-400 font-bold hidden sm:inline">
             {({ 1: 'SOUTHERN FRONT', 2: 'NORTHERN FRONT', 3: 'CENTRAL FRONT', 4: 'STRATEGIC TARGETS', 5: 'ARMY BASES', 6: 'WAVE ASSAULT', 7: 'APRIL 13' })[currentLevel] || ''}
           </span>
-          <span className="text-green-400/80 text-sm font-bold" style={{ fontFamily: 'Arial, sans-serif' }}>
+          <span className="text-green-400/80 text-xs md:text-sm font-bold hidden md:inline" style={{ fontFamily: 'Arial, sans-serif' }}>
             {({ 1: 'חֲזִית הַדָּרוֹם', 2: 'חֲזִית הַצָּפוֹן', 3: 'חֲזִית הַמֶּרְכָּז', 4: 'מַטָּרוֹת אִסְטְרָטֶגִיּוֹת', 5: 'בְּסִיסֵי צָבָא', 6: 'מִתְקֶפֶת גַּלִּים', 7: 'שְׁלוֹשָׁה עָשָׂר בְּאַפְּרִיל' })[currentLevel] || ''}
           </span>
         </div>
 
-        {/* Music toggle + Score + Level timer — right (with padding-right for escape room pill) */}
-        <div className="flex items-center gap-4 mr-52">
+        {/* Music toggle + Score + Level timer — right (margin-right for gear icon + escape room pill) */}
+        <div className="flex items-center gap-2 md:gap-4 mr-10 md:mr-16 lg:mr-52">
           <button
             onClick={() => {
               const nowEnabled = toggleMusicEnabled();
@@ -656,28 +720,28 @@ export default function App() {
             title={gameMusicOn ? 'Mute music' : 'Unmute music'}
           >
             <span className="text-sm leading-none">&#9834;</span>
-            <span>{gameMusicOn ? 'ON' : 'OFF'}</span>
+            <span className="hidden sm:inline">{gameMusicOn ? 'ON' : 'OFF'}</span>
           </button>
-          <span className="text-gray-700 font-mono text-xs">|</span>
-          <div className="font-mono text-xs">
-            <span className="text-gray-600">SCORE </span>
-            <span className="text-cyan-400 text-sm font-bold tabular-nums">{getRunningScore()}</span>
+          <span className="text-gray-700 font-mono text-xs hidden sm:inline">|</span>
+          <div className="font-mono text-[10px] md:text-xs">
+            <span className="text-gray-600 hidden sm:inline">SCORE </span>
+            <span className="text-cyan-400 text-xs md:text-sm font-bold tabular-nums">{getRunningScore()}</span>
           </div>
-          <span className="text-gray-700 font-mono text-xs">|</span>
-          <div className="font-mono text-xs">
-            <span className="text-gray-600">LVL {currentLevel} </span>
-            <span className="text-green-400 text-sm font-bold tabular-nums">
+          <span className="text-gray-700 font-mono text-xs hidden sm:inline">|</span>
+          <div className="font-mono text-[10px] md:text-xs">
+            <span className="text-gray-600 hidden sm:inline">LVL {currentLevel} </span>
+            <span className="text-green-400 text-xs md:text-sm font-bold tabular-nums">
               {formatCountdown(Math.max(0, (config?.duration || 0) - sessionTime))}
             </span>
           </div>
-          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse hidden sm:block" />
         </div>
       </div>
 
       {/* Main content area */}
-      <div className="flex-1 flex min-h-0">
-        {/* ZONE A: Radar */}
-        <div className="flex-[6] p-4 flex items-center justify-center border-r border-gray-800/30">
+      <div className="flex-1 flex flex-col md:flex-row min-h-0 overflow-hidden">
+        {/* ZONE A: Radar — fixed height on mobile, larger share on tablet, standard on desktop */}
+        <div className="h-[60vh] md:h-auto md:flex-[3] lg:flex-[6] p-1 sm:p-2 md:p-4 flex items-center justify-center md:border-r border-gray-800/30 flex-shrink-0 md:flex-shrink-1">
           <RadarDisplay
             activeThreats={activeThreats}
             selectedThreatId={selectedThreatId}
@@ -694,8 +758,8 @@ export default function App() {
           />
         </div>
 
-        {/* ZONE B: Threat Panel */}
-        <div className="flex-[4] p-4 overflow-hidden">
+        {/* ZONE B: Threat Panel — hidden on mobile, narrow on tablet, wider on desktop */}
+        <div className="hidden md:block md:flex-[1] lg:flex-[4] p-1 sm:p-2 md:p-4 overflow-y-auto">
           <ThreatPanel
             activeThreats={activeThreats}
             selectedThreatId={selectedThreatId}
@@ -704,8 +768,14 @@ export default function App() {
         </div>
       </div>
 
-      {/* ZONE C: Controls */}
-      <div className="px-4 py-3 border-t border-gray-800/50 bg-[#080c16]">
+      {/* Mobile-only: compact selected threat info strip */}
+      <MobileSelectedThreat
+        activeThreats={activeThreats}
+        selectedThreatId={selectedThreatId}
+      />
+
+      {/* ZONE C: Controls — flex-shrink-0 ensures it never gets pushed off screen */}
+      <div className="flex-shrink-0 px-2 md:px-4 py-2 md:py-3 border-t border-gray-800/50 bg-[#080c16]">
         <ControlPanel
           ammo={ammo}
           onAction={handleAction}
