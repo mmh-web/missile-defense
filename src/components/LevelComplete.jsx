@@ -76,13 +76,12 @@ function PerfectParticles() {
   );
 }
 
-export default function LevelComplete({ levelStats, campaignStats, effectiveTotalLevels, onNextLevel, onViewResults }) {
+export default function LevelComplete({ levelStats, campaignStats, effectiveTotalLevels, onNextLevel, onViewResults, teamName, onTeamNameChange }) {
   const config = getLevelConfig(levelStats.level);
   const nextConfig = getLevelConfig(levelStats.level + 1);
   const isLastLevel = levelStats.level >= (effectiveTotalLevels || TOTAL_LEVELS);
   const isPerfect = levelStats.rating?.perfect;
 
-  const [teamName, setCallsign] = useState('');
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -324,7 +323,7 @@ export default function LevelComplete({ levelStats, campaignStats, effectiveTota
               type="text"
               maxLength={10}
               value={teamName}
-              onChange={(e) => setCallsign(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
+              onChange={(e) => onTeamNameChange(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
               placeholder="NAME"
               disabled={saved}
               className="w-36 px-2 py-1.5 bg-gray-900 border border-green-800 rounded font-mono text-sm

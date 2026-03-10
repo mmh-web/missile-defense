@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getLeaderboard, saveScore, isHighScore, subscribeLeaderboard } from '../utils/leaderboard.js';
 
-export default function Summary({ stats, levelStats, onReset }) {
+export default function Summary({ stats, levelStats, onReset, teamName, onTeamNameChange }) {
   const {
     totalScore,
     levelScores,
@@ -19,7 +19,6 @@ export default function Summary({ stats, levelStats, onReset }) {
 
   const isIncomplete = levelsCompleted < effectiveTotalLevels;
 
-  const [teamName, setCallsign] = useState('');
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
   const [leaderboard, setLeaderboard] = useState([]);
@@ -184,7 +183,7 @@ export default function Summary({ stats, levelStats, onReset }) {
               type="text"
               maxLength={10}
               value={teamName}
-              onChange={(e) => setCallsign(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
+              onChange={(e) => onTeamNameChange(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
               placeholder="NAME"
               disabled={saved}
               className="w-48 px-3 py-2 bg-gray-900 border-2 border-green-800 rounded font-mono text-lg

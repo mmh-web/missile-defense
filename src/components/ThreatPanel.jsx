@@ -16,20 +16,16 @@ function ThreatRow({ threat, isSelected, onSelect }) {
   const timeStr = `${Math.max(0, Math.ceil(threat.timeLeft))}s`;
   const intel = threat.intel || 'full';
 
-  const bgClass = isCritical
-    ? 'bg-amber-950/25'
-    : isWarning
-      ? 'bg-yellow-950/15'
-      : isSelected && !isHeld
-        ? 'bg-white/10'
-        : 'bg-transparent';
+  const bgClass = isSelected && !isHeld
+    ? 'bg-white/10'
+    : 'bg-transparent';
 
   const impactColor = isHeld
     ? 'text-gray-600'
     : !threat.impactRevealed
-      ? 'text-yellow-600 animate-pulse'
+      ? 'text-gray-400 animate-pulse'
       : threat.is_populated
-        ? 'text-amber-500'
+        ? 'text-white'
         : 'text-gray-500';
 
   const impactText = isHeld
@@ -42,17 +38,18 @@ function ThreatRow({ threat, isSelected, onSelect }) {
 
   return (
     <div
-      onClick={() => !isHeld && onSelect(threat.id)}
+      onClick={() => !isHeld && onSelect(isSelected ? null : threat.id)}
       className={`
         px-2 py-1.5 lg:py-2 rounded transition-all
         ${isHeld ? 'opacity-50 cursor-default' : 'cursor-pointer'}
-        ${!isHeld && !isSelected && !isCritical && !isWarning ? 'hover:bg-white/5' : ''}
+        ${!isHeld && !isSelected ? 'hover:bg-white/5' : ''}
         ${isCritical ? 'animate-pulse' : ''}
         ${bgClass}
       `}
       style={{
-        borderLeft: `3px solid ${isCritical ? '#f59e0b' : color}`,
+        borderLeft: `3px solid ${color}`,
         boxShadow: isSelected && !isHeld ? `0 0 10px ${color}30` : 'none',
+        ...(isCritical && !isHeld ? { backgroundColor: `${color}15` } : {}),
       }}
     >
       {/* Line 1: ID, type, impact zone, countdown */}
@@ -84,15 +81,8 @@ function ThreatRow({ threat, isSelected, onSelect }) {
         {/* Countdown */}
         <span
           className={`w-9 text-right text-sm font-mono font-bold tabular-nums flex-shrink-0 ${
-            isCritical ? 'text-amber-500' : isWarning ? 'text-yellow-500' : 'text-green-400'
+            isCritical ? 'text-white' : 'text-green-400'
           }`}
-          style={
-            isCritical
-              ? { textShadow: '0 0 8px rgba(245, 158, 11, 0.5)' }
-              : isWarning
-                ? { textShadow: '0 0 6px rgba(234, 179, 8, 0.3)' }
-                : {}
-          }
         >
           {timeStr}
         </span>
@@ -106,7 +96,7 @@ function ThreatRow({ threat, isSelected, onSelect }) {
         >
           {threat.type === 'hypersonic' ? 'HYPERSONIC' : threat.type.toUpperCase()}
         </span>
-        <span className="text-[10px] font-mono text-green-400/70 truncate">
+        <span className="text-[10px] font-mono text-gray-500 truncate">
           {threatName}
         </span>
       </div>

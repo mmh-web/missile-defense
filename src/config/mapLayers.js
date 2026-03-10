@@ -86,7 +86,7 @@ export const LEVEL_VIEWPORTS = [
   null, // index 0 unused (levels are 1-indexed)
   { centerX: 0.27, centerY: 0.48, scale: 2.5 },   // L1: tight on Otef Aza
   { centerX: 0.48, centerY: 0.15, scale: 1.8 },   // L2: Galil/Golan
-  { centerX: 0.34, centerY: 0.38, scale: 2.0 },   // L3: Central Israel — tighter for population labels
+  { centerX: 0.34, centerY: 0.38, scale: 2.4 },   // L3: Central Israel — zoomed in for readability
   { centerX: 0.32, centerY: 0.40, scale: 1.2 },   // L4: infrastructure corridor — Haifa to Dimona
   { centerX: 0.33, centerY: 0.42, scale: 1.0 },   // L5: military bases — tighter for base spread
   { centerX: 0.43, centerY: 0.46, scale: 0.78 },  // L6: full map — first complete view

@@ -18,7 +18,7 @@ Built for classroom/escape-room use with facilitator controls and escape room ti
 | `src/App.jsx` | Root component, game flow orchestration, music, facilitator controls |
 | `src/hooks/useGameEngine.js` | All game state, scoring, threat lifecycle, interception logic, cheats |
 | `src/components/RadarDisplay.jsx` | SVG radar, blip animation, viewport/zoom, map labels, trails |
-| `src/components/ThreatPanel.jsx` | Right-side threat cards with countdown timers |
+| `src/components/ThreatPanel.jsx` | Compact threat rows with type-color coding |
 | `src/components/ControlPanel.jsx` | Bottom interceptor buttons (1-4 keys + hold fire) |
 | `src/config/threats.js` | All threat arrays, LEVELS config, ammo budgets, impact positions |
 | `src/config/mapLayers.js` | Cities, regions, viewports, label positions, military bases |
@@ -120,7 +120,7 @@ Level 1 has two threat arrays: `THREATS_L1` and `THREATS_L1_B`. One is randomly 
 |-------|---------|---------|-------|------|
 | L1 | 0.27 | 0.48 | 2.5 | Tight on Otef Aza |
 | L2 | 0.48 | 0.15 | 1.8 | Northern Israel |
-| L3 | 0.34 | 0.38 | 2.0 | Central corridor |
+| L3 | 0.34 | 0.38 | 2.4 | Central corridor (zoomed for readability) |
 | L4 | 0.32 | 0.40 | 1.2 | Infrastructure belt |
 | L5 | 0.33 | 0.42 | 1.0 | Military bases |
 | L6-7 | 0.43 | 0.46 | 0.78 | Full country |
@@ -152,6 +152,8 @@ PRE_GAME → SCORING_INTRO → BRIEFING (L1 only, has quiz)
 - **Tactical debrief**: LevelComplete screen shows real-world cost connections (e.g., "3 correct holds saved ~$150K")
 - **Cheat code hints**: L2/L3 complete screens show subtle classified intel teasing keyboard sequences
 - **Shareable results card**: Campaign summary has screenshot-friendly score box for classroom sharing
+- **Threat selection toggle**: Click a selected threat to deselect; click a different threat to switch selection
+- **Team name persistence**: `campaignTeamName` state lifted to App.jsx, persists across LevelComplete and Summary screens throughout the campaign. Cleared on game reset.
 
 ## Quiz System
 - 2 questions per level, randomly selected from pool of 12-14
@@ -303,7 +305,7 @@ To make a level **harder** (higher score):
 |-----------|-------|--------|
 | Phone | < 768px | Stacked: radar (flex-1) → compact threat table (max-h-240px) → controls. |
 | Tablet (iPad portrait) | 768-1023px | Stacked: radar → compact threat table → controls. No keyboard shortcuts. |
-| Desktop | ≥ 1024px | Side-by-side: radar (flex-5) + threat table (flex-3). Keyboard shortcuts shown. |
+| Desktop | ≥ 1024px | 3-column: left spacer (flex-3) + centered radar (flex-5) + threat table (flex-3). Keyboard shortcuts shown. |
 
 ### Compact Threat Table (ThreatPanel.jsx)
 Replaced verbose cards with compact single-line rows per threat: `T{id} TYPE ▸ IMPACT_ZONE countdown`.
@@ -311,10 +313,17 @@ Replaced verbose cards with compact single-line rows per threat: `T{id} TYPE ▸
 - On phone/tablet: single-line rows only (~32px each, all threats fit without scrolling)
 - Sorted by urgency (ascending timeLeft), held threats sorted to bottom
 - Visible at ALL breakpoints (no more hidden panel on mobile)
+- **Color system**: Each row uses exactly 2 color families — threat type color (left border, ID, type abbrev) + green accent (countdown). Impact zone: white for populated, gray for open ground, gray pulsing for unrevealed. Critical rows (<5s) get subtle type-color background tint + white countdown. No amber/yellow mixing.
+
+### Desktop Centered Radar Layout
+3-column flex layout at `lg:` breakpoint centers the radar as the visual focal point:
+- Left spacer: `hidden lg:block lg:flex-[3]` (invisible, mirrors threat panel width)
+- Radar: `lg:flex-[5]` (centered)
+- Threat panel: `lg:flex-[3]` with `lg:border-l`
 
 ### Key responsive patterns:
 - **Viewport**: `width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no`
-- **Side-by-side layout**: `lg:flex-row` — only at 1024px+ (desktop/tablet landscape)
+- **3-column centered layout**: `lg:flex-row` — only at 1024px+ (desktop/tablet landscape), left spacer + radar + threat panel
 - **Keyboard shortcut badges**: `hidden lg:flex` — only shown on desktop
 - **Keyboard hint text**: `hidden lg:block` — only shown on desktop
 - **Radar blip tap targets**: Invisible circle `r=10` for touch (r=10 in 100-unit SVG viewBox)

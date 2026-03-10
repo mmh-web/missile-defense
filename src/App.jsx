@@ -44,6 +44,7 @@ export default function App() {
     setShowLeaderboard(true);
     getLeaderboard('CAMPAIGN').then(setLeaderboardEntries);
   }, []);
+  const [campaignTeamName, setCampaignTeamName] = useState('');
   const [skipBriefings, setSkipBriefings] = useState(false);
   const seenBriefingsRef = useRef(new Set());
   const briefingMusicRef = useRef(null);
@@ -585,6 +586,8 @@ export default function App() {
           effectiveTotalLevels={bonusLevelEnabled ? 7 : 6}
           onNextLevel={advanceLevel}
           onViewResults={finishCampaign}
+          teamName={campaignTeamName}
+          onTeamNameChange={setCampaignTeamName}
         />
         {hackOverlay}
         {facilitatorOverlay}
@@ -598,8 +601,12 @@ export default function App() {
   if (gameState === GAME_STATES.SUMMARY) {
     return (
       <div key="screen-summary" className="screen-fade-in">
-        <Summary stats={getCampaignStats()} levelStats={getLevelStats()} onReset={() => {
+        <Summary stats={getCampaignStats()} levelStats={getLevelStats()}
+          teamName={campaignTeamName}
+          onTeamNameChange={setCampaignTeamName}
+          onReset={() => {
           seenBriefingsRef.current.clear();
+          setCampaignTeamName('');
           resetGame();
         }} />
         {facilitatorOverlay}
@@ -676,8 +683,11 @@ export default function App() {
 
       {/* Main content area */}
       <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden">
+        {/* Left spacer — mirrors threat panel width to center the radar */}
+        <div className="hidden lg:block lg:flex-[3]" />
+
         {/* ZONE A: Radar — fills remaining space, side-by-side only at lg+ (1024px) */}
-        <div className="flex-1 min-h-0 lg:flex-[5] p-1 sm:p-2 md:p-4 flex items-center justify-center lg:border-r border-gray-800/30">
+        <div className="flex-1 min-h-0 lg:flex-[5] p-1 sm:p-2 md:p-4 flex items-center justify-center">
           <RadarDisplay
             activeThreats={activeThreats}
             selectedThreatId={selectedThreatId}
@@ -695,7 +705,7 @@ export default function App() {
         </div>
 
         {/* ZONE B: Compact threat table — visible on ALL breakpoints */}
-        <div className="flex-shrink-0 max-h-[240px] overflow-y-auto lg:flex-shrink-1 lg:max-h-none lg:flex-[3] p-1 sm:p-2 md:p-3 border-t lg:border-t-0 border-gray-800/30">
+        <div className="flex-shrink-0 max-h-[240px] overflow-y-auto lg:flex-shrink-1 lg:max-h-none lg:flex-[3] p-1 sm:p-2 md:p-3 border-t lg:border-t-0 lg:border-l border-gray-800/30">
           <ThreatPanel
             activeThreats={activeThreats}
             selectedThreatId={selectedThreatId}
