@@ -64,6 +64,7 @@ export default function App() {
     activeThreats,
     selectedThreatId,
     tzevaAdomActive,
+    tzevaAdomCity,
     paused,
     volume,
     feedbackMessage,
@@ -87,6 +88,7 @@ export default function App() {
     triggerHHMode,
     triggerRLMode,
     cheatUses,
+    comboMessage,
     startCampaign,
     startLevel,
     advanceLevel,
@@ -725,6 +727,17 @@ export default function App() {
         </div>
       )}
 
+      {/* COMBO MESSAGE overlay (F3) */}
+      {comboMessage && (
+        <div className="absolute inset-x-0 top-24 z-20 flex justify-center pointer-events-none">
+          <div className="bg-cyan-950/90 border-2 border-cyan-400 rounded-lg px-8 py-3 text-center combo-flash">
+            <div className="text-cyan-300 font-mono text-xl font-bold tracking-wider">
+              {comboMessage}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* TZUR MODE banner */}
       {tzurActive && (
         <div className="absolute inset-x-0 top-12 z-25 flex justify-center pointer-events-none tzur-banner-appear">
@@ -809,7 +822,7 @@ export default function App() {
       )}
 
       {/* TZEVA ADOM overlay — non-blocking, translucent */}
-      {tzevaAdomActive && <TzevaAdom />}
+      {tzevaAdomActive && <TzevaAdom city={tzevaAdomCity} />}
 
       {/* Facilitator Controls */}
       {facilitatorOverlay}

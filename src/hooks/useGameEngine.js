@@ -64,6 +64,7 @@ export default function useGameEngine({ bonusLevelEnabled = false } = {}) {
   const [activeThreats, setActiveThreats] = useState([]);
   const [selectedThreatId, setSelectedThreatId] = useState(null);
   const [tzevaAdomActive, setTzevaAdomActive] = useState(false);
+  const [tzevaAdomCity, setTzevaAdomCity] = useState(null);  // F5: which city was hit
   const [paused, setPaused] = useState(false);
   const [volume, setVolume] = useState(0.7);
   const [resultLog, setResultLog] = useState([]);
@@ -121,6 +122,8 @@ export default function useGameEngine({ bonusLevelEnabled = false } = {}) {
   const tzevaAdomTimerRef = useRef(null);
   const allSpawnedRef = useRef(false);
   const interceptedIdsRef = useRef(new Set());  // Synchronous guard against race conditions
+  const lastInterceptTimeRef = useRef(0);  // For combo detection (F3)
+  const [comboMessage, setComboMessage] = useState(null);  // "DOUBLE INTERCEPT!" overlay
 
   // Campaign stats — accumulated across all levels
   const campaignStatsRef = useRef({
@@ -565,8 +568,9 @@ export default function useGameEngine({ bonusLevelEnabled = false } = {}) {
   }, []);
 
   // Trigger tzeva adom — non-blocking, brief flash (no timer penalty — points-based only)
-  const triggerTzevaAdom = useCallback(() => {
+  const triggerTzevaAdom = useCallback((cityName = null) => {
     setSirenCount((c) => c + 1);
+    setTzevaAdomCity(cityName);
 
     // Play siren briefly (non-looping, ~3s)
     if (sirenRef.current) {
@@ -583,6 +587,7 @@ export default function useGameEngine({ bonusLevelEnabled = false } = {}) {
     if (tzevaAdomTimerRef.current) clearTimeout(tzevaAdomTimerRef.current);
     tzevaAdomTimerRef.current = setTimeout(() => {
       setTzevaAdomActive(false);
+      setTzevaAdomCity(null);
       stopSiren();
     }, 3000);
   }, [stopSiren]);
@@ -636,7 +641,7 @@ export default function useGameEngine({ bonusLevelEnabled = false } = {}) {
       addImpactFlash(threat.impact_zone, 'city_hit', threat.type);
       playCityHitSound(volumeRef.current);
       setStreak(0);
-      triggerTzevaAdom();
+      triggerTzevaAdom(threat.impact_zone);
     } else if (threat.held) {
       // Correct hold — player let it through, lands harmlessly
       setResultLog((prev) => [...prev, { ...threat, result: 'correct_hold', siren: false }]);
@@ -718,14 +723,36 @@ export default function useGameEngine({ bonusLevelEnabled = false } = {}) {
         : '';
 
       if (threat.is_populated) {
-        setResultLog((prev) => [...prev, { ...threat, result: isCrossCompatible ? 'cross_intercept' : 'correct_intercept', siren: false }]);
-        addTrail(action, threat, 'intercept', '+100');
+        // F3: Combo detection — 2 intercepts within 2 seconds
+        const now = Date.now();
+        const timeSinceLast = now - lastInterceptTimeRef.current;
+        const isCombo = timeSinceLast < 2000 && lastInterceptTimeRef.current > 0;
+        lastInterceptTimeRef.current = now;
+
+        const comboPoints = isCombo ? 50 : 0;
+        const pointLabel = isCombo ? '+150' : '+100';
+
+        setResultLog((prev) => [...prev, { ...threat, result: isCrossCompatible ? 'cross_intercept' : 'correct_intercept', siren: false, comboBonus: comboPoints }]);
+        addTrail(action, threat, 'intercept', pointLabel);
         setStreak((s) => {
           const next = s + 1;
           setBestStreak((b) => Math.max(b, next));
           return next;
         });
-        showFeedback(isCrossCompatible ? `INTERCEPTION SUCCESSFUL${crossWarning}` : 'INTERCEPTION SUCCESSFUL', isCrossCompatible ? 'warning' : 'success');
+
+        // F2: Near-miss callout — intercepted with <2s remaining
+        const isNearMiss = threat.timeLeft < 2;
+        let msg = 'INTERCEPTION SUCCESSFUL';
+        if (isCombo) {
+          msg = '⚡ DOUBLE INTERCEPT! +150';
+          setComboMessage('⚡ DOUBLE INTERCEPT!');
+          setTimeout(() => setComboMessage(null), 1500);
+        } else if (isNearMiss) {
+          msg = '🎯 CLOSE CALL! Intercepted with less than 2s remaining';
+        }
+        if (isCrossCompatible) msg += crossWarning;
+
+        showFeedback(msg, isCrossCompatible ? 'warning' : 'success');
       } else {
         setResultLog((prev) => [...prev, { ...threat, result: 'wasted_intercept', siren: false }]);
         addTrail(action, threat, 'intercept');
@@ -1002,10 +1029,14 @@ export default function useGameEngine({ bonusLevelEnabled = false } = {}) {
     const extraInterceptors = Math.max(0, startingAmmo - levelThreatCount);
     const creditableAmmo = Math.min(ammoRemaining, extraInterceptors);
 
+    // F3: Combo bonuses from rapid double-intercepts
+    const comboBonus = resultLog.reduce((sum, r) => sum + (r.comboBonus || 0), 0);
+
     const score = Math.max(0,
       quizBonus                          // briefing intel bonus
       + (regularIntercepts * 100)        // +100 per manual intercept
       + (cheatIntercepts * 75)           // +75 per cheat-assisted intercept (25% penalty)
+      + comboBonus                       // +50 per double-intercept combo
       + (creditableAmmo * 250)           // efficiency bonus: only surplus interceptors count
       + (bestStreak * 25)
       - (sirenCount * 100)
@@ -1057,10 +1088,13 @@ export default function useGameEngine({ bonusLevelEnabled = false } = {}) {
     const extraInterceptors = Math.max(0, startingAmmo - levelThreatCount);
     const creditableAmmo = Math.min(ammoRemaining, extraInterceptors);
 
+    const comboBonus = resultLog.reduce((sum, r) => sum + (r.comboBonus || 0), 0);
+
     return Math.max(0,
       quizBonus
       + (regularIntercepts * 100)
       + (cheatIntercepts * 75)
+      + comboBonus
       + (creditableAmmo * 250)
       + (bestStreak * 25)
       - (sirenCount * 100)
@@ -1139,8 +1173,10 @@ export default function useGameEngine({ bonusLevelEnabled = false } = {}) {
     dvirActiveRef.current = false;
     setSufrinActive(false);
     setPaused(false);
+    setComboMessage(null);
     spawnedIdsRef.current = new Set();
     interceptedIdsRef.current.clear();
+    lastInterceptTimeRef.current = 0;
     // Reset campaign-wide cheat uses
     cheatUsesRef.current = { tzur: CHEAT_MAX_USES, sasha: CHEAT_MAX_USES, dvir: CHEAT_MAX_USES, sufrin: CHEAT_MAX_USES };
     setCheatUses({ ...cheatUsesRef.current });
@@ -1422,6 +1458,7 @@ export default function useGameEngine({ bonusLevelEnabled = false } = {}) {
     activeThreats,
     selectedThreatId,
     tzevaAdomActive,
+    tzevaAdomCity,
     paused,
     volume,
     resultLog,
@@ -1448,6 +1485,7 @@ export default function useGameEngine({ bonusLevelEnabled = false } = {}) {
     triggerHHMode,
     triggerRLMode,
     cheatUses,
+    comboMessage,
     startCampaign,
     startLevel,
     advanceLevel,

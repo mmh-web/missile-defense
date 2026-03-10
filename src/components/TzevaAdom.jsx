@@ -1,4 +1,4 @@
-export default function TzevaAdom() {
+export default function TzevaAdom({ city }) {
   return (
     <div className="fixed inset-0 z-30 pointer-events-none tzeva-adom-flash">
       {/* Translucent red overlay — player sees through it */}
@@ -16,6 +16,11 @@ export default function TzevaAdom() {
           <div className="text-3xl md:text-5xl font-bold text-white/80 font-mono tracking-widest mt-2">
             RED ALERT
           </div>
+          {city && (
+            <div className="text-xl md:text-2xl font-bold text-red-300/90 font-mono tracking-wider mt-4 animate-pulse">
+              {city} HIT
+            </div>
+          )}
         </div>
       </div>
 

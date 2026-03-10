@@ -392,6 +392,19 @@ input[type="range"]::-moz-range-thumb {
 /* ============================================
    Salvo Warning — Level 1 (Amber)
    ============================================ */
+/* F3: Combo flash animation */
+.combo-flash {
+  animation: comboFlash 1.5s ease-out forwards;
+}
+
+@keyframes comboFlash {
+  0% { transform: scale(0.8); opacity: 0; }
+  15% { transform: scale(1.1); opacity: 1; box-shadow: 0 0 40px rgba(34, 211, 238, 0.6); }
+  30% { transform: scale(1); }
+  80% { opacity: 1; }
+  100% { opacity: 0; transform: scale(0.95); }
+}
+
 .salvo-warning-level1 {
   animation: salvoWarningAmber 1s ease-in-out infinite alternate;
 }

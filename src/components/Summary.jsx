@@ -215,6 +215,24 @@ export default function Summary({ stats, levelStats, onReset }) {
           highlightTimestamp={savedEntryTimestamp}
         />
 
+        {/* E4: Shareable results card — screenshot-friendly */}
+        <div className="mb-6 p-6 border-2 border-green-700 rounded-lg bg-gradient-to-b from-gray-900 to-[#0a0e1a] text-center">
+          <div className="text-[10px] text-gray-500 font-mono tracking-widest mb-3">
+            SCREENSHOT & SHARE YOUR SCORE
+          </div>
+          <div className="text-xs text-green-600 font-mono tracking-widest mb-1">MISSILE DEFENSE COMMANDER</div>
+          <div className="text-5xl font-bold font-mono text-green-400 tabular-nums my-2">{totalScore}</div>
+          <div className="text-lg font-bold font-mono text-white tracking-wider">{rating.label}</div>
+          <div className="text-xl my-1">
+            {stars.map((filled, i) => (
+              <span key={i} className={filled ? 'text-yellow-400' : 'text-gray-700'}>&#9733;</span>
+            ))}
+          </div>
+          <div className="text-xs text-gray-500 font-mono mt-2">
+            {totalCorrectIntercepts} intercepts &bull; {totalCorrectHolds} holds &bull; {levelsCompleted}/7 levels
+          </div>
+        </div>
+
         {/* Reset button */}
         <div className="text-center mt-6">
           <button

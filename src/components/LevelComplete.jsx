@@ -231,6 +231,51 @@ export default function LevelComplete({ levelStats, campaignStats, onNextLevel, 
           );
         })()}
 
+        {/* ED2: Tactical Debrief — connect gameplay to real-world learning */}
+        <div className="border border-gray-700/50 rounded-lg p-4 mb-6 bg-gray-900/30">
+          <div className="text-[10px] text-gray-500 font-mono tracking-widest mb-2">TACTICAL DEBRIEF</div>
+          <div className="space-y-1.5 text-xs font-mono text-gray-400">
+            {levelStats.correctIntercepts > 0 && (
+              <p>
+                {levelStats.correctIntercepts === levelStats.populatedThreats
+                  ? `All ${levelStats.correctIntercepts} incoming threats neutralized — Iron Dome's real-world success rate is 90%+.`
+                  : `${levelStats.correctIntercepts} of ${levelStats.populatedThreats} threats intercepted.`}
+              </p>
+            )}
+            {levelStats.correctHolds > 0 && (
+              <p>
+                {levelStats.correctHolds} correct hold-fire decision{levelStats.correctHolds !== 1 ? 's' : ''} — saved ~${(levelStats.correctHolds * 50).toLocaleString()}K in interceptor costs.
+              </p>
+            )}
+            {levelStats.wastedIntercepts > 0 && (
+              <p className="text-yellow-500/80">
+                {levelStats.wastedIntercepts} interceptor{levelStats.wastedIntercepts !== 1 ? 's' : ''} wasted on open ground — each costs ~$50K.
+              </p>
+            )}
+            {levelStats.wrongIntercepts > 0 && (
+              <p className="text-red-400/80">
+                {levelStats.wrongIntercepts} wrong system attempt{levelStats.wrongIntercepts !== 1 ? 's' : ''} — each interceptor type is designed for a specific altitude and speed envelope.
+              </p>
+            )}
+            {levelStats.sirenCount > 0 && (
+              <p className="text-red-400/80">
+                {levelStats.sirenCount} civilian area{levelStats.sirenCount !== 1 ? 's' : ''} hit — in real life, each siren means families running to shelters.
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* E3: Cheat code hint — subtle tease on L2 or L3 complete */}
+        {(levelStats.level === 2 || levelStats.level === 3) && (
+          <div className="text-center mb-4">
+            <p className="text-[10px] font-mono text-gray-600 tracking-wider italic opacity-60">
+              {levelStats.level === 2
+                ? '[ CLASSIFIED: Field operators report unusual keyboard sequences activate emergency protocols... ]'
+                : '[ CLASSIFIED: Type HACK during gameplay for available protocols ]'}
+            </p>
+          </div>
+        )}
+
         {/* Campaign running total — always visible */}
         {campaignStats && (
           <div className="border border-green-900/50 rounded-lg p-5 mb-6 bg-green-950/20 text-center">
