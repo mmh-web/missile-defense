@@ -121,17 +121,6 @@ export default function ThreatPanel({
 }) {
   const live = activeThreats.filter((t) => !t.intercepted);
 
-  if (live.length === 0) {
-    return (
-      <div className="flex items-center justify-center py-3">
-        <div className="text-center">
-          <div className="text-green-500/30 font-mono text-xs">NO ACTIVE THREATS</div>
-          <div className="text-green-500/20 font-mono text-[10px] mt-0.5">MONITORING...</div>
-        </div>
-      </div>
-    );
-  }
-
   // Sort: unheld first (by urgency), then held (by urgency)
   const sorted = [...live].sort((a, b) => {
     if (a.held !== b.held) return a.held ? 1 : -1;
@@ -144,20 +133,31 @@ export default function ThreatPanel({
         <div className="text-xs text-gray-400 font-mono tracking-[0.25em] font-bold">INCOMING THREATS</div>
         <div className="text-[10px] text-gray-600 font-mono mt-1">Click card or blip to select target</div>
       </div>
-      <div className="text-xs lg:text-sm text-green-500/50 font-mono tracking-widest mb-1 px-2 uppercase flex-shrink-0">
-        {live.filter(t => !t.held).length} ACTIVE
-        {live.some(t => t.held) && <span className="text-gray-600"> · {live.filter(t => t.held).length} HELD</span>}
-      </div>
-      <div className="flex-1 overflow-y-auto min-h-0 space-y-0.5">
-        {sorted.map((threat) => (
-          <ThreatRow
-            key={threat.id}
-            threat={threat}
-            isSelected={threat.id === selectedThreatId}
-            onSelect={onSelectThreat}
-          />
-        ))}
-      </div>
+      {live.length === 0 ? (
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="text-green-500/30 font-mono text-xs">NO ACTIVE THREATS</div>
+            <div className="text-green-500/20 font-mono text-[10px] mt-0.5">MONITORING...</div>
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className="text-xs lg:text-sm text-green-500/50 font-mono tracking-widest mb-1 px-2 uppercase flex-shrink-0">
+            {live.filter(t => !t.held).length} ACTIVE
+            {live.some(t => t.held) && <span className="text-gray-600"> · {live.filter(t => t.held).length} HELD</span>}
+          </div>
+          <div className="flex-1 overflow-y-auto min-h-0 space-y-0.5">
+            {sorted.map((threat) => (
+              <ThreatRow
+                key={threat.id}
+                threat={threat}
+                isSelected={threat.id === selectedThreatId}
+                onSelect={onSelectThreat}
+              />
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }
