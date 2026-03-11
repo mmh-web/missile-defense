@@ -259,7 +259,7 @@ export default function LevelIntro({ level, onReady }) {
         style={{ background: `linear-gradient(90deg, transparent, ${accentColor}60, transparent)` }} />
       <div className="max-w-2xl w-full py-4 px-4">
         {/* Header */}
-        <div className="text-center mb-4">
+        <div className="text-center mb-3">
           <div className="font-mono text-[10px] tracking-[0.4em] mb-1"
             style={{ color: `${accentColor}60` }}>
             {level === 1 ? 'MISSION READY' : 'INTEL BRIEFING'}
@@ -287,7 +287,7 @@ export default function LevelIntro({ level, onReady }) {
         {/* Level 1 — Your Weapon recap + gameplay reminder */}
         {level === 1 && (
           <>
-            <div className="mb-4 border rounded-lg p-4 bg-gray-900/30 border-green-900/50">
+            <div className="mb-3 border rounded-lg p-3 bg-gray-900/30 border-green-900/50">
               <div className="text-xs font-mono tracking-widest mb-3 text-green-500">
                 YOUR WEAPON
               </div>
@@ -309,7 +309,7 @@ export default function LevelIntro({ level, onReady }) {
               </div>
             </div>
 
-            <div className="mb-4 border border-yellow-900/40 rounded-lg p-3 bg-yellow-900/10">
+            <div className="mb-3 border border-yellow-900/40 rounded-lg p-3 bg-yellow-900/10">
               <div className="text-xs font-mono tracking-widest mb-2 text-yellow-500">
                 REMEMBER
               </div>
@@ -329,7 +329,7 @@ export default function LevelIntro({ level, onReady }) {
         {config.new_threat && (() => {
           const threatColor = THREAT_COLORS[config.new_threat.type] || '#ef4444';
           return (
-          <div className="mb-4 border rounded-lg p-4" style={{
+          <div className="mb-3 border rounded-lg p-3" style={{
             borderColor: `${threatColor}40`,
             backgroundColor: `${threatColor}08`,
           }}>
@@ -348,15 +348,14 @@ export default function LevelIntro({ level, onReady }) {
                 Speed: {config.new_threat.speed}
               </div>
             )}
-            {/* Animated threat depiction */}
-            {ThreatAnimation && <ThreatAnimation />}
+            {/* Animation removed to eliminate scrolling */}
           </div>
           );
         })()}
 
         {/* New System Card */}
         {config.new_system && (
-          <div className="mb-4 border rounded-lg p-4 bg-gray-900/30"
+          <div className="mb-3 border rounded-lg p-3 bg-gray-900/30"
             style={{ borderColor: `${config.new_system.color}40` }}>
             <div className="text-xs font-mono tracking-widest mb-3"
               style={{ color: config.new_system.color }}>
@@ -384,7 +383,7 @@ export default function LevelIntro({ level, onReady }) {
 
         {/* Levels 6-7: No new threat/system — show challenge description */}
         {!config.new_threat && !config.new_system && level > 1 && (
-          <div className="mb-4 border rounded-lg p-4 bg-gray-900/30 border-gray-700/50">
+          <div className="mb-3 border rounded-lg p-3 bg-gray-900/30 border-gray-700/50">
             <div className="text-xs font-mono tracking-widest mb-3 text-gray-400">
               {level === 6 ? 'CHALLENGE MODE' : 'FINAL CHALLENGE'}
             </div>
@@ -398,7 +397,7 @@ export default function LevelIntro({ level, onReady }) {
         )}
 
         {/* Ammo for this level */}
-        <div className="border border-gray-800 rounded-lg p-3 mb-4 bg-gray-900/20">
+        <div className="border border-gray-800 rounded-lg p-3 mb-3 bg-gray-900/20">
           <div className="text-xs text-gray-500 font-mono tracking-widest mb-3">AMMUNITION</div>
           <div className="flex gap-3 justify-center flex-wrap">
             {config.available_systems.map((sys) => {

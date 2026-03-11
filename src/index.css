@@ -1607,3 +1607,59 @@ button:focus-visible {
   0%, 100% { opacity: 1; }
   50%      { opacity: 0.5; }
 }
+
+/* ============================================
+   Briefing — Dossier Reveal Animation
+   Fact cards slide in from left with a horizontal
+   wipe and border accent flash, like classified
+   documents being declassified.
+   ============================================ */
+.dossier-reveal {
+  animation: dossierReveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards,
+             dossierBorderFlash 0.8s ease-out forwards;
+  clip-path: inset(0 100% 0 0);
+}
+
+@keyframes dossierReveal {
+  0%   { clip-path: inset(0 100% 0 0); opacity: 0.5; }
+  40%  { clip-path: inset(0 20% 0 0); opacity: 1; }
+  100% { clip-path: inset(0 0% 0 0); opacity: 1; }
+}
+
+@keyframes dossierBorderFlash {
+  0%   { border-color: var(--accent-color, #f97316); box-shadow: 0 0 15px var(--accent-glow, rgba(249, 115, 22, 0.3)); }
+  100% { border-color: rgba(31, 41, 55, 1); box-shadow: none; }
+}
+
+/* ============================================
+   Briefing — Phase Transition Parallax
+   Background grid shifts subtly when changing
+   phases, giving a sense of "zooming into new intel"
+   ============================================ */
+.briefing-grid-phase-0 {
+  transform: translate(0px, 0px) scale(1);
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.briefing-grid-phase-1 {
+  transform: translate(-8px, -5px) scale(1.02);
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.briefing-grid-phase-2 {
+  transform: translate(5px, -10px) scale(1.04);
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ============================================
+   Briefing — Classified Stamp
+   ============================================ */
+.classified-stamp {
+  animation: stampReveal 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes stampReveal {
+  0%   { transform: scale(1.5) rotate(-5deg); opacity: 0; }
+  60%  { transform: scale(0.95) rotate(0deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}

@@ -374,23 +374,32 @@ At `lg:` breakpoint, 3-column flex layout with `max-w-[1200px] mx-auto` centers 
 - All threat IDs must be unique within their array but can reuse across arrays
 - Threat `origin` determines spawn point on radar edge (see spawnOrigins.js)
 
+## Zero-Scroll Design Philosophy
+All game screens must fit in viewport without scrolling. Key design decisions:
+- **No SVG animations in briefings** — removed from both EducationalBriefing and LevelIntro to save vertical space
+- **Compact briefing header**: "L{n} — {NAME} {hebrew}" on single line instead of 4-line header
+- **CONTINUE + SKIP side by side** — no fixed footer for skip button, both inline after countdown bar
+- **Larger fact text** (`text-sm` not `text-xs`) since animation space was reclaimed
+- **No Field Exercise** — L1 briefing phases are `['threat', 'defense', 'quiz']` only. The game itself teaches gameplay.
+- **LevelComplete condensed**: campaign total is inline bar, no "NEXT: LEVEL X" preview card
+- **Quiz tightened**: reduced margins (`mb-3` not `mb-6`), smaller option padding
+
 ## Pending Work (as of March 2026)
 
-### Bugs to Investigate
-- **Levels end before 0:00**: User reports levels end before the countdown timer reaches zero. The auto-end logic in useGameEngine.js (line 852-884) should wait for `config.duration` but may fire early. Investigate `sessionTimeRef.current` sync, `auto_end_delay` values, and whether `allSpawnedRef` triggers prematurely.
+### Completed (Previous Sessions)
+- ✅ Levels end before 0:00 — Fixed L2 duration (128→134s), L6 duration (152→160s)
+- ✅ Score starting at 1000 — Fixed `getRunningScore()` counting surplus ammo during gameplay
+- ✅ Briefing/LevelIntro scrolling — Removed animations, condensed layout, zero-scroll achieved
+- ✅ Guilt/blame language — Cleaned up L1 emotional language, L2 "ghost towns", L3 "dangerously close"
+- ✅ Summary.jsx dead code — Removed `typeColor()`, `levelStats` prop, fixed hardcoded `/7`
+- ✅ CheatCountdown overlap — Each cheat uses unique yOffset (0, 10, 20, 8)
+- ✅ ThreatPanel animate-pulse — Removed from critical rows
+- ✅ Field Exercise removed from L1 — Game teaches gameplay directly
+- ✅ Panel headers added — INCOMING THREATS + INTERCEPTORS persistent headers with tips
+- ✅ Ammo dots wrap to 2 lines — No +N cutoff
 
-### UI Fixes Needed
-- **Briefing/LevelIntro scrolling**: User wants ZERO scrolling on any screen. EducationalBriefing content (3 facts + animation + countdown + button) may overflow on shorter screens. LevelIntro at L1 has YOUR WEAPON + REMEMBER sections that add height.
-- **Guilt/blame language in briefings**: EducationalBriefing L1 threat facts include "Children grow up practicing emergency sprint drills daily" and "residents have just 15 seconds to reach shelter". These should be factual without emotional manipulation. Check all 7 levels of briefing content.
-
-### Audit Findings (from automated audit)
-- **ControlPanel.jsx**: Fixed — removed duplicate feedbackMessage (now only in App.jsx overlay)
-- **Summary.jsx**: Dead `levelStats` prop (accepted but never used), dead `typeColor()` function
-- **Summary.jsx**: Hardcoded `/7` in leaderboard table — should use `effectiveTotalLevels`
-- **RadarDisplay.jsx**: CheatCountdown components all use `yOffset=0` — overlap when multiple cheats active simultaneously
-- **ThreatPanel.jsx**: `animate-pulse` on critical rows makes countdown text harder to read
-
-### Full Playthrough Not Yet Done
-- Need visual playthrough of all 7 levels, all level-complete screens, summary screen
-- Need to test all cheat codes: TZUR, SASHA, DVIR, SUFRIN, BH, BSD, HACK overlay
-- Need difficulty progression analysis L1-L7 (verify scores match documented ratings)
+### Still Pending
+- **SUFRIN portrait broken image** — Image path may have base URL issue in dev vs production
+- **Full playthrough not yet done** — Need visual playthrough of all 7 levels + level-complete + summary
+- **Cheat codes untested** — TZUR, SASHA, DVIR, SUFRIN, BH, BSD, HACK overlay
+- **Difficulty progression** — L5 (6.0) slightly below target (6.5-7.0), L7 (8.0) below target (8.5-9.5)

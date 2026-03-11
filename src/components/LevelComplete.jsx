@@ -313,13 +313,13 @@ export default function LevelComplete({ levelStats, campaignStats, effectiveTota
           </div>
         )}
 
-        {/* Campaign running total — always visible */}
+        {/* Campaign running total — compact */}
         {campaignStats && (
-          <div className="border border-green-900/50 rounded-lg p-3 mb-3 bg-green-950/20 text-center">
-            <div className="text-[10px] text-gray-500 font-mono tracking-widest mb-1">CAMPAIGN TOTAL</div>
-            <div className="text-4xl font-bold font-mono text-green-400 tabular-nums">
+          <div className="flex items-center justify-center gap-3 mb-3 py-2 border border-green-900/50 rounded-lg bg-green-950/20">
+            <span className="text-[10px] text-gray-500 font-mono tracking-widest">CAMPAIGN TOTAL</span>
+            <span className="text-2xl font-bold font-mono text-green-400 tabular-nums">
               {campaignStats.totalScore + levelStats.score}
-            </div>
+            </span>
           </div>
         )}
 
@@ -357,22 +357,13 @@ export default function LevelComplete({ levelStats, campaignStats, effectiveTota
           )}
         </div>
 
-        {/* Next Level Preview */}
-        {!isLastLevel && nextConfig && (
-          <div className="border border-gray-700 rounded-lg p-3 mb-3 bg-gray-900/20">
-            <div className="text-lg font-bold font-mono text-gray-200 tracking-wider">
-              NEXT: LEVEL {nextConfig.id}
-            </div>
-          </div>
-        )}
-
         {/* Action buttons */}
         <div className="text-center">
           {isLastLevel ? (
             <button
               onClick={onViewResults}
-              className="px-12 py-4 bg-green-900/30 border-2 border-green-500 text-green-400
-                font-mono font-bold text-lg tracking-widest rounded-lg
+              className="px-10 py-3 bg-green-900/30 border-2 border-green-500 text-green-400
+                font-mono font-bold text-base tracking-widest rounded-lg
                 hover:bg-green-900/50 hover:border-green-300 hover:text-green-300
                 hover:shadow-[0_0_30px_rgba(0,255,136,0.3)]
                 transition-all active:scale-95 cursor-pointer"
@@ -382,8 +373,8 @@ export default function LevelComplete({ levelStats, campaignStats, effectiveTota
           ) : (
             <button
               onClick={onNextLevel}
-              className="px-12 py-4 bg-green-900/30 border-2 border-green-500 text-green-400
-                font-mono font-bold text-lg tracking-widest rounded-lg
+              className="px-10 py-3 bg-green-900/30 border-2 border-green-500 text-green-400
+                font-mono font-bold text-base tracking-widest rounded-lg
                 hover:bg-green-900/50 hover:border-green-300 hover:text-green-300
                 hover:shadow-[0_0_30px_rgba(0,255,136,0.3)]
                 transition-all active:scale-95 cursor-pointer"

@@ -810,7 +810,7 @@ export default function App() {
       {/* Main content area — desktop: 3-column flex (threats | radar | ammo). Radar stretches full height; panels self-center. */}
       <div className="flex-1 flex flex-col lg:flex-row lg:items-stretch min-h-0 overflow-hidden lg:max-w-[1200px] lg:mx-auto lg:w-full lg:gap-3">
         {/* ZONE A: Threat panel — mobile: below radar (order-2); desktop: left of radar (order-1) */}
-        <div className="flex-shrink-0 max-h-[240px] order-2 lg:order-1 lg:w-[260px] lg:max-h-[80vh] lg:self-center p-1 sm:p-2 md:p-3 lg:p-4 border-t lg:border-t-0 lg:border-r border-gray-800/30 flex flex-col">
+        <div className="flex-shrink-0 max-h-[240px] order-2 lg:order-1 lg:w-[260px] lg:max-h-none lg:self-stretch p-1 sm:p-2 md:p-3 lg:p-4 border-t lg:border-t-0 lg:border-r border-gray-800/30 flex flex-col overflow-hidden">
           <ThreatPanel
             activeThreats={activeThreats}
             selectedThreatId={selectedThreatId}
@@ -840,7 +840,7 @@ export default function App() {
         </div>
 
         {/* ZONE C: Ammo stack — desktop only, right of radar */}
-        <div className="hidden lg:flex lg:flex-col lg:justify-center lg:self-center order-3 lg:w-[220px] lg:flex-shrink-0 lg:max-h-[80vh] lg:border-l border-gray-800/30">
+        <div className="hidden lg:flex lg:flex-col lg:self-stretch order-3 lg:w-[220px] lg:flex-shrink-0 lg:border-l border-gray-800/30">
           <AmmoStack
             ammo={ammo}
             onAction={handleAction}

@@ -19,9 +19,9 @@ export default function AmmoStack({
   return (
     <div className="flex flex-col h-full gap-2.5 py-2 px-4">
       {/* Column header */}
-      <div className="text-center mb-1 border-b border-gray-800/50 pb-2">
-        <div className="text-xs text-gray-400 font-mono tracking-[0.25em] font-bold">INTERCEPTORS</div>
-        <div className="text-[10px] text-gray-600 font-mono mt-1">Press 1–5 to activate</div>
+      <div className="text-center mb-2 border-b border-gray-800/50 pb-2">
+        <div className="text-sm text-gray-300 font-mono tracking-[0.25em] font-bold">INTERCEPTORS</div>
+        <div className="text-xs text-gray-500 font-mono mt-1">Press 1–5 to activate</div>
       </div>
       {/* Interceptors */}
       {ALL_INTERCEPTORS.map(({ key, label, shortcut }) => {

@@ -6,7 +6,7 @@ import { getRandomQuestions, QUIZ_DATA } from '../config/quizData.js';
 // ============================================================
 const BRIEFING_CONTENT = {
   1: {
-    phases: ['threat', 'defense', 'quiz', 'exercise'],
+    phases: ['threat', 'defense', 'quiz'],
     threat: {
       title: 'SOUTHERN ISRAEL',
       hebrewTitle: 'דְּרוֹם יִשְׂרָאֵל',
@@ -39,14 +39,7 @@ const BRIEFING_CONTENT = {
       ],
       animation: 'iron_dome',
     },
-    exerciseConfig: {
-      threatType: 'rocket',
-      systemKey: 'iron_dome',
-      systemName: 'IRON DOME',
-      shortcut: '1',
-      threatLabel: 'ROCKET',
-      threatColor: '#f97316',
-    },
+    exerciseConfig: null,
   },
 
   2: {
@@ -297,9 +290,9 @@ const BRIEFING_CONTENT = {
 // Phase label mapping
 // ============================================================
 const PHASE_LABELS = {
-  threat: 'TARGETS AT RISK',
-  defense: 'THREATS & DEFENSES',
-  quiz: 'INTEL CHECK',
+  threat: 'SITUATION',
+  defense: 'RESPONSE',
+  quiz: 'READINESS CHECK',
   exercise: 'FIELD EXERCISE',
 };
 
@@ -309,7 +302,7 @@ const PHASE_LABELS = {
 function PhaseBar({ currentPhase, phases }) {
   const phaseIndex = phases.indexOf(currentPhase);
   return (
-    <div className="flex gap-1 mb-6">
+    <div className="flex gap-1 mb-3">
       {phases.map((phaseKey, i) => {
         const isComplete = i < phaseIndex;
         const isCurrent = i === phaseIndex;
@@ -837,16 +830,219 @@ const DEFENSE_ANIMATIONS = {
 };
 
 // ============================================================
+// BRIEFING SOUND EFFECTS — Web Audio API procedural sounds
+// Subtle tactical audio cues for the dossier experience
+// ============================================================
+let _audioCtx = null;
+const getAudioCtx = () => {
+  if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return _audioCtx;
+};
+
+const briefingSounds = {
+  // Document reveal: short "tick" click (typewriter-like)
+  docReveal: (volume = 0.08) => {
+    try {
+      const ctx = getAudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(800, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 0.04);
+      gain.gain.setValueAtTime(volume, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.06);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.06);
+    } catch(e) {}
+  },
+
+  // Phase transition: radar ping sweep
+  phasePing: (volume = 0.06) => {
+    try {
+      const ctx = getAudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(1200, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + 0.15);
+      gain.gain.setValueAtTime(volume, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.2);
+    } catch(e) {}
+  },
+
+  // Quiz correct: ascending double beep
+  quizCorrect: (volume = 0.1) => {
+    try {
+      const ctx = getAudioCtx();
+      [0, 0.1].forEach((delay, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(i === 0 ? 523 : 784, ctx.currentTime + delay); // C5, G5
+        gain.gain.setValueAtTime(volume, ctx.currentTime + delay);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.12);
+        osc.connect(gain).connect(ctx.destination);
+        osc.start(ctx.currentTime + delay);
+        osc.stop(ctx.currentTime + delay + 0.12);
+      });
+    } catch(e) {}
+  },
+
+  // Quiz wrong: descending buzz
+  quizWrong: (volume = 0.08) => {
+    try {
+      const ctx = getAudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(300, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(150, ctx.currentTime + 0.2);
+      gain.gain.setValueAtTime(volume, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.25);
+    } catch(e) {}
+  },
+};
+
+// ============================================================
+// BRIEFING ICONS — Monochrome SVG icons for fact cards
+// Replaces emoji bullets with military-style pictograms
+// ============================================================
+const ICON_SVG = {
+  // Cities & population
+  city: (c) => <svg viewBox="0 0 20 20" fill="none" stroke={c} strokeWidth="1.5" className="w-4 h-4"><rect x="2" y="8" width="5" height="10" rx="0.5"/><rect x="8" y="3" width="5" height="15" rx="0.5"/><rect x="14" y="6" width="4" height="12" rx="0.5"/><line x1="4" y1="11" x2="6" y2="11"/><line x1="4" y1="14" x2="6" y2="14"/><line x1="10" y1="6" x2="12" y2="6"/><line x1="10" y1="9" x2="12" y2="9"/><line x1="10" y1="12" x2="12" y2="12"/></svg>,
+  // People / population
+  people: (c) => <svg viewBox="0 0 20 20" fill="none" stroke={c} strokeWidth="1.5" className="w-4 h-4"><circle cx="7" cy="6" r="2.5"/><circle cx="14" cy="6" r="2.5"/><path d="M2 17c0-3 2.5-5 5-5s5 2 5 5"/><path d="M10 17c0-3 2-5 4-5s4 2 4 5"/></svg>,
+  // Alert / siren
+  alert: (c) => <svg viewBox="0 0 20 20" fill="none" stroke={c} strokeWidth="1.5" className="w-4 h-4"><path d="M10 2v2M3 10H1M19 10h-2M4.9 4.9l1.4 1.4M15.1 4.9l-1.4 1.4"/><circle cx="10" cy="10" r="4"/><circle cx="10" cy="10" r="1.5" fill={c}/></svg>,
+  // Rocket / missile
+  rocket: (c) => <svg viewBox="0 0 20 20" fill="none" stroke={c} strokeWidth="1.5" className="w-4 h-4"><path d="M10 2c0 0-5 4-5 11h10c0-7-5-11-5-11z"/><path d="M7 13l-2 5h2l1-2 1 2h2l1-2 1 2h2l-2-5"/></svg>,
+  // Shield / defense
+  shield: (c) => <svg viewBox="0 0 20 20" fill="none" stroke={c} strokeWidth="1.5" className="w-4 h-4"><path d="M10 2L3 6v5c0 4 3.5 6.5 7 8 3.5-1.5 7-4 7-8V6L10 2z"/><path d="M7.5 10l2 2 3.5-4" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+  // Factory / industry
+  factory: (c) => <svg viewBox="0 0 20 20" fill="none" stroke={c} strokeWidth="1.5" className="w-4 h-4"><path d="M2 18V8l4-3v5l4-3v5l4-3v8H2z"/><rect x="15" y="4" width="3" height="14"/><line x1="16.5" y1="2" x2="16.5" y2="4"/></svg>,
+  // Target / crosshair
+  target: (c) => <svg viewBox="0 0 20 20" fill="none" stroke={c} strokeWidth="1.5" className="w-4 h-4"><circle cx="10" cy="10" r="7"/><circle cx="10" cy="10" r="3"/><line x1="10" y1="1" x2="10" y2="5"/><line x1="10" y1="15" x2="10" y2="19"/><line x1="1" y1="10" x2="5" y2="10"/><line x1="15" y1="10" x2="19" y2="10"/></svg>,
+  // Radar / satellite dish
+  radar: (c) => <svg viewBox="0 0 20 20" fill="none" stroke={c} strokeWidth="1.5" className="w-4 h-4"><path d="M10 18V10"/><path d="M6 18h8"/><path d="M4 10a6 6 0 0112 0"/><path d="M7 10a3 3 0 016 0"/><circle cx="10" cy="10" r="1" fill={c}/></svg>,
+  // Money / cost
+  money: (c) => <svg viewBox="0 0 20 20" fill="none" stroke={c} strokeWidth="1.5" className="w-4 h-4"><line x1="10" y1="2" x2="10" y2="18"/><path d="M14 6c0-1.7-1.8-3-4-3S6 4.3 6 6s1.8 2.5 4 3 4 1.3 4 3-1.8 3-4 3-4-1.3-4-3"/></svg>,
+  // Map / geography
+  map: (c) => <svg viewBox="0 0 20 20" fill="none" stroke={c} strokeWidth="1.5" className="w-4 h-4"><path d="M3 3l5 2v12l-5-2V3z"/><path d="M8 5l5-2v12l-5 2V5z"/><path d="M13 3l5 2v12l-5-2V3z"/></svg>,
+  // Plane / aircraft
+  plane: (c) => <svg viewBox="0 0 20 20" fill="none" stroke={c} strokeWidth="1.5" className="w-4 h-4"><path d="M10 2L8 8H2l2 3-1 7h2l5-4 5 4h2l-1-7 2-3h-6L10 2z"/></svg>,
+  // Explosion / impact
+  explosion: (c) => <svg viewBox="0 0 20 20" fill="none" stroke={c} strokeWidth="1.5" className="w-4 h-4"><path d="M10 1l2 5 5-1-3 4 4 3-5 1 1 5-4-3-4 3 1-5-5-1 4-3-3-4 5 1z"/></svg>,
+  // Clock / time
+  clock: (c) => <svg viewBox="0 0 20 20" fill="none" stroke={c} strokeWidth="1.5" className="w-4 h-4"><circle cx="10" cy="10" r="8"/><path d="M10 5v5l3.5 2" strokeLinecap="round"/></svg>,
+  // Brain / intelligence
+  brain: (c) => <svg viewBox="0 0 20 20" fill="none" stroke={c} strokeWidth="1.5" className="w-4 h-4"><path d="M10 18V10"/><path d="M10 10C10 6 7 3 5 4s-1 5 1 6"/><path d="M10 10c0-4 3-7 5-6s1 5-1 6"/><circle cx="6" cy="6" r="2"/><circle cx="14" cy="6" r="2"/></svg>,
+  // Pin / location
+  pin: (c) => <svg viewBox="0 0 20 20" fill="none" stroke={c} strokeWidth="1.5" className="w-4 h-4"><path d="M10 18s-6-5.7-6-10a6 6 0 0112 0c0 4.3-6 10-6 10z"/><circle cx="10" cy="8" r="2"/></svg>,
+  // Anchor / port
+  anchor: (c) => <svg viewBox="0 0 20 20" fill="none" stroke={c} strokeWidth="1.5" className="w-4 h-4"><circle cx="10" cy="4" r="2"/><line x1="10" y1="6" x2="10" y2="18"/><path d="M4 14c0 3 2.7 4 6 4s6-1 6-4"/><line x1="6" y1="10" x2="14" y2="10"/></svg>,
+  // Flag / nation
+  flag: (c) => <svg viewBox="0 0 20 20" fill="none" stroke={c} strokeWidth="1.5" className="w-4 h-4"><line x1="4" y1="2" x2="4" y2="18"/><path d="M4 3h10l-3 4 3 4H4"/></svg>,
+  // Water / desalination
+  water: (c) => <svg viewBox="0 0 20 20" fill="none" stroke={c} strokeWidth="1.5" className="w-4 h-4"><path d="M10 2c0 0-6 7-6 11a6 6 0 0012 0c0-4-6-11-6-11z"/></svg>,
+  // Lightning / power
+  lightning: (c) => <svg viewBox="0 0 20 20" fill="none" stroke={c} strokeWidth="1.5" className="w-4 h-4"><path d="M11 1L5 11h5l-1 8 6-10h-5z" fill={c} fillOpacity="0.15"/></svg>,
+  // Nuclear / hazard
+  nuclear: (c) => <svg viewBox="0 0 20 20" fill="none" stroke={c} strokeWidth="1.5" className="w-4 h-4"><circle cx="10" cy="10" r="2"/><path d="M10 2a8 8 0 014 1.5L10 10"/><path d="M18 14a8 8 0 01-4 1.5L10 10"/><path d="M2 14a8 8 0 010-4l8 0"/></svg>,
+  // Building / government
+  building: (c) => <svg viewBox="0 0 20 20" fill="none" stroke={c} strokeWidth="1.5" className="w-4 h-4"><path d="M3 18V8l7-6 7 6v10H3z"/><rect x="8" y="12" width="4" height="6"/><line x1="3" y1="8" x2="17" y2="8"/></svg>,
+  // Mountain / terrain
+  mountain: (c) => <svg viewBox="0 0 20 20" fill="none" stroke={c} strokeWidth="1.5" className="w-4 h-4"><path d="M1 18l6-12 3 4 4-8 5 16H1z"/></svg>,
+  // Swarm / multiple
+  swarm: (c) => <svg viewBox="0 0 20 20" fill="none" stroke={c} strokeWidth="1.5" className="w-4 h-4"><circle cx="5" cy="5" r="2"/><circle cx="14" cy="4" r="2"/><circle cx="10" cy="10" r="2"/><circle cx="4" cy="14" r="2"/><circle cx="15" cy="13" r="2"/></svg>,
+  // Spy / intelligence
+  spy: (c) => <svg viewBox="0 0 20 20" fill="none" stroke={c} strokeWidth="1.5" className="w-4 h-4"><circle cx="10" cy="7" r="5"/><path d="M3 9h14"/><circle cx="7.5" cy="7" r="1.5"/><circle cx="12.5" cy="7" r="1.5"/><path d="M6 16c0-2 2-3.5 4-3.5s4 1.5 4 3.5"/></svg>,
+  // Eagle / military
+  eagle: (c) => <svg viewBox="0 0 20 20" fill="none" stroke={c} strokeWidth="1.5" className="w-4 h-4"><path d="M10 3L3 10l3 0-2 4h4l2 3 2-3h4l-2-4 3 0z"/></svg>,
+  // Link / chain
+  link: (c) => <svg viewBox="0 0 20 20" fill="none" stroke={c} strokeWidth="1.5" className="w-4 h-4"><path d="M8 12l4-4"/><path d="M6.5 8.5l-2 2a3.5 3.5 0 005 5l2-2"/><path d="M13.5 11.5l2-2a3.5 3.5 0 00-5-5l-2 2"/></svg>,
+  // Globe / worldwide
+  globe: (c) => <svg viewBox="0 0 20 20" fill="none" stroke={c} strokeWidth="1.5" className="w-4 h-4"><circle cx="10" cy="10" r="8"/><ellipse cx="10" cy="10" rx="3.5" ry="8"/><line x1="2" y1="10" x2="18" y2="10"/></svg>,
+  // Handshake / coalition
+  handshake: (c) => <svg viewBox="0 0 20 20" fill="none" stroke={c} strokeWidth="1.5" className="w-4 h-4"><path d="M2 10l4-4 4 2 4-2 4 4"/><path d="M6 10l4 4 4-4"/></svg>,
+  // Space / orbit
+  space: (c) => <svg viewBox="0 0 20 20" fill="none" stroke={c} strokeWidth="1.5" className="w-4 h-4"><circle cx="10" cy="10" r="2" fill={c}/><ellipse cx="10" cy="10" rx="8" ry="3" transform="rotate(-30 10 10)"/><ellipse cx="10" cy="10" rx="8" ry="3" transform="rotate(30 10 10)"/></svg>,
+  // Laser / beam
+  laser: (c) => <svg viewBox="0 0 20 20" fill="none" stroke={c} strokeWidth="1.5" className="w-4 h-4"><path d="M4 16l6-8 6 8"/><line x1="10" y1="8" x2="10" y2="2"/><circle cx="10" cy="2" r="1.5" fill={c} fillOpacity="0.3"/><line x1="6" y1="4" x2="8" y2="6"/><line x1="14" y1="4" x2="12" y2="6"/></svg>,
+  // Rain / weather
+  rain: (c) => <svg viewBox="0 0 20 20" fill="none" stroke={c} strokeWidth="1.5" className="w-4 h-4"><path d="M5 10a4 4 0 018-1h1a3 3 0 010 6H5a3 3 0 010-6z"/><line x1="7" y1="16" x2="6" y2="18"/><line x1="10" y1="16" x2="9" y2="18"/><line x1="13" y1="16" x2="12" y2="18"/></svg>,
+  // Ruler / measurement
+  ruler: (c) => <svg viewBox="0 0 20 20" fill="none" stroke={c} strokeWidth="1.5" className="w-4 h-4"><rect x="2" y="7" width="16" height="6" rx="1"/><line x1="5" y1="7" x2="5" y2="10"/><line x1="8" y1="7" x2="8" y2="11"/><line x1="11" y1="7" x2="11" y2="10"/><line x1="14" y1="7" x2="14" y2="11"/></svg>,
+  // Numbers / data
+  numbers: (c) => <svg viewBox="0 0 20 20" fill="none" stroke={c} strokeWidth="1.5" className="w-4 h-4"><rect x="2" y="2" width="16" height="16" rx="2"/><line x1="2" y1="8" x2="18" y2="8"/><line x1="2" y1="14" x2="18" y2="14"/><line x1="10" y1="2" x2="10" y2="18"/></svg>,
+  // Eye / surveillance
+  eye: (c) => <svg viewBox="0 0 20 20" fill="none" stroke={c} strokeWidth="1.5" className="w-4 h-4"><path d="M2 10s3-6 8-6 8 6 8 6-3 6-8 6-8-6-8-6z"/><circle cx="10" cy="10" r="3"/><circle cx="10" cy="10" r="1" fill={c}/></svg>,
+  // Calendar / date
+  calendar: (c) => <svg viewBox="0 0 20 20" fill="none" stroke={c} strokeWidth="1.5" className="w-4 h-4"><rect x="3" y="4" width="14" height="13" rx="1.5"/><line x1="3" y1="8" x2="17" y2="8"/><line x1="7" y1="2" x2="7" y2="5"/><line x1="13" y1="2" x2="13" y2="5"/></svg>,
+  // Fuel / gas
+  fuel: (c) => <svg viewBox="0 0 20 20" fill="none" stroke={c} strokeWidth="1.5" className="w-4 h-4"><rect x="3" y="4" width="9" height="14" rx="1"/><path d="M12 8l3-2v8l-1 1"/><circle cx="14.5" cy="14" r="1.5"/><line x1="5" y1="11" x2="10" y2="11"/></svg>,
+  // Computer / tech
+  computer: (c) => <svg viewBox="0 0 20 20" fill="none" stroke={c} strokeWidth="1.5" className="w-4 h-4"><rect x="2" y="3" width="16" height="11" rx="1.5"/><line x1="6" y1="17" x2="14" y2="17"/><line x1="10" y1="14" x2="10" y2="17"/></svg>,
+  // Mosque / religious
+  mosque: (c) => <svg viewBox="0 0 20 20" fill="none" stroke={c} strokeWidth="1.5" className="w-4 h-4"><path d="M10 2c0 0-6 4-6 8v8h12v-8c0-4-6-8-6-8z"/><line x1="10" y1="2" x2="10" y2="0.5"/><circle cx="10" cy="0.5" r="0.8" fill={c}/><rect x="8" y="13" width="4" height="5"/></svg>,
+  // Rotate / cycle
+  rotate: (c) => <svg viewBox="0 0 20 20" fill="none" stroke={c} strokeWidth="1.5" className="w-4 h-4"><path d="M14 3l2 2-2 2"/><path d="M16 5H8a5 5 0 000 10h1"/><path d="M6 17l-2-2 2-2"/><path d="M4 15h8a5 5 0 000-10h-1"/></svg>,
+  // Lab / research
+  lab: (c) => <svg viewBox="0 0 20 20" fill="none" stroke={c} strokeWidth="1.5" className="w-4 h-4"><path d="M7 2h6v5l4 9H3l4-9V2z"/><line x1="6" y1="13" x2="14" y2="13"/><line x1="7" y1="2" x2="13" y2="2"/></svg>,
+  // Beach / coastal
+  beach: (c) => <svg viewBox="0 0 20 20" fill="none" stroke={c} strokeWidth="1.5" className="w-4 h-4"><path d="M2 14c2-1 4 1 6 0s4 1 6 0 4 1 4 0"/><line x1="14" y1="4" x2="14" y2="14"/><path d="M14 4c0 0-6 1-6 5h6"/></svg>,
+  // Grain / farming
+  grain: (c) => <svg viewBox="0 0 20 20" fill="none" stroke={c} strokeWidth="1.5" className="w-4 h-4"><line x1="10" y1="18" x2="10" y2="6"/><path d="M10 6c-3-4-6-2-6-2s2 3 6 2"/><path d="M10 6c3-4 6-2 6-2s-2 3-6 2"/><path d="M10 10c-3-3-5-1-5-1s1 3 5 1"/><path d="M10 10c3-3 5-1 5-1s-1 3-5 1"/></svg>,
+};
+
+// Map each emoji to an SVG icon key
+const EMOJI_TO_ICON = {
+  '🏘️': 'city', '🏗️': 'city', '🏙️': 'city', '🏖️': 'beach',
+  '🌾': 'grain', '👥': 'people', '🚨': 'alert',
+  '🚀': 'rocket', '🔢': 'numbers', '💰': 'money',
+  '🛡️': 'shield', '🏭': 'factory', '🧠': 'brain',
+  '📍': 'pin', '⚓': 'anchor', '🏔️': 'mountain',
+  '🇮🇷': 'flag', '🇷🇺': 'flag', '🇾🇪': 'flag',
+  '📡': 'radar', '📏': 'ruler', '🐝': 'swarm',
+  '🎯': 'target', '🕌': 'mosque', '📐': 'ruler',
+  '✈️': 'plane', '💻': 'computer', '👁️': 'eye',
+  '🗺️': 'map', '⛽': 'fuel', '💧': 'water',
+  '⚡': 'lightning', '☢️': 'nuclear', '🏛️': 'building',
+  '💥': 'explosion', '📅': 'calendar',
+  '🕵️': 'spy', '🛩️': 'plane', '🦅': 'eagle',
+  '⏱️': 'clock', '🌌': 'space', '🌐': 'globe',
+  '🔗': 'link', '🌍': 'globe',
+  '🤝': 'handshake', '🔦': 'laser', '🔬': 'lab',
+  '🌧️': 'rain', '🔄': 'rotate',
+};
+
+// Render either SVG icon or fallback to emoji
+const BriefingIcon = ({ emoji, color }) => {
+  const iconKey = EMOJI_TO_ICON[emoji];
+  const iconFn = iconKey && ICON_SVG[iconKey];
+  if (iconFn) {
+    return <span className="flex-shrink-0 mt-0.5 opacity-70">{iconFn(color)}</span>;
+  }
+  return <span className="text-base flex-shrink-0">{emoji}</span>;
+};
+
+// ============================================================
 // PHASE 1: Threat Briefing (Generic, data-driven)
 // ============================================================
-function ThreatBriefingPhase({ data, onComplete }) {
+function ThreatBriefingPhase({ data, onComplete, onSkip }) {
   const [visibleBullets, setVisibleBullets] = useState(0);
   const [canContinue, setCanContinue] = useState(false);
   const bullets = data.bullets;
 
   useEffect(() => {
     const timers = bullets.map((_, i) =>
-      setTimeout(() => setVisibleBullets(i + 1), (i + 1) * 2500)
+      setTimeout(() => { setVisibleBullets(i + 1); briefingSounds.docReveal(); }, (i + 1) * 2500)
     );
     const allBulletsTime = bullets.length * 2500;
     const readyTimer = setTimeout(() => setCanContinue(true), allBulletsTime + 2000);
@@ -858,34 +1054,55 @@ function ThreatBriefingPhase({ data, onComplete }) {
   return (
     <div>
       <div className="text-center mb-2">
-        <div className="text-[10px] text-gray-500 font-mono tracking-[0.4em] mb-0.5">THREAT BRIEFING</div>
-        <h2 className="text-xl font-bold font-mono tracking-wider" style={{ color: data.color }}>{data.title}</h2>
-        {data.hebrewTitle && (
-          <div className="text-lg font-bold mt-0.5" style={{ color: data.color, opacity: 0.75, fontFamily: 'Arial, sans-serif' }}>{data.hebrewTitle}</div>
-        )}
-        <div className="text-[10px] text-gray-600 font-mono mt-0.5">{data.subtitle}</div>
+        <h2 className="text-lg font-bold font-mono tracking-wider" style={{ color: data.color }}>
+          {data.title}
+          {data.hebrewTitle && (
+            <span className="text-base font-bold ml-2" style={{ color: data.color, opacity: 0.65, fontFamily: 'Arial, sans-serif' }}>{data.hebrewTitle}</span>
+          )}
+        </h2>
+        <div className="text-[10px] text-gray-500 font-mono mt-0.5">{data.subtitle}</div>
       </div>
 
-      {AnimComponent && <div className="scale-[0.85] origin-top -mb-3"><AnimComponent /></div>}
-
-      <div className="space-y-1.5 mt-2">
-        {bullets.map((bullet, i) => (
-          <div
-            key={i}
-            className={`flex items-start gap-2 p-2 rounded-lg bg-gray-900/50 border border-gray-800 transition-all duration-500 ${
-              i < visibleBullets ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'
-            }`}
-          >
-            <span className="text-sm flex-shrink-0">{bullet.icon}</span>
-            <span className="text-xs font-mono text-gray-300 leading-relaxed">{bullet.text}</span>
-          </div>
-        ))}
+      <div className="relative">
+        {/* Radar background */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden" style={{ opacity: 0.06 }}>
+          <svg viewBox="0 0 200 200" className="w-full max-w-[400px] aspect-square" fill="none" stroke={data.color}>
+            <circle cx="100" cy="100" r="90" strokeWidth="0.5"/>
+            <circle cx="100" cy="100" r="60" strokeWidth="0.5"/>
+            <circle cx="100" cy="100" r="30" strokeWidth="0.5"/>
+            <line x1="100" y1="10" x2="100" y2="190" strokeWidth="0.3"/>
+            <line x1="10" y1="100" x2="190" y2="100" strokeWidth="0.3"/>
+            <line x1="36" y1="36" x2="164" y2="164" strokeWidth="0.2"/>
+            <line x1="164" y1="36" x2="36" y2="164" strokeWidth="0.2"/>
+          </svg>
+        </div>
+        <div className="relative space-y-2">
+          {bullets.map((bullet, i) => {
+            const isVisible = i < visibleBullets;
+            return (
+              <div
+                key={i}
+                className={`flex items-start gap-2.5 p-2.5 rounded-lg bg-gray-900/50 border border-gray-800 ${
+                  isVisible ? 'dossier-reveal' : 'opacity-0'
+                }`}
+                style={isVisible ? {
+                  '--accent-color': data.color,
+                  '--accent-glow': `${data.color}40`,
+                  animationDelay: '0s',
+                } : undefined}
+              >
+                <BriefingIcon emoji={bullet.icon} color={data.color} />
+                <span className="text-sm font-mono text-gray-300 leading-relaxed">{bullet.text}</span>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       <CountdownBar duration={25} onComplete={onComplete} paused={false} />
 
-      {canContinue && (
-        <div className="text-center mt-3">
+      <div className="flex items-center justify-center gap-3 mt-3">
+        {canContinue && (
           <button
             onClick={onComplete}
             className="px-8 py-2.5 bg-green-900/30 border border-green-700 text-green-400
@@ -895,62 +1112,129 @@ function ThreatBriefingPhase({ data, onComplete }) {
           >
             CONTINUE ▸
           </button>
-        </div>
-      )}
+        )}
+        {onSkip && (
+          <button
+            onClick={onSkip}
+            className="px-5 py-2.5 bg-gray-800/60 border border-gray-600 text-gray-400
+              font-mono text-xs tracking-widest rounded-lg
+              hover:bg-gray-700/80 hover:border-gray-400 hover:text-gray-300
+              transition-all active:scale-95 cursor-pointer"
+          >
+            SKIP BRIEFING ▸
+          </button>
+        )}
+      </div>
     </div>
   );
 }
 
 // ============================================================
+// THREAT PROFILES — Compact tactical stats for defense phase
+// ============================================================
+const THREAT_PROFILES = {
+  1: { threat: 'QASSAM ROCKET', system: 'IRON DOME', speed: '~Mach 1', range: '5-45 km', cost: '$800', altitude: '< 10 km', systemCost: '$50K' },
+  2: { threat: 'ATTACK DRONE', system: 'IRON DOME', speed: '185 km/h', range: '2,500 km', cost: '$20K', altitude: '0.1-2 km', systemCost: '$50K' },
+  3: { threat: 'CRUISE MISSILE', system: "DAVID'S SLING", speed: '~Mach 0.8', range: '1,600 km', cost: '$500K', altitude: '< 1 km', systemCost: '$1M' },
+  4: { threat: 'BALLISTIC MISSILE', system: 'ARROW 2', speed: 'Mach 7+', range: '2,000 km', cost: '$5M', altitude: '50+ km', systemCost: '$3M' },
+  5: { threat: 'HYPERSONIC GLIDE', system: 'ARROW 3', speed: 'Mach 5-20', range: '1,500+ km', cost: '$10M+', altitude: '100+ km', systemCost: '$2-3M' },
+  6: { threat: 'MULTI-FRONT', system: 'ALL LAYERS', speed: 'Varies', range: '5-2,500 km', cost: 'Varies', altitude: '0-100+ km', systemCost: 'Varies' },
+  7: { threat: 'SATURATION ATTACK', system: 'ALL LAYERS', speed: 'Simultaneous', range: 'All origins', cost: '$80-100M', altitude: 'All layers', systemCost: '$1.35B' },
+};
+
+// ============================================================
 // PHASE 2: Defense Briefing (Generic, data-driven)
 // ============================================================
-function DefenseBriefingPhase({ data, onComplete }) {
+function DefenseBriefingPhase({ data, onComplete, onSkip, level }) {
   const [visibleBullets, setVisibleBullets] = useState(0);
   const [canContinue, setCanContinue] = useState(false);
   const bullets = data.bullets;
+  const profile = THREAT_PROFILES[level];
 
   useEffect(() => {
     const timers = bullets.map((_, i) =>
-      setTimeout(() => setVisibleBullets(i + 1), (i + 1) * 2000)
+      setTimeout(() => { setVisibleBullets(i + 1); briefingSounds.docReveal(); }, (i + 1) * 2000)
     );
     const allBulletsTime = bullets.length * 2000;
     const readyTimer = setTimeout(() => setCanContinue(true), allBulletsTime + 2000);
     return () => { timers.forEach(clearTimeout); clearTimeout(readyTimer); };
   }, [bullets]);
 
-  const AnimComponent = DEFENSE_ANIMATIONS[data.animation] || null;
-
   return (
     <div>
       <div className="text-center mb-2">
-        <div className="text-[10px] text-gray-500 font-mono tracking-[0.4em] mb-0.5">DEFENSE BRIEFING</div>
-        <h2 className="text-xl font-bold font-mono tracking-wider" style={{ color: data.color }}>{data.title}</h2>
-        {data.hebrewTitle && (
-          <div className="text-lg font-bold mt-0.5" style={{ color: data.color, opacity: 0.75, fontFamily: 'Arial, sans-serif' }}>{data.hebrewTitle}</div>
-        )}
-        <div className="text-[10px] text-gray-600 font-mono mt-0.5">{data.subtitle}</div>
+        <h2 className="text-lg font-bold font-mono tracking-wider" style={{ color: data.color }}>
+          {data.title}
+          {data.hebrewTitle && (
+            <span className="text-base font-bold ml-2" style={{ color: data.color, opacity: 0.65, fontFamily: 'Arial, sans-serif' }}>{data.hebrewTitle}</span>
+          )}
+        </h2>
+        <div className="text-[10px] text-gray-500 font-mono mt-0.5">{data.subtitle}</div>
       </div>
 
-      {AnimComponent && <div className="scale-[0.85] origin-top -mb-3"><AnimComponent /></div>}
-
-      <div className="space-y-1.5 mt-2">
-        {bullets.map((bullet, i) => (
-          <div
-            key={i}
-            className={`flex items-start gap-2 p-2 rounded-lg bg-gray-900/50 border border-gray-800 transition-all duration-500 ${
-              i < visibleBullets ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'
-            }`}
-          >
-            <span className="text-sm flex-shrink-0">{bullet.icon}</span>
-            <span className="text-xs font-mono text-gray-300 leading-relaxed">{bullet.text}</span>
+      {/* Threat Profile Card */}
+      {profile && (
+        <div className="mb-2 px-3 py-1.5 rounded border bg-gray-900/60 flex items-center justify-between gap-2 text-[10px] font-mono"
+          style={{ borderColor: `${data.color}40` }}>
+          <div className="flex items-center gap-3">
+            <span className="tracking-widest text-gray-500">SPEED</span>
+            <span style={{ color: data.color }}>{profile.speed}</span>
           </div>
-        ))}
+          <div className="flex items-center gap-3">
+            <span className="tracking-widest text-gray-500">RANGE</span>
+            <span style={{ color: data.color }}>{profile.range}</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="tracking-widest text-gray-500">ALT</span>
+            <span style={{ color: data.color }}>{profile.altitude}</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="tracking-widest text-gray-500">COST</span>
+            <span style={{ color: data.color }}>{profile.cost}</span>
+          </div>
+        </div>
+      )}
+
+      <div className="relative">
+        {/* Radar background */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden" style={{ opacity: 0.06 }}>
+          <svg viewBox="0 0 200 200" className="w-full max-w-[400px] aspect-square" fill="none" stroke={data.color}>
+            <circle cx="100" cy="100" r="90" strokeWidth="0.5"/>
+            <circle cx="100" cy="100" r="60" strokeWidth="0.5"/>
+            <circle cx="100" cy="100" r="30" strokeWidth="0.5"/>
+            <line x1="100" y1="10" x2="100" y2="190" strokeWidth="0.3"/>
+            <line x1="10" y1="100" x2="190" y2="100" strokeWidth="0.3"/>
+            <line x1="36" y1="36" x2="164" y2="164" strokeWidth="0.2"/>
+            <line x1="164" y1="36" x2="36" y2="164" strokeWidth="0.2"/>
+          </svg>
+        </div>
+        <div className="relative space-y-2">
+          {bullets.map((bullet, i) => {
+            const isVisible = i < visibleBullets;
+            return (
+              <div
+                key={i}
+                className={`flex items-start gap-2.5 p-2.5 rounded-lg bg-gray-900/50 border border-gray-800 ${
+                  isVisible ? 'dossier-reveal' : 'opacity-0'
+                }`}
+                style={isVisible ? {
+                  '--accent-color': data.color,
+                  '--accent-glow': `${data.color}40`,
+                  animationDelay: '0s',
+                } : undefined}
+              >
+                <BriefingIcon emoji={bullet.icon} color={data.color} />
+                <span className="text-sm font-mono text-gray-300 leading-relaxed">{bullet.text}</span>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       <CountdownBar duration={25} onComplete={onComplete} paused={false} />
 
-      {canContinue && (
-        <div className="text-center mt-3">
+      <div className="flex items-center justify-center gap-3 mt-3">
+        {canContinue && (
           <button
             onClick={onComplete}
             className="px-8 py-2.5 bg-green-900/30 border border-green-700 text-green-400
@@ -960,8 +1244,19 @@ function DefenseBriefingPhase({ data, onComplete }) {
           >
             CONTINUE ▸
           </button>
-        </div>
-      )}
+        )}
+        {onSkip && (
+          <button
+            onClick={onSkip}
+            className="px-5 py-2.5 bg-gray-800/60 border border-gray-600 text-gray-400
+              font-mono text-xs tracking-widest rounded-lg
+              hover:bg-gray-700/80 hover:border-gray-400 hover:text-gray-300
+              transition-all active:scale-95 cursor-pointer"
+          >
+            SKIP BRIEFING ▸
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -969,7 +1264,7 @@ function DefenseBriefingPhase({ data, onComplete }) {
 // ============================================================
 // PHASE 3: Intel Check (Quiz) — UNCHANGED
 // ============================================================
-function IntelCheckPhase({ level, shownFactIds, onComplete }) {
+function IntelCheckPhase({ level, shownFactIds, onComplete, onSkip }) {
   const [questions] = useState(() => getRandomQuestions(level, 2, shownFactIds));
   const [currentQ, setCurrentQ] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
@@ -1017,6 +1312,7 @@ function IntelCheckPhase({ level, shownFactIds, onComplete }) {
       if (remaining <= 0 && !answeredRef.current) {
         clearInterval(timerRef.current);
         answeredRef.current = true;
+        briefingSounds.quizWrong();
         setShowResult(true);
         // Auto-advance after showing timeout result (0 points earned)
         setTimeout(() => doAdvance(0), 3500);
@@ -1036,6 +1332,9 @@ function IntelCheckPhase({ level, shownFactIds, onComplete }) {
     const correct = index === q.correctIndex;
     const earned = correct ? quizConfig.pointsPerCorrect : 0;
 
+    if (correct) briefingSounds.quizCorrect();
+    else briefingSounds.quizWrong();
+
     setShowResult(true);
     setTimeout(() => doAdvance(earned), 3500);
   }, [questions, quizConfig, doAdvance]);
@@ -1052,15 +1351,15 @@ function IntelCheckPhase({ level, shownFactIds, onComplete }) {
 
   return (
     <div>
-      <div className="text-center mb-6">
-        <div className="text-xs text-gray-500 font-mono tracking-[0.4em] mb-1">INTEL CHECK</div>
+      <div className="text-center mb-3">
+        <div className="text-xs text-gray-500 font-mono tracking-[0.4em] mb-0.5">INTEL CHECK</div>
         <h2 className="text-xl font-bold font-mono text-cyan-400 tracking-wider">
           QUESTION {currentQ + 1} OF {questions.length}
         </h2>
       </div>
 
       {/* Timer bar */}
-      <div className="mb-6">
+      <div className="mb-3">
         <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden">
           <div
             className={`h-full rounded-full transition-all duration-100 ease-linear ${
@@ -1079,12 +1378,12 @@ function IntelCheckPhase({ level, shownFactIds, onComplete }) {
       </div>
 
       {/* Question */}
-      <div className="text-lg font-mono text-gray-200 mb-6 text-center leading-relaxed">
+      <div className="text-base font-mono text-gray-200 mb-4 text-center leading-relaxed">
         {q.question}
       </div>
 
       {/* Options */}
-      <div className="space-y-2.5 max-w-lg mx-auto">
+      <div className="space-y-2 max-w-lg mx-auto">
         {q.options.map((option, i) => {
           let btnClass = 'border-gray-700 bg-gray-900/50 text-gray-300 hover:border-gray-500 cursor-pointer';
           let indicator = null;
@@ -1106,7 +1405,7 @@ function IntelCheckPhase({ level, shownFactIds, onComplete }) {
               key={i}
               onClick={() => handleAnswer(i)}
               disabled={showResult}
-              className={`w-full py-3 px-5 rounded-lg font-mono text-sm tracking-wide
+              className={`w-full py-2.5 px-4 rounded-lg font-mono text-sm tracking-wide
                 border-2 transition-all duration-300 ${btnClass}
                 ${showResult ? 'cursor-default' : 'active:scale-[0.98]'}
               `}
@@ -1123,7 +1422,7 @@ function IntelCheckPhase({ level, shownFactIds, onComplete }) {
 
       {/* Result feedback */}
       {showResult && (
-        <div className={`mt-5 p-4 rounded-lg text-center font-mono text-sm ${
+        <div className={`mt-3 p-3 rounded-lg text-center font-mono text-sm ${
           timedOut
             ? 'bg-yellow-900/30 border border-yellow-700 text-yellow-400'
             : isCorrect
@@ -1151,10 +1450,20 @@ function IntelCheckPhase({ level, shownFactIds, onComplete }) {
         </div>
       )}
 
-      {/* Points tracker */}
-      <div className="mt-4 text-center">
-        <span className="font-mono text-xs text-gray-600 tracking-widest">INTEL SCORE: </span>
-        <span className="font-mono text-sm text-cyan-400 font-bold">{totalPoints} PTS</span>
+      {/* Points tracker + skip */}
+      <div className="mt-4 flex items-center justify-center gap-4">
+        <span className="font-mono text-xs text-gray-600 tracking-widest">INTEL SCORE: <span className="text-sm text-cyan-400 font-bold">{totalPoints} PTS</span></span>
+        {onSkip && (
+          <button
+            onClick={onSkip}
+            className="px-4 py-1.5 bg-gray-800/60 border border-gray-600 text-gray-400
+              font-mono text-[10px] tracking-widest rounded-lg
+              hover:bg-gray-700/80 hover:border-gray-400 hover:text-gray-300
+              transition-all active:scale-95 cursor-pointer"
+          >
+            SKIP ⚠
+          </button>
+        )}
       </div>
     </div>
   );
@@ -1668,6 +1977,7 @@ export default function EducationalBriefing({ level, onComplete }) {
     const idx = phases.indexOf(currentPhaseKey);
     if (idx < phases.length - 1) {
       setPhase(phases[idx + 1]);
+      briefingSounds.phasePing();
     } else {
       // Last phase completed
       onComplete({ quizPoints: quizPointsRef.current });
@@ -1708,9 +2018,9 @@ export default function EducationalBriefing({ level, onComplete }) {
         `,
       }}
     >
-      {/* Decorative background grid — visible topographic feel */}
+      {/* Decorative background grid — parallax shift on phase change */}
       <div
-        className="absolute inset-0 pointer-events-none"
+        className={`absolute inset-0 pointer-events-none briefing-grid-phase-${phases.indexOf(phase)}`}
         style={{
           backgroundImage: `
             linear-gradient(${briefingAccent.color}15 1px, transparent 1px),
@@ -1727,7 +2037,7 @@ export default function EducationalBriefing({ level, onComplete }) {
         style={{ background: `linear-gradient(90deg, transparent, ${briefingAccent.color}60, transparent)` }}
       />
       {/* Corner accent — bottom-left classification stamp */}
-      <div className="absolute bottom-16 left-4 pointer-events-none">
+      <div className="absolute bottom-4 left-4 pointer-events-none">
         <div
           className="font-mono text-[9px] tracking-[0.4em] px-2 py-0.5 rounded border"
           style={{
@@ -1740,48 +2050,44 @@ export default function EducationalBriefing({ level, onComplete }) {
         </div>
       </div>
 
-      <div className="max-w-2xl w-full mx-auto px-4 pt-2 pb-1 flex-shrink-0">
-        {/* Header — level name prominent, right padding avoids Escape Room timer overlap */}
-        <div className="text-center mb-2 pr-48">
-          <div
-            className="font-mono text-[10px] tracking-[0.5em] mb-0.5"
-            style={{ color: `${briefingAccent.color}70` }}
-          >
-            LEVEL {level} — MISSION BRIEFING
-          </div>
-          <h1 className="text-xl lg:text-2xl font-bold font-mono tracking-wider mb-0.5"
+      <div className="max-w-2xl w-full mx-auto px-4 pt-2 pb-0.5 flex-shrink-0">
+        {/* Header — clear level briefing title */}
+        <div className="text-center mb-1.5 pr-20">
+          <h1 className="text-xl lg:text-2xl font-bold font-mono tracking-wider"
             style={{ color: briefingAccent.color }}>
-            {levelInfo.name}
+            LEVEL {level} BRIEFING
           </h1>
-          {levelInfo.hebrewName && (
-            <div className="text-base lg:text-lg font-bold mb-0.5"
-              style={{ fontFamily: 'Arial, sans-serif', color: `${briefingAccent.color}BF` }}>
-              {levelInfo.hebrewName}
-            </div>
-          )}
-          <div className="text-[10px] lg:text-xs font-mono tracking-widest"
-            style={{ color: `${briefingAccent.color}80` }}>
-            {levelInfo.subtitle}
+          <div className="flex items-baseline justify-center gap-2 mt-0.5">
+            <span className="text-xs lg:text-sm font-mono tracking-widest"
+              style={{ color: `${briefingAccent.color}90` }}>
+              {levelInfo.name}
+            </span>
+            {levelInfo.hebrewName && (
+              <span className="text-xs lg:text-sm font-bold"
+                style={{ fontFamily: 'Arial, sans-serif', color: `${briefingAccent.color}70` }}>
+                {levelInfo.hebrewName}
+              </span>
+            )}
           </div>
         </div>
 
-        {/* Phase progress bar — right padding avoids Escape Room timer overlap */}
-        <div className="pr-48">
+        {/* Phase progress bar */}
+        <div className="pr-20">
           <PhaseBar currentPhase={phase} phases={phases} />
         </div>
       </div>
 
       {/* Phase content — scrollable if needed */}
       <div className="flex-1 overflow-y-auto">
-        <div className="max-w-2xl w-full mx-auto px-4 pb-4">
+        <div className="max-w-2xl w-full mx-auto px-4 pb-2">
           {phase === 'threat' && contentRef.current.threat && (
-            <ThreatBriefingPhase data={contentRef.current.threat} onComplete={handleThreatComplete} />
+            <ThreatBriefingPhase data={contentRef.current.threat} onComplete={handleThreatComplete} onSkip={handleSkipBriefing} />
           )}
           {phase === 'defense' && contentRef.current.defense && (
-            <DefenseBriefingPhase data={contentRef.current.defense} onComplete={handleDefenseComplete} />
+            <DefenseBriefingPhase data={contentRef.current.defense} onComplete={handleDefenseComplete} onSkip={handleSkipBriefing} level={level} />
           )}
           {phase === 'quiz' && (
-            <IntelCheckPhase level={level} shownFactIds={factIdsRef.current} onComplete={handleQuizComplete} />
+            <IntelCheckPhase level={level} shownFactIds={factIdsRef.current} onComplete={handleQuizComplete} onSkip={handleSkipBriefing} />
           )}
           {phase === 'exercise' && content.exerciseConfig && (
             <FieldExercisePhase config={content.exerciseConfig} onComplete={handleExerciseComplete} />
@@ -1789,19 +2095,6 @@ export default function EducationalBriefing({ level, onComplete }) {
         </div>
       </div>
 
-      {/* SKIP button — fixed at bottom center */}
-      <div className="flex-shrink-0 py-3 flex justify-center bg-[#0a0e1a]/90 border-t border-gray-800/50">
-        <button
-          onClick={handleSkipBriefing}
-          className="text-gray-300 hover:text-white font-mono text-sm tracking-widest
-            transition-all cursor-pointer px-8 py-2.5 rounded-lg
-            border-2 border-gray-600 hover:border-gray-400
-            bg-gray-800/60 hover:bg-gray-700/80
-            active:scale-95"
-        >
-          SKIP BRIEFING ⚠
-        </button>
-      </div>
     </div>
   );
 }
