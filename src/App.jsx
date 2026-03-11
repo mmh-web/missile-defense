@@ -745,7 +745,7 @@ export default function App() {
       </div>
 
       {/* Top bar — level name centered prominently, score/timer on sides */}
-      <div className="flex items-center justify-between px-2 md:px-4 py-1.5 md:py-2 lg:py-2.5 bg-[#080c16] relative min-h-[40px] md:min-h-[52px] lg:min-h-[60px]"
+      <div className="flex items-center justify-between px-2 md:px-4 py-2 md:py-2.5 lg:py-3 bg-[#080c16] relative min-h-[44px] md:min-h-[56px] lg:min-h-[68px]"
         style={{ borderBottom: `2px solid ${LEVEL_ACCENT_COLORS[currentLevel] || '#22c55e'}70` }}>
         {/* Left: music + score + streak */}
         <div className="flex items-center gap-2 md:gap-3 min-w-0">
@@ -808,9 +808,9 @@ export default function App() {
       </div>
 
       {/* Main content area — desktop: 3-column flex (threats | radar | ammo). Radar stretches full height; panels self-center. */}
-      <div className="flex-1 flex flex-col lg:flex-row lg:items-stretch min-h-0 overflow-hidden lg:max-w-[1200px] lg:mx-auto lg:w-full">
+      <div className="flex-1 flex flex-col lg:flex-row lg:items-stretch min-h-0 overflow-hidden lg:max-w-[1200px] lg:mx-auto lg:w-full lg:gap-3">
         {/* ZONE A: Threat panel — mobile: below radar (order-2); desktop: left of radar (order-1) */}
-        <div className="flex-shrink-0 max-h-[240px] overflow-y-auto order-2 lg:order-1 lg:w-[240px] lg:max-h-[80vh] lg:overflow-y-auto lg:self-center p-1 sm:p-2 md:p-3 border-t lg:border-t-0 lg:border-r border-gray-800/30">
+        <div className="flex-shrink-0 max-h-[240px] overflow-y-auto order-2 lg:order-1 lg:w-[260px] lg:max-h-[80vh] lg:overflow-y-auto lg:self-center p-1 sm:p-2 md:p-3 lg:p-4 border-t lg:border-t-0 lg:border-r border-gray-800/30">
           <ThreatPanel
             activeThreats={activeThreats}
             selectedThreatId={selectedThreatId}
@@ -840,7 +840,7 @@ export default function App() {
         </div>
 
         {/* ZONE C: Ammo stack — desktop only, right of radar */}
-        <div className="hidden lg:flex lg:flex-col lg:justify-center lg:self-center order-3 lg:w-[200px] lg:flex-shrink-0 lg:max-h-[80vh] lg:border-l border-gray-800/30">
+        <div className="hidden lg:flex lg:flex-col lg:justify-center lg:self-center order-3 lg:w-[220px] lg:flex-shrink-0 lg:max-h-[80vh] lg:border-l border-gray-800/30">
           <AmmoStack
             ammo={ammo}
             onAction={handleAction}

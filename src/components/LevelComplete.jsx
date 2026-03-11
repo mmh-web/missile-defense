@@ -283,7 +283,7 @@ export default function LevelComplete({ levelStats, campaignStats, effectiveTota
             )}
             {levelStats.sirenCount > 0 && (
               <p className="text-red-400/80">
-                {levelStats.sirenCount} civilian area{levelStats.sirenCount !== 1 ? 's' : ''} hit — each Tzeva Adom activates a 15-second warning siren.
+                {levelStats.sirenCount} civilian area{levelStats.sirenCount !== 1 ? 's' : ''} hit.
               </p>
             )}
           </div>

@@ -20,13 +20,14 @@ function ThreatRow({ threat, isSelected, onSelect }) {
     ? 'bg-white/10'
     : 'bg-transparent';
 
-  const impactColor = isHeld
-    ? 'text-gray-600'
+  // Impact zone uses threat type color for populated targets, gray for open ground
+  const impactColorStyle = isHeld
+    ? { className: 'text-gray-600' }
     : !threat.impactRevealed
-      ? 'text-gray-400 animate-pulse'
+      ? { className: 'text-gray-400 animate-pulse' }
       : threat.is_populated
-        ? 'text-white'
-        : 'text-gray-500';
+        ? { style: { color } }
+        : { className: 'text-gray-500' };
 
   const impactText = isHeld
     ? `${threat.impactRevealed ? threat.impact_zone.toUpperCase() : '—'} [HELD]`
@@ -52,8 +53,8 @@ function ThreatRow({ threat, isSelected, onSelect }) {
         ...(isCritical && !isHeld ? { backgroundColor: `${color}15` } : {}),
       }}
     >
-      {/* Line 1: ID, type, impact zone, countdown */}
-      <div className="flex items-center gap-1.5">
+      {/* Line 1: ID, type badge, countdown */}
+      <div className="flex items-center gap-1.5 lg:gap-2">
         {/* Threat ID */}
         <span
           className="w-8 text-sm font-mono font-bold flex-shrink-0 text-center"
@@ -62,25 +63,37 @@ function ThreatRow({ threat, isSelected, onSelect }) {
           T{threat.id}{threat.priority ? '*' : ''}
         </span>
 
-        {/* Type abbreviation */}
+        {/* Type abbreviation (mobile only) */}
         <span
-          className="w-10 text-xs font-mono font-bold uppercase tracking-wider flex-shrink-0"
+          className="w-10 text-xs font-mono font-bold uppercase tracking-wider flex-shrink-0 lg:hidden"
           style={{ color }}
         >
           {TYPE_ABBR[threat.type] || '???'}
         </span>
 
-        {/* Arrow separator */}
-        <span className="text-gray-600 text-sm flex-shrink-0">▸</span>
+        {/* Type badge (desktop only) — full name, not abbreviated */}
+        <span
+          className="hidden lg:inline text-xs font-bold px-1.5 py-0.5 rounded uppercase tracking-wider flex-shrink-0"
+          style={{ backgroundColor: `${color}20`, color }}
+        >
+          {threat.type.toUpperCase()}
+        </span>
 
-        {/* Impact zone */}
-        <span className={`flex-1 min-w-0 truncate text-sm font-mono font-bold ${impactColor}`}>
+        {/* Arrow + Impact zone (mobile: same line) */}
+        <span className="text-gray-600 text-sm flex-shrink-0 lg:hidden">▸</span>
+        <span
+          className={`flex-1 min-w-0 truncate text-sm font-mono font-bold lg:hidden ${impactColorStyle.className || ''}`}
+          style={impactColorStyle.style}
+        >
           {impactText}
         </span>
 
+        {/* Spacer (desktop) — pushes countdown to right */}
+        <span className="hidden lg:flex flex-1" />
+
         {/* Countdown */}
         <span
-          className={`w-10 text-right text-base font-mono font-bold tabular-nums flex-shrink-0 ${
+          className={`w-10 lg:w-12 text-right text-base lg:text-xl font-mono font-bold tabular-nums flex-shrink-0 ${
             isCritical ? 'text-white' : 'text-green-400'
           }`}
         >
@@ -88,16 +101,14 @@ function ThreatRow({ threat, isSelected, onSelect }) {
         </span>
       </div>
 
-      {/* Line 2 (desktop only): threat name + full type */}
-      <div className="hidden lg:flex items-center gap-1.5 mt-0.5 pl-8">
+      {/* Line 2 (desktop only): impact zone — full width, clearly readable */}
+      <div className="hidden lg:flex items-center gap-1.5 mt-0.5 pl-2">
+        <span className="text-gray-600 text-sm flex-shrink-0">▸</span>
         <span
-          className="text-[11px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider"
-          style={{ backgroundColor: `${color}20`, color }}
+          className={`text-sm font-mono font-bold ${impactColorStyle.className || ''}`}
+          style={impactColorStyle.style}
         >
-          {threat.type === 'hypersonic' ? 'HYPERSONIC' : threat.type.toUpperCase()}
-        </span>
-        <span className="text-[11px] font-mono text-gray-500 truncate">
-          {threatName}
+          {impactText}
         </span>
       </div>
     </div>
@@ -130,7 +141,7 @@ export default function ThreatPanel({
 
   return (
     <div className="flex flex-col">
-      <div className="text-xs text-green-500/50 font-mono tracking-widest mb-1 px-2 uppercase">
+      <div className="text-xs lg:text-sm text-green-500/50 font-mono tracking-widest mb-1 px-2 uppercase">
         {live.filter(t => !t.held).length} ACTIVE
         {live.some(t => t.held) && <span className="text-gray-600"> · {live.filter(t => t.held).length} HELD</span>}
       </div>
@@ -143,6 +154,10 @@ export default function ThreatPanel({
             onSelect={onSelectThreat}
           />
         ))}
+      </div>
+      {/* Persistent engagement hint */}
+      <div className="text-xs lg:text-sm text-gray-400 font-mono tracking-wide mt-3 px-2 text-center leading-relaxed">
+        TAP BLIP or CARD to select<br />PRESS 1-5 to engage
       </div>
     </div>
   );

@@ -17,7 +17,7 @@ export default function AmmoStack({
   const hasSelection = selectedThreatId !== null;
 
   return (
-    <div className="flex flex-col h-full justify-center gap-2 py-2 px-3">
+    <div className="flex flex-col h-full justify-center gap-2.5 py-2 px-4">
       {/* Interceptors */}
       {ALL_INTERCEPTORS.map(({ key, label, shortcut }) => {
         const color = INTERCEPTOR_COLORS[key];
@@ -35,7 +35,8 @@ export default function AmmoStack({
             className={`
               text-left px-2 py-1.5 rounded transition-all
               ${!isAvailable ? 'opacity-20 cursor-default' : ''}
-              ${isAvailable && disabled ? 'opacity-50 cursor-not-allowed' : ''}
+              ${isAvailable && !hasSelection ? 'cursor-default' : ''}
+              ${isAvailable && hasSelection && depleted ? 'opacity-50 cursor-not-allowed' : ''}
               ${isAvailable && !disabled ? 'cursor-pointer hover:bg-white/5 active:scale-[0.97]' : ''}
               ${isLow && !disabled ? 'ammo-low-flash' : ''}
             `}
@@ -44,9 +45,9 @@ export default function AmmoStack({
             }}
           >
             {/* Row 1: key badge + name + count */}
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2">
               <span
-                className="w-6 h-6 rounded border-2 flex items-center justify-center text-xs font-bold font-mono flex-shrink-0"
+                className="w-7 h-7 rounded border-2 flex items-center justify-center text-sm font-bold font-mono flex-shrink-0"
                 style={{
                   borderColor: isAvailable ? color : '#374151',
                   color: isAvailable ? color : '#374151',
@@ -56,14 +57,14 @@ export default function AmmoStack({
               </span>
 
               <span
-                className="flex-1 min-w-0 text-xs font-mono font-bold tracking-wider truncate"
+                className="flex-1 min-w-0 text-sm font-mono font-bold tracking-wider truncate"
                 style={{ color: isAvailable ? color : '#374151' }}
               >
                 {label}
               </span>
 
               <span
-                className="text-lg font-mono font-bold tabular-nums flex-shrink-0"
+                className="text-xl font-mono font-bold tabular-nums flex-shrink-0"
                 style={{ color: isAvailable ? (depleted ? '#4b5563' : color) : '#1f2937' }}
               >
                 {isAvailable ? (depleted ? '0' : count) : ''}
@@ -100,28 +101,28 @@ export default function AmmoStack({
         disabled={!hasSelection}
         className={`
           text-left px-2 py-1.5 rounded transition-all
-          ${!hasSelection ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-white/5 active:scale-[0.97]'}
+          ${!hasSelection ? 'cursor-default' : 'cursor-pointer hover:bg-white/5 active:scale-[0.97]'}
         `}
         style={{ borderLeft: '3px solid #6b7280' }}
       >
-        <div className="flex items-center gap-1.5">
-          <span className="w-6 h-6 rounded border-2 border-gray-500 flex items-center justify-center text-xs font-bold font-mono text-gray-400 flex-shrink-0">
+        <div className="flex items-center gap-2">
+          <span className="w-7 h-7 rounded border-2 border-gray-500 flex items-center justify-center text-sm font-bold font-mono text-gray-400 flex-shrink-0">
             5
           </span>
-          <span className="text-xs font-mono font-bold tracking-wider text-gray-400">
+          <span className="text-sm font-mono font-bold tracking-wider text-gray-400">
             HOLD FIRE
           </span>
         </div>
       </button>
 
       {/* Hint */}
-      <div className="text-center text-[10px] text-gray-600 font-mono tracking-wider mt-1 px-1">
+      <div className="text-center text-xs text-gray-600 font-mono tracking-wider mt-1 px-1">
         {hasSelection ? 'PRESS 1-4 TO FIRE' : 'SELECT A THREAT'}
       </div>
 
       {/* Streak */}
       {streak >= 3 && (
-        <div className="text-center font-mono text-xs mt-1">
+        <div className="text-center font-mono text-sm mt-1">
           <span className="text-orange-400 font-bold">
             {'\uD83D\uDD25'} {streak}
           </span>

@@ -187,8 +187,8 @@ function threat(id, time, type, zone, populated, cdn, intel, reveal, extra = {})
 
 // ============================================================
 // LEVEL 1: Otef Aza — Short-range ROCKETS only, Iron Dome
-// Duration: 80s | 30 threats (18 live, 12 hold-fire) | Teaches: intercept + hold fire
-// Rocket hold-fire ratio: ~40% — mirrors real Qassam inaccuracy (unguided, most miss)
+// Duration: 80s | 23 threats (18 live, 5 hold-fire) | Teaches: intercept + hold fire
+// HF rockets placed in low-density windows only — max ~4-5 simultaneous threats
 // Pacing: singles 0-14s → pairs 16-29s → triple 33s → pair 42s → [11s RESPITE] → final 58-65s
 // Geography: Gaza border communities. Viewport zoomed tight on south.
 // All threats from Gaza. Only Otef Aza cities targeted.
@@ -221,14 +221,12 @@ const THREATS_L1 = [
   threat(23, 58, 'rocket', 'Netivot',         true,  5, 'full', 1.0, { origin: 'gaza' }),     // pair (was triple — removed 1 for pacing)
   threat(25, 65, 'rocket', 'Sderot',          true,  5, 'full', 1.0, { origin: 'gaza' }),
   threat(26, 65, 'rocket', "Be'eri",          true,  5, 'full', 1.0, { origin: 'gaza' }),     // closing pair
-  // === HOLD-FIRE — unguided Qassams landing in open ground (~43% miss) ===
-  // HF 27, 28 removed — caused 5-6 simultaneous threats during singles phase (t=5-16)
-  // HF 34-38 removed earlier — they were filling respite gaps
-  threat(29, 14, 'rocket', 'Negev Desert',             false, 7, 'full', 1.0, { origin: 'gaza' }),
-  threat(30, 19, 'rocket', 'Southern Negev',           false, 7, 'full', 1.0, { origin: 'gaza' }),
-  threat(31, 23, 'rocket', 'Sinai Border Region',      false, 7, 'full', 1.0, { origin: 'gaza' }),
-  threat(32, 28, 'rocket', 'Negev Desert',             false, 6, 'full', 1.0, { origin: 'gaza' }),
-  threat(33, 31, 'rocket', 'Judean Hills',             false, 6, 'full', 1.0, { origin: 'gaza' }),
+  // === HOLD-FIRE — unguided Qassams landing in open ground ===
+  // Placed in low-density windows to avoid 5-6 simultaneous threats during barrages.
+  // HF 27,28,30,33 removed — caused pile-ups during pairs/triples phases.
+  threat(29, 14, 'rocket', 'Negev Desert',             false, 5, 'full', 1.0, { origin: 'gaza' }),   // between singles & pairs, clears by t=19
+  threat(31, 23, 'rocket', 'Sinai Border Region',      false, 5, 'full', 1.0, { origin: 'gaza' }),   // between pair waves, clears by t=28
+  threat(32, 36, 'rocket', 'Judean Hills',             false, 5, 'full', 1.0, { origin: 'gaza' }),   // after triple starts, clears by t=41
   threat(39, 61, 'rocket', 'Negev Desert',             false, 5, 'full', 1.0, { origin: 'gaza' }),
   threat(40, 68, 'rocket', 'Dead Sea Region',          false, 5, 'full', 1.0, { origin: 'gaza' }),
 ];
@@ -267,13 +265,11 @@ const THREATS_L1_B = [
   threat(23, 58, 'rocket', "Be'eri",          true,  5, 'full', 1.0, { origin: 'gaza' }),     // pair
   threat(25, 65, 'rocket', 'Kfar Aza',        true,  5, 'full', 1.0, { origin: 'gaza' }),
   threat(26, 65, 'rocket', 'Netivot',         true,  5, 'full', 1.0, { origin: 'gaza' }),     // closing pair
-  // === HOLD-FIRE — unguided Qassams landing in open ground (~43% miss) ===
-  // HF 27, 28 removed — caused 5-6 simultaneous threats during singles phase
-  threat(29, 14, 'rocket', 'Negev Desert',             false, 7, 'full', 1.0, { origin: 'gaza' }),
-  threat(30, 19, 'rocket', 'Southern Negev',           false, 7, 'full', 1.0, { origin: 'gaza' }),
-  threat(31, 23, 'rocket', 'Sinai Border Region',      false, 7, 'full', 1.0, { origin: 'gaza' }),
-  threat(32, 28, 'rocket', 'Negev Desert',             false, 6, 'full', 1.0, { origin: 'gaza' }),
-  threat(33, 31, 'rocket', 'Judean Hills',             false, 6, 'full', 1.0, { origin: 'gaza' }),
+  // === HOLD-FIRE — unguided Qassams landing in open ground ===
+  // Placed in low-density windows to avoid 5-6 simultaneous threats during barrages.
+  threat(29, 14, 'rocket', 'Negev Desert',             false, 5, 'full', 1.0, { origin: 'gaza' }),   // between singles & pairs, clears by t=19
+  threat(31, 23, 'rocket', 'Sinai Border Region',      false, 5, 'full', 1.0, { origin: 'gaza' }),   // between pair waves, clears by t=28
+  threat(32, 36, 'rocket', 'Judean Hills',             false, 5, 'full', 1.0, { origin: 'gaza' }),   // after triple starts, clears by t=41
   threat(39, 61, 'rocket', 'Negev Desert',             false, 5, 'full', 1.0, { origin: 'gaza' }),
   threat(40, 68, 'rocket', 'Dead Sea Region',          false, 5, 'full', 1.0, { origin: 'gaza' }),
 ];
