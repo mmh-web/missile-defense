@@ -17,7 +17,7 @@ export default function AmmoStack({
   const hasSelection = selectedThreatId !== null;
 
   return (
-    <div className="flex flex-col h-full justify-center gap-2.5 py-2 px-4">
+    <div className="flex flex-col h-full gap-2.5 py-2 px-4">
       {/* Column header */}
       <div className="text-center mb-1 border-b border-gray-800/50 pb-2">
         <div className="text-xs text-gray-400 font-mono tracking-[0.25em] font-bold">INTERCEPTORS</div>
@@ -76,21 +76,16 @@ export default function AmmoStack({
               </span>
             </div>
 
-            {/* Row 2: ammo dots */}
+            {/* Row 2: ammo dots — all shown, wrap to 2 lines */}
             {isAvailable && !depleted && (
               <div className="flex gap-[3px] mt-1 pl-[26px] flex-wrap">
-                {Array.from({ length: Math.min(count, 15) }).map((_, i) => (
+                {Array.from({ length: count }).map((_, i) => (
                   <div
                     key={i}
                     className="w-1.5 h-1.5 rounded-full"
                     style={{ backgroundColor: color }}
                   />
                 ))}
-                {count > 15 && (
-                  <span className="text-[8px] font-mono leading-none" style={{ color }}>
-                    +{count - 15}
-                  </span>
-                )}
               </div>
             )}
           </button>
