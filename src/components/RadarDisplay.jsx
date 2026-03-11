@@ -1461,6 +1461,7 @@ export default function RadarDisplay({
                 <g className="sufrin-portrait-sequence">
                   <image
                     href={`${import.meta.env.BASE_URL}images/sufrin.png`}
+                    xlinkHref={`${import.meta.env.BASE_URL}images/sufrin.png`}
                     x={36} y={36} width={28} height={28}
                     preserveAspectRatio="xMidYMid meet"
                   />
