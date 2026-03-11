@@ -91,12 +91,8 @@ export default function useGameEngine({ bonusLevelEnabled = false } = {}) {
 
   // Campaign-wide cheat uses (3 each, persist across levels, reset on campaign start)
   const CHEAT_MAX_USES = 3;
-  const [cheatUses, setCheatUses] = useState({ tzur: CHEAT_MAX_USES, sasha: CHEAT_MAX_USES, dvir: CHEAT_MAX_USES, sufrin: CHEAT_MAX_USES });
-  const cheatUsesRef = useRef({ tzur: CHEAT_MAX_USES, sasha: CHEAT_MAX_USES, dvir: CHEAT_MAX_USES, sufrin: CHEAT_MAX_USES });
-
-  // Instant-effect cheat code refs (once per level)
-  const hhUsedRef = useRef(false);  // "bh" — clear all threats
-  const rlUsedRef = useRef(false);  // "bsd" — resupply ammo
+  const [cheatUses, setCheatUses] = useState({ tzur: CHEAT_MAX_USES, sasha: CHEAT_MAX_USES, dvir: CHEAT_MAX_USES, sufrin: CHEAT_MAX_USES, bh: CHEAT_MAX_USES, bsd: CHEAT_MAX_USES });
+  const cheatUsesRef = useRef({ tzur: CHEAT_MAX_USES, sasha: CHEAT_MAX_USES, dvir: CHEAT_MAX_USES, sufrin: CHEAT_MAX_USES, bh: CHEAT_MAX_USES, bsd: CHEAT_MAX_USES });
 
   // Refs for stale closure avoidance
   const gameStateRef = useRef(gameState);
@@ -512,11 +508,12 @@ export default function useGameEngine({ bonusLevelEnabled = false } = {}) {
     setTimeout(() => setDvirActive(false), 12500);
   }, []);
 
-  // "hh" cheat — instantly intercept all active threats (once per level)
+  // "bh" cheat — instantly intercept all active threats (3 per campaign)
   const triggerHHMode = useCallback(() => {
-    if (hhUsedRef.current) return;
+    if (cheatUsesRef.current.bh <= 0) return;
     if (gameStateRef.current !== GAME_STATES.ACTIVE) return;
-    hhUsedRef.current = true;
+    cheatUsesRef.current.bh--;
+    setCheatUses(prev => ({ ...prev, bh: cheatUsesRef.current.bh }));
 
     const threats = activeThreatsRef.current.filter((t) => !t.intercepted);
     if (threats.length === 0) return;
@@ -551,11 +548,12 @@ export default function useGameEngine({ bonusLevelEnabled = false } = {}) {
     });
   }, [addImpactFlash]);
 
-  // "rl" cheat — resupply +1 of each available interceptor type (once per level)
+  // "bsd" cheat — resupply +1 of each available interceptor type (3 per campaign)
   const triggerRLMode = useCallback(() => {
-    if (rlUsedRef.current) return;
+    if (cheatUsesRef.current.bsd <= 0) return;
     if (gameStateRef.current !== GAME_STATES.ACTIVE) return;
-    rlUsedRef.current = true;
+    cheatUsesRef.current.bsd--;
+    setCheatUses(prev => ({ ...prev, bsd: cheatUsesRef.current.bsd }));
 
     const config = getLevelConfig(currentLevelRef.current);
     setAmmo((prev) => {
@@ -1036,7 +1034,7 @@ export default function useGameEngine({ bonusLevelEnabled = false } = {}) {
     const ammoRemaining = Object.values(ammo).reduce((sum, v) => sum + v, 0);
     const levelConfig = getLevelConfig(currentLevel);
     const startingAmmo = Object.values(levelConfig.ammo).reduce((sum, v) => sum + v, 0);
-    const levelThreatCount = (selectedThreatsRef.current || []).length;
+    const levelThreatCount = (selectedThreatsRef.current || []).filter(t => t.is_populated).length;
     const extraInterceptors = Math.max(0, startingAmmo - levelThreatCount);
     const creditableAmmo = Math.min(ammoRemaining, extraInterceptors);
 
@@ -1095,7 +1093,7 @@ export default function useGameEngine({ bonusLevelEnabled = false } = {}) {
     const ammoRemaining = Object.values(ammoRef.current).reduce((sum, v) => sum + v, 0);
     const levelConfig = getLevelConfig(currentLevelRef.current);
     const startingAmmo = Object.values(levelConfig.ammo).reduce((sum, v) => sum + v, 0);
-    const levelThreatCount = (selectedThreatsRef.current || []).length;
+    const levelThreatCount = (selectedThreatsRef.current || []).filter(t => t.is_populated).length;
     const extraInterceptors = Math.max(0, startingAmmo - levelThreatCount);
     const creditableAmmo = Math.min(ammoRemaining, extraInterceptors);
 
@@ -1190,10 +1188,8 @@ export default function useGameEngine({ bonusLevelEnabled = false } = {}) {
     interceptedIdsRef.current.clear();
     lastInterceptTimeRef.current = 0;
     // Reset campaign-wide cheat uses
-    cheatUsesRef.current = { tzur: CHEAT_MAX_USES, sasha: CHEAT_MAX_USES, dvir: CHEAT_MAX_USES, sufrin: CHEAT_MAX_USES };
+    cheatUsesRef.current = { tzur: CHEAT_MAX_USES, sasha: CHEAT_MAX_USES, dvir: CHEAT_MAX_USES, sufrin: CHEAT_MAX_USES, bh: CHEAT_MAX_USES, bsd: CHEAT_MAX_USES };
     setCheatUses({ ...cheatUsesRef.current });
-    hhUsedRef.current = false;
-    rlUsedRef.current = false;
     if (tzurIntervalRef.current) { clearInterval(tzurIntervalRef.current); tzurIntervalRef.current = null; }
     if (sashaIntervalRef.current) { clearInterval(sashaIntervalRef.current); sashaIntervalRef.current = null; }
     if (sufrinIntervalRef.current) { clearInterval(sufrinIntervalRef.current); sufrinIntervalRef.current = null; }
@@ -1237,9 +1233,7 @@ export default function useGameEngine({ bonusLevelEnabled = false } = {}) {
     setPaused(false);
     spawnedIdsRef.current = new Set();
     interceptedIdsRef.current.clear();
-    // Note: cheat uses (tzur/sasha/dvir/sufrin) are campaign-wide — NOT reset per level
-    hhUsedRef.current = false;
-    rlUsedRef.current = false;
+    // Note: cheat uses (tzur/sasha/dvir/sufrin/bh/bsd) are campaign-wide — NOT reset per level
     if (tzurIntervalRef.current) { clearInterval(tzurIntervalRef.current); tzurIntervalRef.current = null; }
     if (sashaIntervalRef.current) { clearInterval(sashaIntervalRef.current); sashaIntervalRef.current = null; }
     if (sufrinIntervalRef.current) { clearInterval(sufrinIntervalRef.current); sufrinIntervalRef.current = null; }
@@ -1410,10 +1404,8 @@ export default function useGameEngine({ bonusLevelEnabled = false } = {}) {
     spawnedIdsRef.current = new Set();
     interceptedIdsRef.current.clear();
     // Reset campaign-wide cheat uses on full game reset
-    cheatUsesRef.current = { tzur: CHEAT_MAX_USES, sasha: CHEAT_MAX_USES, dvir: CHEAT_MAX_USES, sufrin: CHEAT_MAX_USES };
+    cheatUsesRef.current = { tzur: CHEAT_MAX_USES, sasha: CHEAT_MAX_USES, dvir: CHEAT_MAX_USES, sufrin: CHEAT_MAX_USES, bh: CHEAT_MAX_USES, bsd: CHEAT_MAX_USES };
     setCheatUses({ ...cheatUsesRef.current });
-    hhUsedRef.current = false;
-    rlUsedRef.current = false;
     if (tzurIntervalRef.current) { clearInterval(tzurIntervalRef.current); tzurIntervalRef.current = null; }
     if (sashaIntervalRef.current) { clearInterval(sashaIntervalRef.current); sashaIntervalRef.current = null; }
     if (sufrinIntervalRef.current) { clearInterval(sufrinIntervalRef.current); sufrinIntervalRef.current = null; }

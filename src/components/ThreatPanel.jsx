@@ -140,7 +140,7 @@ export default function ThreatPanel({
   });
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col h-full">
       <div className="text-xs lg:text-sm text-green-500/50 font-mono tracking-widest mb-1 px-2 uppercase">
         {live.filter(t => !t.held).length} ACTIVE
         {live.some(t => t.held) && <span className="text-gray-600"> · {live.filter(t => t.held).length} HELD</span>}
@@ -155,8 +155,8 @@ export default function ThreatPanel({
           />
         ))}
       </div>
-      {/* Persistent engagement hint */}
-      <div className="text-xs lg:text-sm text-gray-400 font-mono tracking-wide mt-3 px-2 text-center leading-relaxed">
+      {/* Persistent engagement hint — pinned to bottom */}
+      <div className="text-xs lg:text-sm text-gray-400 font-mono tracking-wide mt-auto pt-3 px-2 text-center leading-relaxed">
         TAP BLIP or CARD to select<br />PRESS 1-5 to engage
       </div>
     </div>

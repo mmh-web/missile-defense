@@ -85,9 +85,10 @@ threat(id, appear_time, type, impact_zone, is_populated, countdown, intel, revea
 
 ### Ammo Budget Philosophy
 - **L1**: +4 surplus per interceptor type (beginner level, blip overlap makes mis-clicks common)
-- **L2**: +3 surplus per interceptor type (still learning, new threat type)
-- **L3-L6**: +2 surplus per interceptor type above live threat count
-- **L7**: Zero margin — exactly enough ammo (no room for error)
+- **L2**: +2 surplus per interceptor type (still learning, new threat type)
+- **L3-L5**: +2 surplus per interceptor type above live threat count
+- **L4**: +1 surplus per system (tighter pressure)
+- **L6-L7**: Zero margin — exactly enough ammo (no room for error)
 
 ### Respite Design
 Each level has designed breathing gaps (5-11s with no threats on screen) between dense phases:
@@ -141,7 +142,7 @@ PRE_GAME → SCORING_INTRO → BRIEFING (L1 only, has quiz)
 - Combo bonus: +50 when 2 intercepts within 2 seconds ("DOUBLE INTERCEPT")
 - Correct hold (open ground): streak++, no points
 - Wrong interceptor: streak reset, ammo wasted
-- Wasted intercept (correct system on open ground): streak++, warning
+- Wasted intercept (correct system on open ground): streak reset, warning
 - City hit (hold-fire on populated): siren, -100, streak reset
 - Quiz bonus: +250 per correct answer (2 questions per level)
 - Surplus ammo bonus: +250 per unused interceptor (only surplus beyond what was needed)
@@ -202,8 +203,8 @@ PRE_GAME → SCORING_INTRO → BRIEFING (L1 only, has quiz)
 - **SASHA**: Same as TZUR with briefing music (3 uses/campaign)
 - **DVIR**: Passive shield dome for 12s, auto-deflects at boundary (3 uses/campaign)
 - **SUFRIN**: Auto-zap for 15s with portrait (3 uses/campaign)
-- **BH**: Clear all active threats (1 use/level)
-- **BSD**: Resupply +1 of each interceptor (1 use/level)
+- **BH**: Clear all active threats (3 uses/campaign)
+- **BSD**: Resupply +1 of each interceptor (3 uses/campaign)
 
 ## Escape Room Mode
 - 25-minute campaign-wide countdown (does not reset between levels)
@@ -249,31 +250,31 @@ Shared language for tuning level difficulty. Five weighted dimensions:
 
 | Level | A. Tempo | B. Decisions | C. Ammo | D. Intensity | E. Learning | **TOTAL** |
 |-------|---------|-------------|---------|-------------|-------------|-----------|
-| L1 | 5.5 | 3.5 | 1.0 | 7.0 | 4.0 | **4.0** |
-| L2 | 7.0 | 3.5 | 3.0 | 7.5 | 4.5 | **4.9** |
+| L1 | 4.5 | 3.5 | 1.0 | 6.0 | 4.0 | **3.5** |
+| L2 | 6.0 | 3.5 | 2.5 | 6.5 | 4.5 | **4.3** |
 | L3 | 4.5 | 5.5 | 4.0 | 7.0 | 7.0 | **5.5** |
-| L4 | 2.0 | 7.0 | 3.0 | 5.0 | 8.0 | **5.1** |
+| L4 | 2.0 | 7.5 | 5.0 | 5.0 | 8.0 | **5.6** |
 | L5 | 2.5 | 9.0 | 6.0 | 2.0 | 8.5 | **6.0** |
-| L6 | 2.0 | 7.5 | 6.5 | 5.5 | 2.0 | **5.1** |
-| L7 | 6.0 | 7.0 | 10.0 | 5.0 | 1.5 | **6.3** |
+| L6 | 6.5 | 8.0 | 10.0 | 6.5 | 2.0 | **7.0** |
+| L7 | 9.0 | 8.5 | 10.0 | 8.5 | 1.5 | **8.0** |
 
 ### Scoring Criteria Reference
 
 **A. Tempo & Volume (20%)** — How fast must you click?
-- Threats/min: L1=28.5, L2=30.5, L3=25.5, L4=19.0, L5=18.8, L6=19.2, L7=23.6
-- Avg countdown: L1=6.1s, L2=6.9s, L3=7.7s, L4=10.2s, L5=8.5s, L6=8.6s, L7=8.5s
+- Threats/min: L1=17.3, L2=15.9, L3=15.5, L4=12.5, L5=13.2, L6=15.4, L7=22.3
+- Avg countdown: L1=6.8s, L2=7.6s, L3=7.7s, L4=10.2s, L5=8.5s, L6=6.7s, L7=6.3s
 - Simultaneous 3+ waves: L1=2, L2=7, L3-L7=0
-- Peak active threats: L1=6, L2=7, L3=6, L4=6, L5=6, L6=5, L7=7
+- Peak active threats: L1=5, L2=6, L3=6, L4=6, L5=6, L6=6, L7=8
 
 **B. Decision Complexity (30%)** — How hard is each decision? (heaviest weight — wrong key press is #1 failure cause)
 - Systems: L1-2=1, L3=2, L4=3, L5-7=4
 - Threat types: L1=1, L2=2, L3=3, L4=3, L5-7=5
-- HF ratio (hold-fire decisions): L1=47%, L2=34%, L3=28%, L4=13%, L5=26%, L6=19%, L7=24%
-- Delayed reveal (% with reveal_pct < 1.0): L1-3=0%, L4=42%, L5=38%, L6=25%, L7=34%
+- HF ratio (hold-fire decisions): L1=22%, L2=29%, L3=28%, L4=13%, L5=18%, L6=13%, L7=24%
+- Delayed reveal (% with reveal_pct < 1.0): L1-3=0%, L4=48%, L5=38%, L6=33%, L7=41%
 
 **C. Ammo Pressure (20%)** — How much room for error?
-- Surplus ratio: L1=20%, L2=7.5%, L3=10.8%, L4=18.2%, L5=11.4%, L6=10.3%, L7=0%
-- Zero margin (L7) = automatic 10.0 score — one wasted shot means guaranteed failure
+- Surplus ratio: L1=22%, L2=6%, L3=10.8%, L4=9.1%, L5=11.4%, L6=0%, L7=0%
+- Zero margin (L6, L7) = automatic 10.0 score — one wasted shot means guaranteed failure
 
 **D. Sustained Intensity (15%)** — How relentless is the pace?
 - Breathing gaps (>5s): L1=0, L2=1, L3=0, L4=0, L5=7, L6=2, L7=5
