@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getLeaderboard, saveScore, isHighScore, subscribeLeaderboard } from '../utils/leaderboard.js';
 
-export default function Summary({ stats, levelStats, onReset, teamName, onTeamNameChange }) {
+export default function Summary({ stats, onReset, teamName, onTeamNameChange }) {
   const {
     totalScore,
     levelScores,
@@ -250,16 +250,6 @@ export default function Summary({ stats, levelStats, onReset, teamName, onTeamNa
   );
 }
 
-function typeColor(type) {
-  const colors = {
-    ballistic: '#ef4444',
-    cruise: '#f97316',
-    hypersonic: '#a855f7',
-    drone: '#eab308',
-  };
-  return colors[type] || '#6b7280';
-}
-
 function StatRow({ label, value, good, bad }) {
   return (
     <div className="flex items-center justify-between p-3 bg-gray-900/30 border border-gray-800 rounded">
@@ -323,7 +313,7 @@ export function LeaderboardTable({ entries, gameMode = 'CAMPAIGN', highlightTime
                 <td className="py-2 px-2 font-bold tracking-wider">{entry.name}</td>
                 <td className="py-2 px-2 text-right tabular-nums">{entry.score}</td>
                 <td className="py-2 px-2 text-center text-xs tabular-nums opacity-70">
-                  {entry.levelsCompleted != null ? `${entry.levelsCompleted}/7` : '—'}
+                  {entry.levelsCompleted != null ? `${entry.levelsCompleted}/${entry.effectiveTotalLevels || 7}` : '—'}
                 </td>
                 <td className="py-2 px-2 text-center text-xs tracking-wider opacity-70">
                   {entry.rating}

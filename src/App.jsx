@@ -704,7 +704,7 @@ export default function App() {
     }
     return (
       <div key="screen-summary" className="screen-fade-in">
-        <Summary stats={getCampaignStats()} levelStats={getLevelStats()}
+        <Summary stats={getCampaignStats()}
           teamName={campaignTeamName}
           onTeamNameChange={setCampaignTeamName}
           onReset={() => {
@@ -810,7 +810,7 @@ export default function App() {
       {/* Main content area — desktop: 3-column flex (threats | radar | ammo). Radar stretches full height; panels self-center. */}
       <div className="flex-1 flex flex-col lg:flex-row lg:items-stretch min-h-0 overflow-hidden lg:max-w-[1200px] lg:mx-auto lg:w-full lg:gap-3">
         {/* ZONE A: Threat panel — mobile: below radar (order-2); desktop: left of radar (order-1) */}
-        <div className="flex-shrink-0 max-h-[240px] overflow-y-auto order-2 lg:order-1 lg:w-[260px] lg:max-h-[80vh] lg:overflow-y-auto lg:self-center p-1 sm:p-2 md:p-3 lg:p-4 border-t lg:border-t-0 lg:border-r border-gray-800/30">
+        <div className="flex-shrink-0 max-h-[240px] order-2 lg:order-1 lg:w-[260px] lg:max-h-[80vh] lg:self-center p-1 sm:p-2 md:p-3 lg:p-4 border-t lg:border-t-0 lg:border-r border-gray-800/30 flex flex-col">
           <ThreatPanel
             activeThreats={activeThreats}
             selectedThreatId={selectedThreatId}

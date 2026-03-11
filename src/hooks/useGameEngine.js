@@ -1085,17 +1085,10 @@ export default function useGameEngine({ bonusLevelEnabled = false } = {}) {
     };
   }, [resultLog, ammo, sirenCount, wrongInterceptAttempts, bestStreak, currentLevel, quizBonus]);
 
-  // Running score — same formula as getLevelStats, usable during gameplay
+  // Running score — excludes surplus ammo bonus (only awarded at level end in getLevelStats)
   const getRunningScore = useCallback(() => {
     const regularIntercepts = resultLog.filter((r) => (r.result === 'correct_intercept' || r.result === 'cross_intercept') && !r.cheatAssisted).length;
     const cheatIntercepts = resultLog.filter((r) => (r.result === 'correct_intercept' || r.result === 'cross_intercept') && r.cheatAssisted).length;
-
-    const ammoRemaining = Object.values(ammoRef.current).reduce((sum, v) => sum + v, 0);
-    const levelConfig = getLevelConfig(currentLevelRef.current);
-    const startingAmmo = Object.values(levelConfig.ammo).reduce((sum, v) => sum + v, 0);
-    const levelThreatCount = (selectedThreatsRef.current || []).filter(t => t.is_populated).length;
-    const extraInterceptors = Math.max(0, startingAmmo - levelThreatCount);
-    const creditableAmmo = Math.min(ammoRemaining, extraInterceptors);
 
     const comboBonus = resultLog.reduce((sum, r) => sum + (r.comboBonus || 0), 0);
 
@@ -1104,7 +1097,6 @@ export default function useGameEngine({ bonusLevelEnabled = false } = {}) {
       + (regularIntercepts * 100)
       + (cheatIntercepts * 75)
       + comboBonus
-      + (creditableAmmo * 250)
       + (bestStreak * 25)
       - (sirenCount * 100)
     );

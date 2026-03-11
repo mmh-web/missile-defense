@@ -247,7 +247,7 @@ export default function LevelIntro({ level, onReady }) {
   const accentColor = LEVEL_ACCENT_COLORS[level] || '#22c55e';
 
   return (
-    <div className="h-screen flex items-center justify-center relative overflow-y-auto"
+    <div className="h-screen flex items-center justify-center relative overflow-hidden"
       style={{
         background: `
           radial-gradient(ellipse at 50% 0%, ${accentColor}12 0%, transparent 50%),

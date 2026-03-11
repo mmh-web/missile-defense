@@ -1495,10 +1495,10 @@ export default function RadarDisplay({
             })}
 
             {/* === Cheat Code Countdown Timers === */}
-            <CheatCountdown active={tzurActive} duration={12} label="TZUR" color="#f59e0b" />
-            <CheatCountdown active={sashaActive} duration={12} label="SASHA" color="#8b5cf6" />
-            <CheatCountdown active={dvirActive} duration={12.5} label="DVIR" color="#22c55e" />
-            <CheatCountdown active={sufrinActive} duration={15.5} label="SUFRIN" color="#d97706" />
+            <CheatCountdown active={tzurActive} duration={12} label="TZUR" color="#f59e0b" yOffset={0} />
+            <CheatCountdown active={sashaActive} duration={12} label="SASHA" color="#8b5cf6" yOffset={10} />
+            <CheatCountdown active={dvirActive} duration={12.5} label="DVIR" color="#22c55e" yOffset={20} />
+            <CheatCountdown active={sufrinActive} duration={15.5} label="SUFRIN" color="#d97706" yOffset={-10} />
 
           </g>
           {/* === End clipped map content === */}

@@ -124,7 +124,12 @@ export default function AmmoStack({
         </div>
       )}
 
-      {/* Feedback message — now shown as centered overlay in App.jsx */}
+      {/* Hint */}
+      {hasSelection && (
+        <div className="text-center text-xs text-gray-600 font-mono tracking-wider mt-1 px-1">
+          PRESS 1-4 TO FIRE
+        </div>
+      )}
     </div>
   );
 }

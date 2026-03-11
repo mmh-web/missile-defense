@@ -706,7 +706,7 @@ export const LEVELS = [
   // Level 2: Galil & Golan — Drones + Rockets (still Iron Dome only)
   {
     id: 2,
-    duration: 128,
+    duration: 134,
     ammo: { iron_dome: 36 },
     available_systems: ['iron_dome'],
     auto_end_delay: 3000,
@@ -758,7 +758,7 @@ export const LEVELS = [
   // Level 6: Wave Assault — all types from all fronts, full geography (uses THREATS_L5 array)
   {
     id: 6,
-    duration: 152,
+    duration: 160,
     ammo: { iron_dome: 17, davids_sling: 11, arrow_2: 6, arrow_3: 5 },
     available_systems: ['iron_dome', 'davids_sling', 'arrow_2', 'arrow_3'],
     auto_end_delay: 6000,

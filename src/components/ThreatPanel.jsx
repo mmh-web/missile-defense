@@ -44,7 +44,7 @@ function ThreatRow({ threat, isSelected, onSelect }) {
         px-2 py-1.5 lg:py-2 rounded transition-all
         ${isHeld ? 'opacity-50 cursor-default' : 'cursor-pointer'}
         ${!isHeld && !isSelected ? 'hover:bg-white/5' : ''}
-        ${isCritical ? 'animate-pulse' : ''}
+        ${''}
         ${bgClass}
       `}
       style={{
@@ -140,12 +140,12 @@ export default function ThreatPanel({
   });
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="text-xs lg:text-sm text-green-500/50 font-mono tracking-widest mb-1 px-2 uppercase">
+    <div className="flex flex-col h-full min-h-0">
+      <div className="text-xs lg:text-sm text-green-500/50 font-mono tracking-widest mb-1 px-2 uppercase flex-shrink-0">
         {live.filter(t => !t.held).length} ACTIVE
         {live.some(t => t.held) && <span className="text-gray-600"> · {live.filter(t => t.held).length} HELD</span>}
       </div>
-      <div className="space-y-0.5">
+      <div className="flex-1 overflow-y-auto min-h-0 space-y-0.5">
         {sorted.map((threat) => (
           <ThreatRow
             key={threat.id}
@@ -155,8 +155,8 @@ export default function ThreatPanel({
           />
         ))}
       </div>
-      {/* Persistent engagement hint — pinned to bottom */}
-      <div className="text-xs lg:text-sm text-gray-400 font-mono tracking-wide mt-auto pt-3 px-2 text-center leading-relaxed">
+      {/* Persistent engagement hint — pinned to bottom, outside scroll */}
+      <div className="text-xs lg:text-sm text-gray-400 font-mono tracking-wide pt-2 px-2 text-center leading-relaxed flex-shrink-0">
         TAP BLIP or CARD to select<br />PRESS 1-5 to engage
       </div>
     </div>
