@@ -141,6 +141,10 @@ export default function ThreatPanel({
 
   return (
     <div className="flex flex-col h-full min-h-0">
+      <div className="hidden lg:block text-center mb-2 flex-shrink-0 border-b border-gray-800/50 pb-1.5">
+        <div className="text-[10px] text-gray-500 font-mono tracking-[0.3em]">INCOMING THREATS</div>
+        <div className="text-[9px] text-gray-600 font-mono mt-0.5">Click card or moving blip to engage</div>
+      </div>
       <div className="text-xs lg:text-sm text-green-500/50 font-mono tracking-widest mb-1 px-2 uppercase flex-shrink-0">
         {live.filter(t => !t.held).length} ACTIVE
         {live.some(t => t.held) && <span className="text-gray-600"> · {live.filter(t => t.held).length} HELD</span>}
