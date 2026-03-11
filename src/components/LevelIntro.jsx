@@ -257,37 +257,37 @@ export default function LevelIntro({ level, onReady }) {
       {/* Top accent bar */}
       <div className="absolute top-0 left-0 right-0 h-1 pointer-events-none"
         style={{ background: `linear-gradient(90deg, transparent, ${accentColor}60, transparent)` }} />
-      <div className="max-w-2xl w-full py-8 px-4">
+      <div className="max-w-2xl w-full py-4 px-4">
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="font-mono text-xs tracking-[0.4em] mb-2"
+        <div className="text-center mb-4">
+          <div className="font-mono text-[10px] tracking-[0.4em] mb-1"
             style={{ color: `${accentColor}60` }}>
             {level === 1 ? 'MISSION READY' : 'INTEL BRIEFING'}
           </div>
-          <h1 className="text-3xl font-bold font-mono tracking-wider mb-1"
+          <h1 className="text-2xl font-bold font-mono tracking-wider mb-1"
             style={{ color: accentColor }}>
             LEVEL {config.id}
           </h1>
           {LEVEL_TITLES[level] && (
-            <div className="text-lg font-mono tracking-[0.3em] mt-1"
+            <div className="text-base font-mono tracking-[0.3em] mt-0.5"
               style={{ color: `${accentColor}90` }}>
               {LEVEL_TITLES[level]}
             </div>
           )}
           {LEVEL_TITLES_HE[level] && (
-            <div className="text-lg font-bold mt-1"
+            <div className="text-base font-bold mt-0.5"
               style={{ fontFamily: 'Arial, sans-serif', color: `${accentColor}BF` }}>
               {LEVEL_TITLES_HE[level]}
             </div>
           )}
-          <div className="h-0.5 w-48 mx-auto mt-4"
+          <div className="h-0.5 w-48 mx-auto mt-2"
             style={{ background: `linear-gradient(90deg, transparent, ${accentColor}50, transparent)` }} />
         </div>
 
         {/* Level 1 — Your Weapon recap + gameplay reminder */}
         {level === 1 && (
           <>
-            <div className="mb-6 border rounded-lg p-5 bg-gray-900/30 border-green-900/50">
+            <div className="mb-4 border rounded-lg p-4 bg-gray-900/30 border-green-900/50">
               <div className="text-xs font-mono tracking-widest mb-3 text-green-500">
                 YOUR WEAPON
               </div>
@@ -309,7 +309,7 @@ export default function LevelIntro({ level, onReady }) {
               </div>
             </div>
 
-            <div className="mb-6 border border-yellow-900/40 rounded-lg p-4 bg-yellow-900/10">
+            <div className="mb-4 border border-yellow-900/40 rounded-lg p-3 bg-yellow-900/10">
               <div className="text-xs font-mono tracking-widest mb-2 text-yellow-500">
                 REMEMBER
               </div>
@@ -329,7 +329,7 @@ export default function LevelIntro({ level, onReady }) {
         {config.new_threat && (() => {
           const threatColor = THREAT_COLORS[config.new_threat.type] || '#ef4444';
           return (
-          <div className="mb-6 border rounded-lg p-5" style={{
+          <div className="mb-4 border rounded-lg p-4" style={{
             borderColor: `${threatColor}40`,
             backgroundColor: `${threatColor}08`,
           }}>
@@ -356,7 +356,7 @@ export default function LevelIntro({ level, onReady }) {
 
         {/* New System Card */}
         {config.new_system && (
-          <div className="mb-6 border rounded-lg p-5 bg-gray-900/30"
+          <div className="mb-4 border rounded-lg p-4 bg-gray-900/30"
             style={{ borderColor: `${config.new_system.color}40` }}>
             <div className="text-xs font-mono tracking-widest mb-3"
               style={{ color: config.new_system.color }}>
@@ -384,7 +384,7 @@ export default function LevelIntro({ level, onReady }) {
 
         {/* Levels 6-7: No new threat/system — show challenge description */}
         {!config.new_threat && !config.new_system && level > 1 && (
-          <div className="mb-6 border rounded-lg p-5 bg-gray-900/30 border-gray-700/50">
+          <div className="mb-4 border rounded-lg p-4 bg-gray-900/30 border-gray-700/50">
             <div className="text-xs font-mono tracking-widest mb-3 text-gray-400">
               {level === 6 ? 'CHALLENGE MODE' : 'FINAL CHALLENGE'}
             </div>
@@ -398,7 +398,7 @@ export default function LevelIntro({ level, onReady }) {
         )}
 
         {/* Ammo for this level */}
-        <div className="border border-gray-800 rounded-lg p-4 mb-8 bg-gray-900/20">
+        <div className="border border-gray-800 rounded-lg p-3 mb-4 bg-gray-900/20">
           <div className="text-xs text-gray-500 font-mono tracking-widest mb-3">AMMUNITION</div>
           <div className="flex gap-3 justify-center flex-wrap">
             {config.available_systems.map((sys) => {
@@ -425,8 +425,8 @@ export default function LevelIntro({ level, onReady }) {
         <div className="text-center">
           <button
             onClick={onReady}
-            className="px-12 py-4 bg-green-900/30 border-2 border-green-500 text-green-400
-              font-mono font-bold text-lg tracking-widest rounded-lg
+            className="px-10 py-3 bg-green-900/30 border-2 border-green-500 text-green-400
+              font-mono font-bold text-base tracking-widest rounded-lg
               hover:bg-green-900/50 hover:border-green-300 hover:text-green-300
               hover:shadow-[0_0_30px_rgba(0,255,136,0.3)]
               transition-all active:scale-95 cursor-pointer"

@@ -839,6 +839,7 @@ export default function useGameEngine({ bonusLevelEnabled = false } = {}) {
     // End level — time ran out
     if (sessionTime >= config.duration) {
       if (currentLevel >= effectiveTotalLevelsRef.current) {
+        saveLevelToCampaign();
         setGameState(GAME_STATES.SUMMARY);
       } else {
         setGameState(GAME_STATES.LEVEL_COMPLETE);
@@ -858,20 +859,30 @@ export default function useGameEngine({ bonusLevelEnabled = false } = {}) {
     const unresolvedThreats = activeThreats.filter((t) => !t.intercepted);
     if (allSpawnedRef.current && unresolvedThreats.length === 0) {
       if (!autoEndTimerRef.current) {
-        // Calculate remaining level time so we don't end early
-        const remainingMs = Math.max(0, (config.duration - sessionTimeRef.current) * 1000);
-        const delay = Math.max(config.auto_end_delay, remainingMs + 1000);
-        autoEndTimerRef.current = setTimeout(() => {
-          if (gameStateRef.current === GAME_STATES.ACTIVE) {
-            if (currentLevelRef.current >= effectiveTotalLevelsRef.current) {
-              setGameState(GAME_STATES.SUMMARY);
-            } else {
-              setGameState(GAME_STATES.LEVEL_COMPLETE);
-            }
-            stopSiren();
-            if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+        // Self-rescheduling end timer — never ends before the displayed clock hits 0:00.
+        // Uses game clock (sessionTimeRef) not wall-clock, so rAF throttling can't cause early end.
+        const scheduleEnd = () => {
+          const remaining = config.duration - sessionTimeRef.current;
+          if (remaining > 0.5) {
+            // Game clock hasn't reached 0 yet — check again after remaining time
+            autoEndTimerRef.current = setTimeout(scheduleEnd, Math.max(200, remaining * 1000));
+            return;
           }
-        }, delay);
+          // Game clock at 0:00 — apply auto_end_delay then end
+          autoEndTimerRef.current = setTimeout(() => {
+            if (gameStateRef.current === GAME_STATES.ACTIVE) {
+              if (currentLevelRef.current >= effectiveTotalLevelsRef.current) {
+                saveLevelToCampaign();
+                setGameState(GAME_STATES.SUMMARY);
+              } else {
+                setGameState(GAME_STATES.LEVEL_COMPLETE);
+              }
+              stopSiren();
+              if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+            }
+          }, config.auto_end_delay);
+        };
+        scheduleEnd();
       }
     } else {
       if (autoEndTimerRef.current) {

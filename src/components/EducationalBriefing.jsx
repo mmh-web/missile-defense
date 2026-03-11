@@ -857,27 +857,27 @@ function ThreatBriefingPhase({ data, onComplete }) {
 
   return (
     <div>
-      <div className="text-center mb-4">
-        <div className="text-xs text-gray-500 font-mono tracking-[0.4em] mb-1">THREAT BRIEFING</div>
-        <h2 className="text-2xl font-bold font-mono tracking-wider" style={{ color: data.color }}>{data.title}</h2>
+      <div className="text-center mb-2">
+        <div className="text-[10px] text-gray-500 font-mono tracking-[0.4em] mb-0.5">THREAT BRIEFING</div>
+        <h2 className="text-xl font-bold font-mono tracking-wider" style={{ color: data.color }}>{data.title}</h2>
         {data.hebrewTitle && (
-          <div className="text-xl font-bold mt-0.5" style={{ color: data.color, opacity: 0.75, fontFamily: 'Arial, sans-serif' }}>{data.hebrewTitle}</div>
+          <div className="text-lg font-bold mt-0.5" style={{ color: data.color, opacity: 0.75, fontFamily: 'Arial, sans-serif' }}>{data.hebrewTitle}</div>
         )}
-        <div className="text-xs text-gray-600 font-mono mt-1">{data.subtitle}</div>
+        <div className="text-[10px] text-gray-600 font-mono mt-0.5">{data.subtitle}</div>
       </div>
 
-      {AnimComponent && <AnimComponent />}
+      {AnimComponent && <div className="scale-[0.85] origin-top -mb-3"><AnimComponent /></div>}
 
-      <div className="space-y-2 mt-3">
+      <div className="space-y-1.5 mt-2">
         {bullets.map((bullet, i) => (
           <div
             key={i}
-            className={`flex items-start gap-3 p-2.5 rounded-lg bg-gray-900/50 border border-gray-800 transition-all duration-500 ${
+            className={`flex items-start gap-2 p-2 rounded-lg bg-gray-900/50 border border-gray-800 transition-all duration-500 ${
               i < visibleBullets ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'
             }`}
           >
-            <span className="text-lg flex-shrink-0">{bullet.icon}</span>
-            <span className="text-sm font-mono text-gray-300">{bullet.text}</span>
+            <span className="text-sm flex-shrink-0">{bullet.icon}</span>
+            <span className="text-xs font-mono text-gray-300 leading-relaxed">{bullet.text}</span>
           </div>
         ))}
       </div>
@@ -885,10 +885,10 @@ function ThreatBriefingPhase({ data, onComplete }) {
       <CountdownBar duration={25} onComplete={onComplete} paused={false} />
 
       {canContinue && (
-        <div className="text-center mt-4">
+        <div className="text-center mt-3">
           <button
             onClick={onComplete}
-            className="px-8 py-3 bg-green-900/30 border border-green-700 text-green-400
+            className="px-8 py-2.5 bg-green-900/30 border border-green-700 text-green-400
               font-mono text-sm tracking-widest rounded-lg
               hover:bg-green-900/50 hover:border-green-400
               transition-all active:scale-95 cursor-pointer"
@@ -922,27 +922,27 @@ function DefenseBriefingPhase({ data, onComplete }) {
 
   return (
     <div>
-      <div className="text-center mb-4">
-        <div className="text-xs text-gray-500 font-mono tracking-[0.4em] mb-1">DEFENSE BRIEFING</div>
-        <h2 className="text-2xl font-bold font-mono tracking-wider" style={{ color: data.color }}>{data.title}</h2>
+      <div className="text-center mb-2">
+        <div className="text-[10px] text-gray-500 font-mono tracking-[0.4em] mb-0.5">DEFENSE BRIEFING</div>
+        <h2 className="text-xl font-bold font-mono tracking-wider" style={{ color: data.color }}>{data.title}</h2>
         {data.hebrewTitle && (
-          <div className="text-xl font-bold mt-0.5" style={{ color: data.color, opacity: 0.75, fontFamily: 'Arial, sans-serif' }}>{data.hebrewTitle}</div>
+          <div className="text-lg font-bold mt-0.5" style={{ color: data.color, opacity: 0.75, fontFamily: 'Arial, sans-serif' }}>{data.hebrewTitle}</div>
         )}
-        <div className="text-xs text-gray-600 font-mono mt-1">{data.subtitle}</div>
+        <div className="text-[10px] text-gray-600 font-mono mt-0.5">{data.subtitle}</div>
       </div>
 
-      {AnimComponent && <AnimComponent />}
+      {AnimComponent && <div className="scale-[0.85] origin-top -mb-3"><AnimComponent /></div>}
 
-      <div className="space-y-2 mt-3">
+      <div className="space-y-1.5 mt-2">
         {bullets.map((bullet, i) => (
           <div
             key={i}
-            className={`flex items-start gap-3 p-2.5 rounded-lg bg-gray-900/50 border border-gray-800 transition-all duration-500 ${
+            className={`flex items-start gap-2 p-2 rounded-lg bg-gray-900/50 border border-gray-800 transition-all duration-500 ${
               i < visibleBullets ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'
             }`}
           >
-            <span className="text-lg flex-shrink-0">{bullet.icon}</span>
-            <span className="text-sm font-mono text-gray-300">{bullet.text}</span>
+            <span className="text-sm flex-shrink-0">{bullet.icon}</span>
+            <span className="text-xs font-mono text-gray-300 leading-relaxed">{bullet.text}</span>
           </div>
         ))}
       </div>
@@ -950,10 +950,10 @@ function DefenseBriefingPhase({ data, onComplete }) {
       <CountdownBar duration={25} onComplete={onComplete} paused={false} />
 
       {canContinue && (
-        <div className="text-center mt-4">
+        <div className="text-center mt-3">
           <button
             onClick={onComplete}
-            className="px-8 py-3 bg-green-900/30 border border-green-700 text-green-400
+            className="px-8 py-2.5 bg-green-900/30 border border-green-700 text-green-400
               font-mono text-sm tracking-widest rounded-lg
               hover:bg-green-900/50 hover:border-green-400
               transition-all active:scale-95 cursor-pointer"
@@ -1740,31 +1740,29 @@ export default function EducationalBriefing({ level, onComplete }) {
         </div>
       </div>
 
-      <div className="max-w-2xl w-full mx-auto px-4 pt-3 pb-2 flex-shrink-0">
+      <div className="max-w-2xl w-full mx-auto px-4 pt-2 pb-1 flex-shrink-0">
         {/* Header — level name prominent, right padding avoids Escape Room timer overlap */}
-        <div className="text-center mb-3 pr-48">
+        <div className="text-center mb-2 pr-48">
           <div
-            className="font-mono text-[10px] tracking-[0.5em] mb-1"
+            className="font-mono text-[10px] tracking-[0.5em] mb-0.5"
             style={{ color: `${briefingAccent.color}70` }}
           >
             LEVEL {level} — MISSION BRIEFING
           </div>
-          <h1 className="text-2xl font-bold font-mono tracking-wider mb-0.5"
+          <h1 className="text-xl lg:text-2xl font-bold font-mono tracking-wider mb-0.5"
             style={{ color: briefingAccent.color }}>
             {levelInfo.name}
           </h1>
           {levelInfo.hebrewName && (
-            <div className="text-lg font-bold mb-0.5"
+            <div className="text-base lg:text-lg font-bold mb-0.5"
               style={{ fontFamily: 'Arial, sans-serif', color: `${briefingAccent.color}BF` }}>
               {levelInfo.hebrewName}
             </div>
           )}
-          <div className="text-xs font-mono tracking-widest"
+          <div className="text-[10px] lg:text-xs font-mono tracking-widest"
             style={{ color: `${briefingAccent.color}80` }}>
             {levelInfo.subtitle}
           </div>
-          {/* Accent divider line — visible */}
-          <div className="mx-auto mt-2 h-0.5 w-40" style={{ background: `linear-gradient(90deg, transparent, ${briefingAccent.color}80, transparent)` }} />
         </div>
 
         {/* Phase progress bar — right padding avoids Escape Room timer overlap */}
