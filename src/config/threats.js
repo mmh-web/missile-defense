@@ -221,10 +221,9 @@ const THREATS_L1 = [
   threat(23, 58, 'rocket', 'Netivot',         true,  5, 'full', 1.0, { origin: 'gaza' }),     // pair (was triple — removed 1 for pacing)
   threat(25, 65, 'rocket', 'Sderot',          true,  5, 'full', 1.0, { origin: 'gaza' }),
   threat(26, 65, 'rocket', "Be'eri",          true,  5, 'full', 1.0, { origin: 'gaza' }),     // closing pair
-  // === HOLD-FIRE — unguided Qassams landing in open ground (~40% miss) ===
-  // HF 34-38 removed — they were filling respite gaps between triple/pair and final surge
-  threat(27, 5,  'rocket', 'Coastal Plain',             false, 8, 'full', 1.0, { origin: 'gaza' }),
-  threat(28, 11, 'rocket', 'Mediterranean (off-coast)',false, 7, 'full', 1.0, { origin: 'gaza' }),
+  // === HOLD-FIRE — unguided Qassams landing in open ground (~43% miss) ===
+  // HF 27, 28 removed — caused 5-6 simultaneous threats during singles phase (t=5-16)
+  // HF 34-38 removed earlier — they were filling respite gaps
   threat(29, 14, 'rocket', 'Negev Desert',             false, 7, 'full', 1.0, { origin: 'gaza' }),
   threat(30, 19, 'rocket', 'Southern Negev',           false, 7, 'full', 1.0, { origin: 'gaza' }),
   threat(31, 23, 'rocket', 'Sinai Border Region',      false, 7, 'full', 1.0, { origin: 'gaza' }),
@@ -268,10 +267,8 @@ const THREATS_L1_B = [
   threat(23, 58, 'rocket', "Be'eri",          true,  5, 'full', 1.0, { origin: 'gaza' }),     // pair
   threat(25, 65, 'rocket', 'Kfar Aza',        true,  5, 'full', 1.0, { origin: 'gaza' }),
   threat(26, 65, 'rocket', 'Netivot',         true,  5, 'full', 1.0, { origin: 'gaza' }),     // closing pair
-  // === HOLD-FIRE — unguided Qassams landing in open ground (~40% miss) ===
-  // HF 34-38 removed — they were filling respite gaps
-  threat(27, 5,  'rocket', 'Coastal Plain',             false, 8, 'full', 1.0, { origin: 'gaza' }),
-  threat(28, 11, 'rocket', 'Mediterranean (off-coast)',false, 7, 'full', 1.0, { origin: 'gaza' }),
+  // === HOLD-FIRE — unguided Qassams landing in open ground (~43% miss) ===
+  // HF 27, 28 removed — caused 5-6 simultaneous threats during singles phase
   threat(29, 14, 'rocket', 'Negev Desert',             false, 7, 'full', 1.0, { origin: 'gaza' }),
   threat(30, 19, 'rocket', 'Southern Negev',           false, 7, 'full', 1.0, { origin: 'gaza' }),
   threat(31, 23, 'rocket', 'Sinai Border Region',      false, 7, 'full', 1.0, { origin: 'gaza' }),

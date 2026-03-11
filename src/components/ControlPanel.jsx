@@ -36,22 +36,7 @@ export default function ControlPanel({
         </div>
       </div>
 
-      {/* Feedback message */}
-      {feedbackMessage && (
-        <div
-          className={`mb-2 md:mb-3 px-2 md:px-4 py-1.5 md:py-2 rounded font-mono text-xs md:text-sm text-center font-bold tracking-wide ${
-            feedbackMessage.type === 'success'
-              ? 'bg-green-900/50 text-green-400 border border-green-700'
-              : feedbackMessage.type === 'warning'
-              ? 'bg-yellow-900/50 text-yellow-400 border border-yellow-700'
-              : feedbackMessage.type === 'error'
-              ? 'bg-red-900/50 text-red-400 border border-red-700'
-              : 'bg-gray-800/50 text-gray-400 border border-gray-700'
-          }`}
-        >
-          {feedbackMessage.text}
-        </div>
-      )}
+      {/* Feedback message — now shown as centered overlay in App.jsx */}
 
       {/* Interceptor + Hold Fire buttons */}
       <div className="flex gap-1 md:gap-2">

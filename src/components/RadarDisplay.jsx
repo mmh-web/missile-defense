@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect, useRef } from 'react';
 import { IMPACT_POSITIONS, THREAT_COLORS, LEVEL_ACCENT_COLORS } from '../config/threats.js';
+import VictoryAnimation from './VictoryAnimation.jsx';
 import {
   CITIES,
   getVisibleCities,
@@ -769,6 +770,9 @@ export default function RadarDisplay({
   dvirActive = false,
   sufrinActive = false,
   bouncingThreats = [],
+  victoryVariant = null,
+  victoryKey = 0,
+  onVictoryComplete,
 }) {
   const viewport = getViewportForLevel(currentLevel);
   const accentColor = LEVEL_ACCENT_COLORS[currentLevel] || '#22c55e';
@@ -789,7 +793,7 @@ export default function RadarDisplay({
 
   return (
     <div className="relative w-full h-full flex items-center justify-center">
-      <div className="relative radar-crt-glow w-full lg:w-auto lg:h-full" style={{ maxWidth: '600px', maxHeight: '600px', aspectRatio: '1' }}>
+      <div className="relative radar-crt-glow w-full lg:w-auto lg:h-full" style={{ maxWidth: '900px', maxHeight: '100%', aspectRatio: '1' }}>
         <svg
           viewBox="0 0 100 100"
           className="w-full h-full"
@@ -1526,6 +1530,15 @@ export default function RadarDisplay({
           <circle cx="50" cy="50" r="49" fill="none"
             stroke="rgba(0,255,136,0.2)" strokeWidth="0.5"
             style={{ pointerEvents: 'none' }} />
+
+          {/* Victory animation — rendered on top of everything when active */}
+          {victoryVariant && (
+            <VictoryAnimation
+              key={victoryKey}
+              variant={victoryVariant}
+              onComplete={onVictoryComplete}
+            />
+          )}
         </svg>
 
         {/* Sweep overlay */}

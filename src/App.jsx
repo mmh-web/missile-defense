@@ -3,6 +3,7 @@ import useGameEngine from './hooks/useGameEngine.js';
 import RadarDisplay from './components/RadarDisplay.jsx';
 import ThreatPanel from './components/ThreatPanel.jsx';
 import ControlPanel from './components/ControlPanel.jsx';
+import AmmoStack from './components/AmmoStack.jsx';
 import TzevaAdom from './components/TzevaAdom.jsx';
 import Summary, { LeaderboardTable } from './components/Summary.jsx';
 import EducationalBriefing from './components/EducationalBriefing.jsx';
@@ -34,6 +35,30 @@ export default function App() {
   const game = useGameEngine({ bonusLevelEnabled });
   // TEMP DEBUG: expose game to console for visual testing
   window.__game = game;
+  const [victoryVariant, setVictoryVariant] = useState(null);
+  const [victoryKey, setVictoryKey] = useState(0);
+  const [pendingLevelComplete, setPendingLevelComplete] = useState(false);
+  // Test hook: window.__testVictory(1), (2), or (3) to preview animations
+  window.__testVictory = (v) => {
+    if (!game.paused) game.togglePause();           // pause so level doesn't end
+    setVictoryVariant(null);
+    setTimeout(() => { setVictoryKey(k => k + 1); setVictoryVariant(v || 1); }, 50);
+  };
+  // Fullscreen mode
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const toggleFullscreen = useCallback(() => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    } else {
+      document.exitFullscreen().catch(() => {});
+    }
+  }, []);
+  useEffect(() => {
+    const handler = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', handler);
+    return () => document.removeEventListener('fullscreenchange', handler);
+  }, []);
+
   const [showFacilitator, setShowFacilitator] = useState(false);
   const showFacilitatorRef = useRef(false);
   useEffect(() => { showFacilitatorRef.current = showFacilitator; }, [showFacilitator]);
@@ -91,6 +116,7 @@ export default function App() {
     sufrinActive,
     triggerSufrinMode,
     bouncingThreats,
+    sirenCount,
     triggerHHMode,
     triggerRLMode,
     cheatUses,
@@ -118,6 +144,32 @@ export default function App() {
   } = game;
 
   const config = getLevelConfig(currentLevel);
+
+  // Victory animation — trigger on zero-siren level completion
+  const prevGameStateRef = useRef(null);
+  useEffect(() => {
+    if (prevGameStateRef.current === GAME_STATES.ACTIVE &&
+        (gameState === GAME_STATES.LEVEL_COMPLETE || gameState === GAME_STATES.SUMMARY) &&
+        sirenCount === 0) {
+      // Zero sirens — play victory animation before showing results
+      const variant = ((currentLevel - 1) % 3) + 1; // cycle 1,2,3 per level
+      setPendingLevelComplete(true);
+      setVictoryKey(k => k + 1);
+      setVictoryVariant(variant);
+    }
+    // Clean up if game state changes to something unexpected (e.g., reset/jump)
+    if (gameState !== GAME_STATES.LEVEL_COMPLETE && gameState !== GAME_STATES.SUMMARY) {
+      setPendingLevelComplete(false);
+      setVictoryVariant(null);
+    }
+    prevGameStateRef.current = gameState;
+  }, [gameState, sirenCount, currentLevel, GAME_STATES]);
+
+  // When victory animation completes, show the level complete screen
+  const handleVictoryComplete = useCallback(() => {
+    setVictoryVariant(null);
+    setPendingLevelComplete(false);
+  }, []);
 
   // Briefing music — create once, play/pause based on game state
   useEffect(() => {
@@ -237,6 +289,15 @@ export default function App() {
         }
       }
 
+      // F: toggle fullscreen (available from any game state)
+      if (e.key === 'f' || e.key === 'F') {
+        // Don't trigger if typing in an input or cheat buffer has content
+        if (cheatBufferRef.current.length === 0 || !hackScreens.includes(gameState)) {
+          toggleFullscreen();
+          return;
+        }
+      }
+
       // ESC: toggle facilitator panel (available from any game state)
       // Opens → auto-pause, Closes → auto-resume
       if (e.key === 'Escape') {
@@ -308,7 +369,7 @@ export default function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [gameState, paused, togglePause, handleAction, activeThreats, selectedThreatId, setSelectedThreatId, GAME_STATES, config, currentLevel, tzurActive, triggerTzurMode, sashaActive, triggerSashaMode, dvirActive, triggerDvirMode, sufrinActive, triggerSufrinMode, triggerHHMode, triggerRLMode, cheatUses, showHackOverlay]);
+  }, [gameState, paused, togglePause, toggleFullscreen, handleAction, activeThreats, selectedThreatId, setSelectedThreatId, GAME_STATES, config, currentLevel, tzurActive, triggerTzurMode, sashaActive, triggerSashaMode, dvirActive, triggerDvirMode, sufrinActive, triggerSufrinMode, triggerHHMode, triggerRLMode, cheatUses, showHackOverlay]);
 
   const handleCloseFacilitator = useCallback(() => {
     setShowFacilitator(false);
@@ -419,6 +480,13 @@ export default function App() {
       <div key="screen-pre-game" className="screen-fade-in min-h-screen bg-[#0a0e1a] flex items-center justify-center relative">
         {/* Top-right controls */}
         <div className="absolute top-4 right-4 flex items-center gap-3">
+          <button
+            onClick={toggleFullscreen}
+            className="hidden lg:block text-gray-600 hover:text-gray-400 transition-colors cursor-pointer text-lg"
+            title="Fullscreen (F)"
+          >
+            {isFullscreen ? '⊡' : '⛶'}
+          </button>
           <button
             onClick={openLeaderboard}
             className="text-gray-600 hover:text-yellow-400 transition-colors cursor-pointer text-2xl"
@@ -572,9 +640,27 @@ export default function App() {
   }
 
   // ========================
-  // LEVEL COMPLETE
+  // LEVEL COMPLETE (with optional victory animation)
   // ========================
   if (gameState === GAME_STATES.LEVEL_COMPLETE) {
+    // If zero sirens, show victory animation on radar before level complete screen
+    if (pendingLevelComplete) {
+      return (
+        <div key={`screen-victory-${currentLevel}`} className="relative h-[100dvh] flex items-center justify-center bg-[#0a0e1a]">
+          <div className="w-full h-full max-w-[600px] max-h-[600px] aspect-square">
+            <RadarDisplay
+              activeThreats={[]}
+              selectedThreatId={null}
+              onSelectThreat={() => {}}
+              currentLevel={currentLevel}
+              victoryVariant={victoryVariant}
+              victoryKey={victoryKey}
+              onVictoryComplete={handleVictoryComplete}
+            />
+          </div>
+        </div>
+      );
+    }
     return (
       <div key={`screen-level-complete-${currentLevel}`} className="screen-fade-in relative">
         <div className="absolute top-4 right-4 z-10">
@@ -596,9 +682,26 @@ export default function App() {
   }
 
   // ========================
-  // SUMMARY SCREEN (after all levels)
+  // SUMMARY SCREEN (after all levels, with optional victory animation)
   // ========================
   if (gameState === GAME_STATES.SUMMARY) {
+    if (pendingLevelComplete) {
+      return (
+        <div key={`screen-victory-summary`} className="relative h-[100dvh] flex items-center justify-center bg-[#0a0e1a]">
+          <div className="w-full h-full max-w-[600px] max-h-[600px] aspect-square">
+            <RadarDisplay
+              activeThreats={[]}
+              selectedThreatId={null}
+              onSelectThreat={() => {}}
+              currentLevel={currentLevel}
+              victoryVariant={victoryVariant}
+              victoryKey={victoryKey}
+              onVictoryComplete={handleVictoryComplete}
+            />
+          </div>
+        </div>
+      );
+    }
     return (
       <div key="screen-summary" className="screen-fade-in">
         <Summary stats={getCampaignStats()} levelStats={getLevelStats()}
@@ -619,8 +722,15 @@ export default function App() {
   // ========================
   return (
     <div key={`screen-active-${currentLevel}`} className={`screen-fade-in h-screen bg-[#0a0e1a] flex flex-col overflow-hidden relative ${screenShake ? 'screen-shake border-flash-red' : ''}`}>
-      {/* Floating top-right: gear icon + escape room timer */}
+      {/* Floating top-right: fullscreen + gear icon + escape room timer */}
       <div className="absolute top-2 right-4 z-30 flex items-center gap-3">
+        <button
+          onClick={toggleFullscreen}
+          className="hidden lg:block text-gray-400 hover:text-gray-100 transition-colors cursor-pointer text-lg px-1.5 py-0.5"
+          title="Fullscreen (F)"
+        >
+          {isFullscreen ? '⊡' : '⛶'}
+        </button>
         <button
           onClick={() => {
             if (gameState === GAME_STATES.ACTIVE && !paused) togglePause();
@@ -635,9 +745,9 @@ export default function App() {
       </div>
 
       {/* Top bar — level name centered prominently, score/timer on sides */}
-      <div className="flex items-center justify-between px-2 md:px-4 py-1.5 md:py-2 bg-[#080c16] relative"
+      <div className="flex items-center justify-between px-2 md:px-4 py-1.5 md:py-2 lg:py-2.5 bg-[#080c16] relative min-h-[40px] md:min-h-[52px] lg:min-h-[60px]"
         style={{ borderBottom: `2px solid ${LEVEL_ACCENT_COLORS[currentLevel] || '#22c55e'}70` }}>
-        {/* Left: score + music */}
+        {/* Left: music + score + streak */}
         <div className="flex items-center gap-2 md:gap-3 min-w-0">
           <button
             onClick={() => {
@@ -653,10 +763,19 @@ export default function App() {
             <span className="hidden sm:inline">{gameMusicOn ? 'ON' : 'OFF'}</span>
           </button>
           <span className="text-gray-700 font-mono text-xs hidden sm:inline">|</span>
-          <div className="font-mono text-[10px] md:text-xs">
-            <span className="text-gray-600 hidden sm:inline">SCORE </span>
-            <span className="text-cyan-400 text-xs md:text-sm font-bold tabular-nums">{getRunningScore()}</span>
+          <div className="font-mono">
+            <span className="text-gray-600 text-[10px] md:text-xs hidden sm:inline">SCORE </span>
+            <span className="text-cyan-400 text-sm md:text-lg lg:text-xl font-bold tabular-nums">{getRunningScore()}</span>
           </div>
+          {streak >= 3 && (
+            <>
+              <span className="text-gray-700 font-mono text-xs hidden sm:inline">|</span>
+              <div className="font-mono text-sm md:text-base font-bold text-orange-400 flex items-center gap-1 streak-pulse">
+                <span>🔥</span>
+                <span className="tabular-nums">{streak}</span>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Center: level number + name (prominent) */}
@@ -677,8 +796,8 @@ export default function App() {
           </div>
         </div>
 
-        {/* Right: timer (margin-right for gear icon + escape room pill) */}
-        <div className="flex items-center gap-2 md:gap-3 mr-10 md:mr-16">
+        {/* Right: timer (margin-right for fullscreen + gear icon + escape room pill) */}
+        <div className="flex items-center gap-2 md:gap-3 mr-10 md:mr-16 lg:mr-24">
           <div className="font-mono text-[10px] md:text-xs">
             <span className="text-green-400 text-xs md:text-sm font-bold tabular-nums">
               {formatCountdown(Math.max(0, (config?.duration || 0) - sessionTime))}
@@ -688,10 +807,19 @@ export default function App() {
         </div>
       </div>
 
-      {/* Main content area — on desktop: threat panel LEFT (fixed width), radar CENTERED */}
-      <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden relative">
-        {/* ZONE A: Radar — centered in full area */}
-        <div className="flex-1 min-h-0 p-1 sm:p-2 md:p-4 flex items-center justify-center">
+      {/* Main content area — desktop: 3-column flex (threats | radar | ammo). Radar stretches full height; panels self-center. */}
+      <div className="flex-1 flex flex-col lg:flex-row lg:items-stretch min-h-0 overflow-hidden lg:max-w-[1200px] lg:mx-auto lg:w-full">
+        {/* ZONE A: Threat panel — mobile: below radar (order-2); desktop: left of radar (order-1) */}
+        <div className="flex-shrink-0 max-h-[240px] overflow-y-auto order-2 lg:order-1 lg:w-[240px] lg:max-h-[80vh] lg:overflow-y-auto lg:self-center p-1 sm:p-2 md:p-3 border-t lg:border-t-0 lg:border-r border-gray-800/30">
+          <ThreatPanel
+            activeThreats={activeThreats}
+            selectedThreatId={selectedThreatId}
+            onSelectThreat={setSelectedThreatId}
+          />
+        </div>
+
+        {/* ZONE B: Radar — centered, fills remaining height (aspect-ratio constrains width) */}
+        <div className="flex-1 min-h-0 min-w-0 order-1 lg:order-2 p-1 sm:p-2 md:p-3 flex items-center justify-center">
           <RadarDisplay
             activeThreats={activeThreats}
             selectedThreatId={selectedThreatId}
@@ -705,21 +833,26 @@ export default function App() {
             dvirActive={dvirActive}
             sufrinActive={sufrinActive}
             bouncingThreats={bouncingThreats}
+            victoryVariant={victoryVariant}
+            victoryKey={victoryKey}
+            onVictoryComplete={handleVictoryComplete}
           />
         </div>
 
-        {/* ZONE B: Threat table — mobile: below radar; desktop: fixed-width overlay on left */}
-        <div className="flex-shrink-0 max-h-[240px] overflow-y-auto lg:absolute lg:left-0 lg:top-0 lg:bottom-0 lg:w-[260px] lg:max-h-none p-1 sm:p-2 md:p-3 border-t lg:border-t-0 lg:border-r border-gray-800/30 lg:bg-[#0a0e1a]/90 lg:backdrop-blur-sm">
-          <ThreatPanel
-            activeThreats={activeThreats}
+        {/* ZONE C: Ammo stack — desktop only, right of radar */}
+        <div className="hidden lg:flex lg:flex-col lg:justify-center lg:self-center order-3 lg:w-[200px] lg:flex-shrink-0 lg:max-h-[80vh] lg:border-l border-gray-800/30">
+          <AmmoStack
+            ammo={ammo}
+            onAction={handleAction}
             selectedThreatId={selectedThreatId}
-            onSelectThreat={setSelectedThreatId}
+            streak={streak}
+            availableSystems={config?.available_systems}
           />
         </div>
       </div>
 
-      {/* ZONE C: Controls — flex-shrink-0 ensures it never gets pushed off screen */}
-      <div className="flex-shrink-0 px-2 md:px-4 py-2 md:py-3 border-t border-gray-800/50 bg-[#080c16]">
+      {/* ZONE D: Controls — mobile/tablet only, hidden on desktop (replaced by AmmoStack) */}
+      <div className="flex-shrink-0 px-2 md:px-4 py-2 md:py-3 border-t border-gray-800/50 bg-[#080c16] lg:hidden">
         <ControlPanel
           ammo={ammo}
           onAction={handleAction}
@@ -743,6 +876,23 @@ export default function App() {
             <div className="font-mono text-xs mt-1 tracking-widest animate-pulse text-amber-500">
               PREPARE DEFENSE SYSTEMS
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* FEEDBACK MESSAGE overlay — centered below top bar, visible near radar */}
+      {feedbackMessage && (
+        <div className="absolute inset-x-0 bottom-16 lg:bottom-auto lg:top-20 z-15 flex justify-center pointer-events-none">
+          <div className={`rounded-lg px-5 py-2 text-center font-mono text-sm md:text-base font-bold tracking-wider feedback-flash ${
+            feedbackMessage.type === 'success'
+              ? 'bg-green-950/90 border border-green-500/50 text-green-400'
+              : feedbackMessage.type === 'warning'
+              ? 'bg-yellow-950/90 border border-yellow-500/50 text-yellow-400'
+              : feedbackMessage.type === 'error'
+              ? 'bg-red-950/90 border border-red-500/50 text-red-400'
+              : 'bg-gray-900/90 border border-gray-500/50 text-gray-400'
+          }`}>
+            {feedbackMessage.text}
           </div>
         </div>
       )}

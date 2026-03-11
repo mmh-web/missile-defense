@@ -1,0 +1,134 @@
+import { INTERCEPTOR_COLORS } from '../config/threats.js';
+
+const ALL_INTERCEPTORS = [
+  { key: 'iron_dome', label: 'IRON DOME', shortcut: '1' },
+  { key: 'davids_sling', label: "DAVID'S SLING", shortcut: '2' },
+  { key: 'arrow_2', label: 'ARROW 2', shortcut: '3' },
+  { key: 'arrow_3', label: 'ARROW 3', shortcut: '4' },
+];
+
+export default function AmmoStack({
+  ammo,
+  onAction,
+  selectedThreatId,
+  streak,
+  availableSystems,
+}) {
+  const hasSelection = selectedThreatId !== null;
+
+  return (
+    <div className="flex flex-col h-full justify-center gap-2 py-2 px-3">
+      {/* Interceptors */}
+      {ALL_INTERCEPTORS.map(({ key, label, shortcut }) => {
+        const color = INTERCEPTOR_COLORS[key];
+        const isAvailable = availableSystems?.includes(key) ?? false;
+        const count = ammo[key] || 0;
+        const depleted = count <= 0;
+        const disabled = depleted || !hasSelection || !isAvailable;
+        const isLow = isAvailable && count === 1;
+
+        return (
+          <button
+            key={key}
+            onClick={() => !disabled && onAction(key)}
+            disabled={disabled}
+            className={`
+              text-left px-2 py-1.5 rounded transition-all
+              ${!isAvailable ? 'opacity-20 cursor-default' : ''}
+              ${isAvailable && disabled ? 'opacity-50 cursor-not-allowed' : ''}
+              ${isAvailable && !disabled ? 'cursor-pointer hover:bg-white/5 active:scale-[0.97]' : ''}
+              ${isLow && !disabled ? 'ammo-low-flash' : ''}
+            `}
+            style={{
+              borderLeft: `3px solid ${isAvailable ? color : '#374151'}`,
+            }}
+          >
+            {/* Row 1: key badge + name + count */}
+            <div className="flex items-center gap-1.5">
+              <span
+                className="w-6 h-6 rounded border-2 flex items-center justify-center text-xs font-bold font-mono flex-shrink-0"
+                style={{
+                  borderColor: isAvailable ? color : '#374151',
+                  color: isAvailable ? color : '#374151',
+                }}
+              >
+                {shortcut}
+              </span>
+
+              <span
+                className="flex-1 min-w-0 text-xs font-mono font-bold tracking-wider truncate"
+                style={{ color: isAvailable ? color : '#374151' }}
+              >
+                {label}
+              </span>
+
+              <span
+                className="text-lg font-mono font-bold tabular-nums flex-shrink-0"
+                style={{ color: isAvailable ? (depleted ? '#4b5563' : color) : '#1f2937' }}
+              >
+                {isAvailable ? (depleted ? '0' : count) : ''}
+              </span>
+            </div>
+
+            {/* Row 2: ammo dots */}
+            {isAvailable && !depleted && (
+              <div className="flex gap-[3px] mt-1 pl-[26px] flex-wrap">
+                {Array.from({ length: Math.min(count, 15) }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="w-1.5 h-1.5 rounded-full"
+                    style={{ backgroundColor: color }}
+                  />
+                ))}
+                {count > 15 && (
+                  <span className="text-[8px] font-mono leading-none" style={{ color }}>
+                    +{count - 15}
+                  </span>
+                )}
+              </div>
+            )}
+          </button>
+        );
+      })}
+
+      {/* Divider */}
+      <div className="border-t border-gray-800/50 mx-2 my-0.5" />
+
+      {/* Hold Fire */}
+      <button
+        onClick={() => hasSelection && onAction('hold_fire')}
+        disabled={!hasSelection}
+        className={`
+          text-left px-2 py-1.5 rounded transition-all
+          ${!hasSelection ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-white/5 active:scale-[0.97]'}
+        `}
+        style={{ borderLeft: '3px solid #6b7280' }}
+      >
+        <div className="flex items-center gap-1.5">
+          <span className="w-6 h-6 rounded border-2 border-gray-500 flex items-center justify-center text-xs font-bold font-mono text-gray-400 flex-shrink-0">
+            5
+          </span>
+          <span className="text-xs font-mono font-bold tracking-wider text-gray-400">
+            HOLD FIRE
+          </span>
+        </div>
+      </button>
+
+      {/* Hint */}
+      <div className="text-center text-[10px] text-gray-600 font-mono tracking-wider mt-1 px-1">
+        {hasSelection ? 'PRESS 1-4 TO FIRE' : 'SELECT A THREAT'}
+      </div>
+
+      {/* Streak */}
+      {streak >= 3 && (
+        <div className="text-center font-mono text-xs mt-1">
+          <span className="text-orange-400 font-bold">
+            {'\uD83D\uDD25'} {streak}
+          </span>
+        </div>
+      )}
+
+      {/* Feedback message — now shown as centered overlay in App.jsx */}
+    </div>
+  );
+}

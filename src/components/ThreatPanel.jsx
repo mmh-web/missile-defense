@@ -56,7 +56,7 @@ function ThreatRow({ threat, isSelected, onSelect }) {
       <div className="flex items-center gap-1.5">
         {/* Threat ID */}
         <span
-          className="w-7 text-xs font-mono font-bold flex-shrink-0 text-center"
+          className="w-8 text-sm font-mono font-bold flex-shrink-0 text-center"
           style={{ color }}
         >
           T{threat.id}{threat.priority ? '*' : ''}
@@ -64,23 +64,23 @@ function ThreatRow({ threat, isSelected, onSelect }) {
 
         {/* Type abbreviation */}
         <span
-          className="w-9 text-[10px] font-mono font-bold uppercase tracking-wider flex-shrink-0"
+          className="w-10 text-xs font-mono font-bold uppercase tracking-wider flex-shrink-0"
           style={{ color }}
         >
           {TYPE_ABBR[threat.type] || '???'}
         </span>
 
         {/* Arrow separator */}
-        <span className="text-gray-600 text-xs flex-shrink-0">▸</span>
+        <span className="text-gray-600 text-sm flex-shrink-0">▸</span>
 
         {/* Impact zone */}
-        <span className={`flex-1 min-w-0 truncate text-xs font-mono font-bold ${impactColor}`}>
+        <span className={`flex-1 min-w-0 truncate text-sm font-mono font-bold ${impactColor}`}>
           {impactText}
         </span>
 
         {/* Countdown */}
         <span
-          className={`w-9 text-right text-sm font-mono font-bold tabular-nums flex-shrink-0 ${
+          className={`w-10 text-right text-base font-mono font-bold tabular-nums flex-shrink-0 ${
             isCritical ? 'text-white' : 'text-green-400'
           }`}
         >
@@ -89,14 +89,14 @@ function ThreatRow({ threat, isSelected, onSelect }) {
       </div>
 
       {/* Line 2 (desktop only): threat name + full type */}
-      <div className="hidden lg:flex items-center gap-1.5 mt-0.5 pl-7">
+      <div className="hidden lg:flex items-center gap-1.5 mt-0.5 pl-8">
         <span
-          className="text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider"
+          className="text-[11px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider"
           style={{ backgroundColor: `${color}20`, color }}
         >
           {threat.type === 'hypersonic' ? 'HYPERSONIC' : threat.type.toUpperCase()}
         </span>
-        <span className="text-[10px] font-mono text-gray-500 truncate">
+        <span className="text-[11px] font-mono text-gray-500 truncate">
           {threatName}
         </span>
       </div>
@@ -130,7 +130,7 @@ export default function ThreatPanel({
 
   return (
     <div className="flex flex-col">
-      <div className="text-[10px] text-green-500/50 font-mono tracking-widest mb-1 px-2 uppercase">
+      <div className="text-xs text-green-500/50 font-mono tracking-widest mb-1 px-2 uppercase">
         {live.filter(t => !t.held).length} ACTIVE
         {live.some(t => t.held) && <span className="text-gray-600"> · {live.filter(t => t.held).length} HELD</span>}
       </div>

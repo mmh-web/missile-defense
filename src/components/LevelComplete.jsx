@@ -5,11 +5,11 @@ import { saveScore } from '../utils/leaderboard.js';
 
 function ScoreRow({ label, stat, points, color = 'text-gray-300', pointsColor = 'text-green-400' }) {
   return (
-    <div className="flex justify-between items-center py-1.5 border-b border-gray-800/50">
-      <span className="text-xs text-gray-500 font-mono tracking-wider">{label}</span>
-      <div className="flex items-center gap-4">
+    <div className="flex justify-between items-center py-1 border-b border-gray-800/50">
+      <span className="text-[11px] text-gray-500 font-mono tracking-wider">{label}</span>
+      <div className="flex items-center gap-3">
         <span className={`text-sm font-bold font-mono ${color}`}>{stat}</span>
-        <span className={`text-xs font-mono ${pointsColor} w-16 text-right`}>{points > 0 ? `+${points}` : points}</span>
+        <span className={`text-xs font-mono ${pointsColor} w-14 text-right`}>{points > 0 ? `+${points}` : points}</span>
       </div>
     </div>
   );
@@ -123,12 +123,12 @@ export default function LevelComplete({ levelStats, campaignStats, effectiveTota
   return (
     <div className="h-screen bg-[#0a0e1a] flex items-center justify-center relative overflow-y-auto">
       {isPerfect && <PerfectParticles />}
-      <div className="max-w-2xl w-full py-8 px-4 relative z-10">
+      <div className="max-w-2xl w-full py-3 lg:py-4 px-4 relative z-10">
         {/* Perfect Defense Banner */}
         {isPerfect && (
-          <div className="text-center mb-4 animate-pulse">
+          <div className="text-center mb-2 animate-pulse">
             <div
-              className="inline-block px-6 py-2 rounded-lg border-2 font-mono font-bold text-lg tracking-[0.3em]"
+              className="inline-block px-6 py-1.5 rounded-lg border-2 font-mono font-bold text-lg tracking-[0.3em]"
               style={{
                 borderColor: '#fbbf24',
                 color: '#fbbf24',
@@ -142,40 +142,34 @@ export default function LevelComplete({ levelStats, campaignStats, effectiveTota
           </div>
         )}
 
-        {/* Header */}
-        <div className="text-center mb-6">
-          <div className={`font-mono text-xs tracking-[0.4em] mb-2 ${isPerfect ? 'text-yellow-400' : 'text-green-400'}`}>
+        {/* Header + Rating + Score — condensed into one block */}
+        <div className="text-center mb-3">
+          <div className={`font-mono text-xs tracking-[0.4em] mb-1 ${isPerfect ? 'text-yellow-400' : 'text-green-400'}`}>
             &#10003; LEVEL {levelStats.level} COMPLETE
           </div>
-          <h1 className={`text-2xl font-bold font-mono tracking-wider mb-1 ${isPerfect ? 'text-yellow-400' : 'text-green-400'}`}>
-            LEVEL {levelStats.level}
-          </h1>
-          <div className={`h-px w-48 mx-auto mt-3 ${isPerfect ? 'bg-yellow-700' : 'bg-green-900'}`} />
-        </div>
-
-        {/* Rating */}
-        <div className="text-center mb-6">
-          <div className="text-2xl mb-1">
-            <Stars count={levelStats.rating.stars} />
+          <div className="flex items-center justify-center gap-4 mb-1">
+            <h1 className={`text-2xl font-bold font-mono tracking-wider ${isPerfect ? 'text-yellow-400' : 'text-green-400'}`}>
+              LEVEL {levelStats.level}
+            </h1>
+            <span className="text-gray-700">|</span>
+            <span className="text-xl">
+              <Stars count={levelStats.rating.stars} />
+            </span>
+            <span className={`text-xs font-mono tracking-widest ${isPerfect ? 'text-yellow-400' : 'text-gray-400'}`}>
+              {levelStats.rating.label}
+            </span>
           </div>
-          <div className={`text-sm font-mono tracking-widest ${isPerfect ? 'text-yellow-400' : 'text-gray-400'}`}>
-            {levelStats.rating.label}
-          </div>
-        </div>
-
-        {/* Score */}
-        <div className="text-center mb-6">
-          <div className="text-4xl font-bold font-mono text-green-400 tabular-nums">
+          <div className="text-3xl font-bold font-mono text-green-400 tabular-nums">
             +{levelStats.score}
           </div>
-          <div className="text-xs text-gray-500 font-mono tracking-wider mt-1">
+          <div className="text-[10px] text-gray-500 font-mono tracking-wider">
             LEVEL SCORE
           </div>
         </div>
 
         {/* Score Breakdown */}
-        <div className="border border-gray-800 rounded-lg p-4 mb-6 bg-gray-900/20">
-          <div className="flex justify-between items-center mb-2 pb-1 border-b border-gray-700">
+        <div className="border border-gray-800 rounded-lg p-3 mb-3 bg-gray-900/20">
+          <div className="flex justify-between items-center mb-1.5 pb-1 border-b border-gray-700">
             <span className="text-[10px] text-gray-600 font-mono tracking-widest">SCORE BREAKDOWN</span>
             <span className="text-[10px] text-gray-600 font-mono tracking-widest">PTS</span>
           </div>
@@ -242,11 +236,11 @@ export default function LevelComplete({ levelStats, campaignStats, effectiveTota
           if (isEfficient) badges.push({ label: 'EFFICIENT', icon: '\u{1F3AF}', border: '#22c55e', text: '#4ade80', bg: 'rgba(34, 197, 94, 0.08)' });
           if (badges.length === 0) return null;
           return (
-            <div className="flex flex-wrap gap-2 mb-6 justify-center">
+            <div className="flex flex-wrap gap-2 mb-3 justify-center">
               {badges.map((badge, i) => (
                 <div
                   key={badge.label}
-                  className="achievement-badge inline-flex items-center gap-2 px-4 py-2 rounded-lg border font-mono text-sm tracking-wider"
+                  className="achievement-badge inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border font-mono text-xs tracking-wider"
                   style={{
                     borderColor: badge.border,
                     color: badge.text,
@@ -262,9 +256,9 @@ export default function LevelComplete({ levelStats, campaignStats, effectiveTota
         })()}
 
         {/* ED2: Tactical Debrief — connect gameplay to real-world learning */}
-        <div className="border border-gray-700/50 rounded-lg p-4 mb-6 bg-gray-900/30">
-          <div className="text-[10px] text-gray-500 font-mono tracking-widest mb-2">TACTICAL DEBRIEF</div>
-          <div className="space-y-1.5 text-xs font-mono text-gray-400">
+        <div className="border border-gray-700/50 rounded-lg p-3 mb-3 bg-gray-900/30">
+          <div className="text-[10px] text-gray-500 font-mono tracking-widest mb-1.5">TACTICAL DEBRIEF</div>
+          <div className="space-y-1 text-xs font-mono text-gray-400">
             {levelStats.correctIntercepts > 0 && (
               <p>
                 {levelStats.correctIntercepts === levelStats.populatedThreats
@@ -289,7 +283,7 @@ export default function LevelComplete({ levelStats, campaignStats, effectiveTota
             )}
             {levelStats.sirenCount > 0 && (
               <p className="text-red-400/80">
-                {levelStats.sirenCount} civilian area{levelStats.sirenCount !== 1 ? 's' : ''} hit — in real life, each siren means families running to shelters.
+                {levelStats.sirenCount} civilian area{levelStats.sirenCount !== 1 ? 's' : ''} hit — each Tzeva Adom activates a 15-second warning siren.
               </p>
             )}
           </div>
@@ -297,7 +291,7 @@ export default function LevelComplete({ levelStats, campaignStats, effectiveTota
 
         {/* E3: Cheat code hint — subtle tease on L2 or L3 complete */}
         {(levelStats.level === 2 || levelStats.level === 3) && (
-          <div className="text-center mb-4">
+          <div className="text-center mb-2">
             <p className="text-[10px] font-mono text-gray-600 tracking-wider italic opacity-60">
               {levelStats.level === 2
                 ? '[ CLASSIFIED: Field operators report unusual keyboard sequences activate emergency protocols... ]'
@@ -308,16 +302,16 @@ export default function LevelComplete({ levelStats, campaignStats, effectiveTota
 
         {/* Campaign running total — always visible */}
         {campaignStats && (
-          <div className="border border-green-900/50 rounded-lg p-5 mb-6 bg-green-950/20 text-center">
-            <div className="text-xs text-gray-500 font-mono tracking-widest mb-2">CAMPAIGN TOTAL</div>
-            <div className="text-5xl font-bold font-mono text-green-400 tabular-nums">
+          <div className="border border-green-900/50 rounded-lg p-3 mb-3 bg-green-950/20 text-center">
+            <div className="text-[10px] text-gray-500 font-mono tracking-widest mb-1">CAMPAIGN TOTAL</div>
+            <div className="text-4xl font-bold font-mono text-green-400 tabular-nums">
               {campaignStats.totalScore + levelStats.score}
             </div>
           </div>
         )}
 
         {/* Save Score (mid-campaign) */}
-        <div className="mb-6 p-4 border border-gray-800 rounded-lg bg-gray-900/20">
+        <div className="mb-3 p-3 border border-gray-800 rounded-lg bg-gray-900/20">
           <div className="flex items-center justify-center gap-3">
             <input
               type="text"
@@ -350,7 +344,7 @@ export default function LevelComplete({ levelStats, campaignStats, effectiveTota
 
         {/* Next Level Preview */}
         {!isLastLevel && nextConfig && (
-          <div className="border border-gray-700 rounded-lg p-4 mb-6 bg-gray-900/20">
+          <div className="border border-gray-700 rounded-lg p-3 mb-3 bg-gray-900/20">
             <div className="text-lg font-bold font-mono text-gray-200 tracking-wider">
               NEXT: LEVEL {nextConfig.id}
             </div>

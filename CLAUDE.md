@@ -28,6 +28,8 @@ Built for classroom/escape-room use with facilitator controls and escape room ti
 | `src/components/LevelIntro.jsx` | Level intro screen (L2+ — no quiz, just context) |
 | `src/components/TzevaAdom.jsx` | Red alert siren overlay when city is hit |
 | `src/components/FacilitatorControls.jsx` | Teacher/facilitator panel (ESC to toggle) |
+| `src/components/AmmoStack.jsx` | Vertical ammo display for desktop right-side overlay |
+| `src/components/VictoryAnimation.jsx` | Zero-siren level celebration (3 SVG animation variants) |
 | `src/utils/firebase.js` | Firebase config + Firestore init |
 | `src/utils/leaderboard.js` | Shared leaderboard (Firestore + localStorage fallback) |
 
@@ -154,6 +156,26 @@ PRE_GAME → SCORING_INTRO → BRIEFING (L1 only, has quiz)
 - **Shareable results card**: Campaign summary has screenshot-friendly score box for classroom sharing
 - **Threat selection toggle**: Click a selected threat to deselect; click a different threat to switch selection
 - **Team name persistence**: `campaignTeamName` state lifted to App.jsx, persists across LevelComplete and Summary screens throughout the campaign. Cleared on game reset.
+
+## Victory Animation System
+- Triggered on zero-siren level completions (before showing LEVEL_COMPLETE screen)
+- 3 variants cycled by level number: `((currentLevel - 1) % 3) + 1`
+  - **Iron Shield** (v1): Expanding golden dome + shockwave rings + particle burst. "IRON SHIELD / ALL THREATS NEUTRALIZED"
+  - **Skies Clear** (v2): Dawn gradient + rising particles + sun glow. "SKIES CLEAR / ZERO CIVILIAN ALERTS"
+  - **Star Commander** (v3): Constellation lines + gold star medal. "STAR COMMANDER / FLAWLESS DEFENSE"
+- Renders as SVG `<g>` inside RadarDisplay's SVG via ref-based innerHTML injection
+- **CSS animation fill-mode unreliable** with Tailwind CSS 4 `@layer` system for SVG elements. Key opacities (backdrop, text, medal, fade-out) use JS-driven inline styles via `applyJSTimeline()`. Decorative effects (particles, rings, rays) still use CSS animations.
+- Duration: 6 seconds total (backdrop fade-in → content → text → fade-out → onComplete)
+- `pendingLevelComplete` state in App.jsx delays LEVEL_COMPLETE screen while animation plays
+- Test hook: `window.__testVictory(1)`, `(2)`, or `(3)` to preview during gameplay (auto-pauses)
+
+## Desktop Layout
+- **3-column flex layout**: Threat panel (240px) | Centered radar | Ammo stack (200px), all vertically centered. Max-width 1200px keeps columns tight to radar.
+- **Radar sizing**: `maxWidth: 900px, maxHeight: 100%, aspectRatio: 1` — height-constrained, fills available vertical space. Panels don't shrink radar since width is not the constraint.
+- **AmmoStack**: Shows all 4 interceptor types + hold fire vertically. Available systems bright, unavailable dimmed (opacity-20). Includes ammo counts, dots, streak indicator, and feedback messages.
+- **ControlPanel**: Hidden on desktop (`lg:hidden`), shown on mobile/tablet as bottom panel
+- **Fullscreen mode**: Toggle via ⛶ button (top-right) or `F` key. Uses browser Fullscreen API. Available from any game screen.
+- Top bar: Level name + Hebrew subtitle centered, music/score left, timer/settings right
 
 ## Quiz System
 - 2 questions per level, randomly selected from pool of 12-14
@@ -305,7 +327,7 @@ To make a level **harder** (higher score):
 |-----------|-------|--------|
 | Phone | < 768px | Stacked: radar (flex-1) → compact threat table (max-h-240px) → controls. |
 | Tablet (iPad portrait) | 768-1023px | Stacked: radar → compact threat table → controls. No keyboard shortcuts. |
-| Desktop | ≥ 1024px | 3-column: left spacer (flex-3) + centered radar (flex-5) + threat table (flex-3). Keyboard shortcuts shown. |
+| Desktop | ≥ 1024px | 3-column flex (max-w-1200px): threat panel (240px) + radar (flex-1, height-constrained) + ammo stack (200px). All vertically centered. Keyboard shortcuts shown. |
 
 ### Compact Threat Table (ThreatPanel.jsx)
 Replaced verbose cards with compact single-line rows per threat: `T{id} TYPE ▸ IMPACT_ZONE countdown`.
@@ -315,19 +337,21 @@ Replaced verbose cards with compact single-line rows per threat: `T{id} TYPE ▸
 - Visible at ALL breakpoints (no more hidden panel on mobile)
 - **Color system**: Each row uses exactly 2 color families — threat type color (left border, ID, type abbrev) + green accent (countdown). Impact zone: white for populated, gray for open ground, gray pulsing for unrevealed. Critical rows (<5s) get subtle type-color background tint + white countdown. No amber/yellow mixing.
 
-### Desktop Centered Radar Layout
-3-column flex layout at `lg:` breakpoint centers the radar as the visual focal point:
-- Left spacer: `hidden lg:block lg:flex-[3]` (invisible, mirrors threat panel width)
-- Radar: `lg:flex-[5]` (centered)
-- Threat panel: `lg:flex-[3]` with `lg:border-l`
+### Desktop 3-Column Layout
+At `lg:` breakpoint, 3-column flex layout with `max-w-[1200px] mx-auto` centers everything:
+- Threat panel: `order-1 w-[240px]` — fixed width, vertically centered
+- Radar: `order-2 flex-1` — fills remaining space, height-constrained square
+- Ammo stack: `order-3 w-[200px]` — fixed width, vertically centered
+- On mobile: radar order-1 (top), threats order-2 (below), ammo hidden (ControlPanel at bottom)
 
 ### Key responsive patterns:
 - **Viewport**: `width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no`
-- **3-column centered layout**: `lg:flex-row` — only at 1024px+ (desktop/tablet landscape), left spacer + radar + threat panel
+- **3-column layout**: `lg:flex-row lg:items-center` — threat panel + radar + ammo stack side-by-side, vertically centered
 - **Keyboard shortcut badges**: `hidden lg:flex` — only shown on desktop
 - **Keyboard hint text**: `hidden lg:block` — only shown on desktop
 - **Radar blip tap targets**: Invisible circle `r=10` for touch (r=10 in 100-unit SVG viewBox)
-- **Radar sizing**: `maxWidth: 600px, maxHeight: 100%, aspectRatio: 1` — fits container without clipping
+- **Radar sizing**: `maxWidth: 900px, maxHeight: 100%, aspectRatio: 1` — height-constrained, fills vertical space
+- **Fullscreen**: `F` key or ⛶ button toggles fullscreen mode (browser Fullscreen API)
 - **Top bar**: Hebrew names hidden on phone (`hidden md:inline`), front names hidden on smallest screens (`hidden sm:inline`)
 - **Control buttons**: Compact text on phone (`text-[10px] md:text-sm`), no ammo dots on phone (`hidden sm:flex`)
 
@@ -336,6 +360,7 @@ Replaced verbose cards with compact single-line rows per threat: `T{id} TYPE ▸
 - Keep dev server running after changes so user can playtest immediately.
 - When making UI changes, test at all 3 breakpoints (phone 375×812, tablet 768×1024, desktop 1366×800).
 - Deploy fully when asked (commit main → build → push → gh-pages deploy cycle).
+- **Context window management**: Track remaining prompt space. When running low (~20% remaining), proactively update CLAUDE.md with all session state, pending tasks, and decisions — then alert the user so they can start a fresh session without losing context.
 
 ## Important Conventions
 - **MUTE GAME IN PREVIEW**: Always mute audio before playtesting: `document.querySelectorAll('audio,video').forEach(a=>{a.muted=true;a.pause()})`
@@ -347,3 +372,24 @@ Replaced verbose cards with compact single-line rows per threat: `T{id} TYPE ▸
 - Hebrew translations (`he` field) on cities for display
 - All threat IDs must be unique within their array but can reuse across arrays
 - Threat `origin` determines spawn point on radar edge (see spawnOrigins.js)
+
+## Pending Work (as of March 2026)
+
+### Bugs to Investigate
+- **Levels end before 0:00**: User reports levels end before the countdown timer reaches zero. The auto-end logic in useGameEngine.js (line 852-884) should wait for `config.duration` but may fire early. Investigate `sessionTimeRef.current` sync, `auto_end_delay` values, and whether `allSpawnedRef` triggers prematurely.
+
+### UI Fixes Needed
+- **Briefing/LevelIntro scrolling**: User wants ZERO scrolling on any screen. EducationalBriefing content (3 facts + animation + countdown + button) may overflow on shorter screens. LevelIntro at L1 has YOUR WEAPON + REMEMBER sections that add height.
+- **Guilt/blame language in briefings**: EducationalBriefing L1 threat facts include "Children grow up practicing emergency sprint drills daily" and "residents have just 15 seconds to reach shelter". These should be factual without emotional manipulation. Check all 7 levels of briefing content.
+
+### Audit Findings (from automated audit)
+- **ControlPanel.jsx**: Fixed — removed duplicate feedbackMessage (now only in App.jsx overlay)
+- **Summary.jsx**: Dead `levelStats` prop (accepted but never used), dead `typeColor()` function
+- **Summary.jsx**: Hardcoded `/7` in leaderboard table — should use `effectiveTotalLevels`
+- **RadarDisplay.jsx**: CheatCountdown components all use `yOffset=0` — overlap when multiple cheats active simultaneously
+- **ThreatPanel.jsx**: `animate-pulse` on critical rows makes countdown text harder to read
+
+### Full Playthrough Not Yet Done
+- Need visual playthrough of all 7 levels, all level-complete screens, summary screen
+- Need to test all cheat codes: TZUR, SASHA, DVIR, SUFRIN, BH, BSD, HACK overlay
+- Need difficulty progression analysis L1-L7 (verify scores match documented ratings)
