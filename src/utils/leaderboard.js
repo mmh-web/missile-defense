@@ -10,7 +10,6 @@ import {
   limit,
   getDocs,
   onSnapshot,
-  where,
 } from 'firebase/firestore';
 
 const STORAGE_KEY = 'missile-defense-leaderboard';
@@ -98,14 +97,16 @@ export async function getLeaderboard(gameMode = 'CAMPAIGN') {
   try {
     const q = query(
       collection(db, COLLECTION),
-      where('gameMode', '==', gameMode),
       orderBy('score', 'desc'),
-      limit(MAX_ENTRIES)
+      limit(50)
     );
     const snapshot = await getDocs(q);
     const entries = [];
-    snapshot.forEach((doc) => entries.push(doc.data()));
-    return entries;
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+      if (data.gameMode === gameMode) entries.push(data);
+    });
+    return entries.slice(0, MAX_ENTRIES);
   } catch (err) {
     console.warn('Firestore read failed, using local leaderboard:', err.message);
     return getLocalLeaderboard(gameMode);
@@ -121,14 +122,16 @@ export function subscribeLeaderboard(gameMode, callback) {
   try {
     const q = query(
       collection(db, COLLECTION),
-      where('gameMode', '==', gameMode),
       orderBy('score', 'desc'),
-      limit(MAX_ENTRIES)
+      limit(50)
     );
     return onSnapshot(q, (snapshot) => {
       const entries = [];
-      snapshot.forEach((doc) => entries.push(doc.data()));
-      callback(entries);
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        if (data.gameMode === gameMode) entries.push(data);
+      });
+      callback(entries.slice(0, MAX_ENTRIES));
     }, (err) => {
       console.warn('Firestore subscription failed:', err.message);
       callback(getLocalLeaderboard(gameMode));

@@ -115,11 +115,6 @@ export default function AmmoStack({
         </div>
       </button>
 
-      {/* Hint */}
-      <div className="text-center text-xs text-gray-600 font-mono tracking-wider mt-1 px-1">
-        {hasSelection ? 'PRESS 1-4 TO FIRE' : 'SELECT A THREAT'}
-      </div>
-
       {/* Streak */}
       {streak >= 3 && (
         <div className="text-center font-mono text-sm mt-1">
