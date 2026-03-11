@@ -19,9 +19,9 @@ export default function AmmoStack({
   return (
     <div className="flex flex-col h-full justify-center gap-2.5 py-2 px-4">
       {/* Column header */}
-      <div className="text-center mb-0.5 border-b border-gray-800/50 pb-1.5">
-        <div className="text-[10px] text-gray-500 font-mono tracking-[0.3em]">INTERCEPTORS</div>
-        <div className="text-[9px] text-gray-600 font-mono mt-0.5">Press 1–5 to activate</div>
+      <div className="text-center mb-1 border-b border-gray-800/50 pb-2">
+        <div className="text-xs text-gray-400 font-mono tracking-[0.25em] font-bold">INTERCEPTORS</div>
+        <div className="text-[10px] text-gray-600 font-mono mt-1">Press 1–5 to activate</div>
       </div>
       {/* Interceptors */}
       {ALL_INTERCEPTORS.map(({ key, label, shortcut }) => {
@@ -129,12 +129,6 @@ export default function AmmoStack({
         </div>
       )}
 
-      {/* Hint */}
-      {hasSelection && (
-        <div className="text-center text-xs text-gray-600 font-mono tracking-wider mt-1 px-1">
-          PRESS 1-4 TO FIRE
-        </div>
-      )}
     </div>
   );
 }
