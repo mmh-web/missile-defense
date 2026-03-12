@@ -171,9 +171,11 @@ PRE_GAME → SCORING_INTRO → BRIEFING (L1 only, has quiz)
 - Test hook: `window.__testVictory(1)`, `(2)`, or `(3)` to preview during gameplay (auto-pauses)
 
 ## Desktop Layout
-- **3-column flex layout**: Threat panel (240px) | Centered radar | Ammo stack (200px), all vertically centered. Max-width 1200px keeps columns tight to radar.
+- **3-column flex layout**: Threat panel (260px) | Centered radar | Ammo stack (230px), all vertically centered. `gap-6` between columns.
+- **Normal mode**: `max-w-[1200px]` constrains layout to center of screen
+- **Fullscreen mode**: `max-w-none` + `px-8` padding — layout spreads across full width. `isFullscreen` state toggles this dynamically. Critical because fullscreen has different aspect ratio (wider) and the 1200px cap would leave too much dead space.
 - **Radar sizing**: `maxWidth: 900px, maxHeight: 100%, aspectRatio: 1` — height-constrained, fills available vertical space. Panels don't shrink radar since width is not the constraint.
-- **AmmoStack**: Shows all 4 interceptor types + hold fire vertically. Available systems bright, unavailable dimmed (opacity-20). Includes ammo counts, dots, streak indicator, and feedback messages.
+- **AmmoStack**: Shows all 4 interceptor types + hold fire vertically. Available systems bright, unavailable dimmed (opacity-20). Includes ammo counts, dots, streak indicator, and feedback messages. No letter-spacing on labels (was causing "DAVID'S SLING" truncation).
 - **ControlPanel**: Hidden on desktop (`lg:hidden`), shown on mobile/tablet as bottom panel
 - **Fullscreen mode**: Toggle via ⛶ button (top-right) or `F` key. Uses browser Fullscreen API. Available from any game screen.
 - Top bar: Level name + Hebrew subtitle centered, music/score left, timer/settings right
@@ -194,9 +196,23 @@ PRE_GAME → SCORING_INTRO → BRIEFING (L1 only, has quiz)
 - Cities have `labelDir` (e, w, ne, nw, se, sw, n, s) controlling label offset
 - `tier: 1` = always labeled when visible; `tier: 2` = labeled only when zoomed in or targeted
 - **Per-level override in RadarDisplay.jsx**: Haifa uses `'se'` at L4-5 but `'w'` at L6+ to avoid overlap with nearby bases
-- Infrastructure (`isInfra: true`) rendered with triangle markers
-- Military bases (`isBase: true`) rendered with diamond markers, hidden at L6+ unless actively targeted
+- Infrastructure (`isInfra: true`) rendered with triangle markers ▲
+- Military bases (`isBase: true`) rendered with diamond markers ◆, hidden at L6+ unless actively targeted or `keyBase: true`
 - Multi-line labels: use `\n` in `shortLabel` field
+
+### Label Sizing by Level
+- Font sizes scale with viewport zoom: `scale >= 2.0` → 1.8, `scale >= 1.5` → 1.8, else 2.2
+- **Landmark cities** (cities revealed before current level at L4-L5): 80% of normal size, dimmed green
+- **Infrastructure at L4**: font size 2.0, normal weight (not bold) — reduced from 2.2 bold to avoid visual clutter
+- **Infrastructure at L6+** (`keyInfra: true` only): 75% of normal size, very dimmed orange (40% opacity) — contextual landmarks only
+- **L5 bases**: font size 2.2 (emphasized since they're the focus)
+
+### Infrastructure Visibility at L6+
+Three "key" infrastructure targets have `keyInfra: true` and remain visible as dimmed landmarks at L6-L7:
+- **BAZAN Oil Refinery** — north (near Haifa), geographically distinct
+- **Ben Gurion Airport** — central, universally recognized
+- **Dimona Nuclear Reactor** — south, isolated area, iconic strategic target
+The other 5 (Orot Rabin, Sorek, Rutenberg, Ashdod Port, The Kirya) are hidden at L6+ — they cluster in the Tel Aviv-Ashkelon corridor and would overlap badly at full-country zoom. They still light up red if actively targeted by a threat.
 
 ## Cheat Codes (typed during gameplay)
 - **TZUR**: Auto-zap threats for 12s (3 uses/campaign, +75/intercept)
@@ -339,10 +355,13 @@ Replaced verbose cards with compact single-line rows per threat: `T{id} TYPE ▸
 - **Color system**: Each row uses exactly 2 color families — threat type color (left border, ID, type abbrev) + green accent (countdown). Impact zone: white for populated, gray for open ground, gray pulsing for unrevealed. Critical rows (<5s) get subtle type-color background tint + white countdown. No amber/yellow mixing.
 
 ### Desktop 3-Column Layout
-At `lg:` breakpoint, 3-column flex layout with `max-w-[1200px] mx-auto` centers everything:
-- Threat panel: `order-1 w-[240px]` — fixed width, vertically centered
+At `lg:` breakpoint, 3-column flex layout with dynamic max-width:
+- Normal: `max-w-[1200px] mx-auto` — compact centered layout
+- Fullscreen: `max-w-none px-8` — spreads across full width (wider aspect ratio needs more space)
+- Threat panel: `order-1 w-[260px]` — fixed width, vertically centered
 - Radar: `order-2 flex-1` — fills remaining space, height-constrained square
-- Ammo stack: `order-3 w-[200px]` — fixed width, vertically centered
+- Ammo stack: `order-3 w-[230px]` — fixed width, vertically centered
+- Column gap: `gap-6` (24px) between all three panels
 - On mobile: radar order-1 (top), threats order-2 (below), ammo hidden (ControlPanel at bottom)
 
 ### Key responsive patterns:
@@ -361,18 +380,23 @@ At `lg:` breakpoint, 3-column flex layout with `max-w-[1200px] mx-auto` centers 
 - Keep dev server running after changes so user can playtest immediately.
 - When making UI changes, test at all 3 breakpoints (phone 375×812, tablet 768×1024, desktop 1366×800).
 - Deploy fully when asked (commit main → build → push → gh-pages deploy cycle).
-- **Context window management**: Track remaining prompt space. When running low (~20% remaining), proactively update CLAUDE.md with all session state, pending tasks, and decisions — then alert the user so they can start a fresh session without losing context.
+- **Context window management**: Track remaining prompt space. When running low (~20% remaining), proactively update CLAUDE.md with all session state, pending tasks, and decisions — then alert the user: "⚠️ Running low on context. I've saved all session state to CLAUDE.md. Recommend starting a fresh session."
+- **Auto-update CLAUDE.md**: Every ~30 minutes of active work OR after completing a significant feature/fix batch, proactively update this file with new logic, decisions, conventions, and pending work. Notify the user: "📝 Updated CLAUDE.md with [brief summary of what was added]." Commit alongside other changes when deploying.
+- **Auto-update MEMORY.md**: When discovering new workflow patterns, gotchas, or user preferences that apply globally or across sessions, update `~/.claude/projects/-Users-mhecht-Desktop-missile-defense/memory/MEMORY.md`. Notify the user when updated.
 
 ## Important Conventions
 - **MUTE GAME IN PREVIEW**: Always mute audio before playtesting: `document.querySelectorAll('audio,video').forEach(a=>{a.muted=true;a.pause()})`
 - `window.__game = game` debug hook exists in App.jsx — useful for testing (`window.__game.startLevel(3)`)
 - Sound files in `public/sounds/` (music-level-1.mp3 through music-level-7.mp3, briefing-music.mp3, siren.mp3, etc.)
-- Images in `public/images/` (sufrin.png for cheat portrait)
+- Images in `public/images/` (ID1.jpg through ID8.avif — interception photos, sufrin.png for cheat portrait)
+- Image paths: always use `import.meta.env.BASE_URL` (resolves to `/missile-defense/` in prod, `/missile-defense/` in dev)
 - Facilitator panel: ESC key toggles, auto-pauses gameplay
 - Pause: P key during ACTIVE state
 - Hebrew translations (`he` field) on cities for display
 - All threat IDs must be unique within their array but can reuse across arrays
 - Threat `origin` determines spawn point on radar edge (see spawnOrigins.js)
+- **Game title**: "IRON DOME COMMAND" (פיקוד כיפת ברזל) — renamed from "MISSILE DEFENSE"
+- **Hold fire key display**: Shows "SPC" (spacebar) not "5" in AmmoStack
 
 ## Zero-Scroll Design Philosophy
 All game screens must fit in viewport without scrolling. Key design decisions:
@@ -383,6 +407,63 @@ All game screens must fit in viewport without scrolling. Key design decisions:
 - **No Field Exercise** — L1 briefing phases are `['threat', 'defense', 'quiz']` only. The game itself teaches gameplay.
 - **LevelComplete condensed**: campaign total is inline bar, no "NEXT: LEVEL X" preview card
 - **Quiz tightened**: reduced margins (`mb-3` not `mb-6`), smaller option padding
+
+## Cinematic Visual System
+
+### Design Philosophy
+All non-gameplay screens use real interception photos from Israel with gradient overlays, creating a cinematic military-tech aesthetic. Key pattern: hero photo → gradient overlay → large stat number → descriptive label → compact fact cards.
+
+### Photo Assets (`public/images/`)
+| File | Content | Used In |
+|------|---------|---------|
+| ID1.jpg | Interception photo | L1 threat, L5 threat |
+| ID2.jpg | Interception photo | L2 threat |
+| ID3.jpg | Interception photo | L4 threat, L6 threat, L7 threat, Title screen, Summary |
+| ID4.jpeg | Interception photo | L3 threat, ScoringIntro background |
+| ID5.jpeg | Interception photo | L1 defense, L5 defense, L7 defense |
+| ID6.webp | Interception photo | L2 defense, L6 defense |
+| ID7.jpeg | Interception photo | L4 defense |
+| ID8.avif | Interception photo | L3 defense |
+
+### Hero Photo Pattern (reusable across components)
+```jsx
+const basePath = import.meta.env.BASE_URL || '/missile-defense/';
+// Photo container with gradient overlay
+<div className="relative rounded-xl overflow-hidden">
+  <div className="w-full h-[220px]"
+    style={{ background: `url('${basePath}images/${photo}') center center / cover no-repeat` }} />
+  <div className="absolute inset-0 flex flex-col justify-end"
+    style={{ padding: '18px 22px', background: 'linear-gradient(...)' }}>
+    <div className="text-[15px] font-bold tracking-[0.25em] uppercase" style={{ color, textShadow: '0 1px 6px rgba(0,0,0,0.8)' }}>CAPTION</div>
+    <div className="font-mono font-black text-[52px]" style={{ color }}>STAT</div>
+    <div className="font-mono text-[15px] text-white" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.6)' }}>LABEL</div>
+  </div>
+</div>
+```
+
+### Screens with Cinematic Treatment
+- **Title (PRE_GAME)**: Full-bleed ID3.jpg, "IRON DOME COMMAND" + Hebrew, 4 system badges, orange accent
+- **Briefing threat phase**: Hero photo + big stat + fact cards, level-specific accent color
+- **Briefing defense phase**: Hero photo + threat profile bar + fact cards, green accent
+- **Briefing quiz phase**: Photo background with gradient overlay, cyan accent
+- **Summary**: Photo band (260px, ID3.jpg) behind score box with green glow
+- **HUD (gameplay)**: Backdrop-blur glass effect, thin accent glow line under top bar
+
+### Text Readability Rules
+- Hero caption: minimum `text-[15px]`, `font-bold`, `text-shadow: 0 1px 6px rgba(0,0,0,0.8)`
+- Hero label: minimum `text-[15px]`, white, `text-shadow: 0 1px 4px rgba(0,0,0,0.6)`
+- Any text over a photo MUST have text-shadow for readability
+- Quiz/interactive content over photo backgrounds needs `z-index` above the gradient overlay div
+
+### LevelComplete Hero Photo
+- Photo band anchored to **bottom** of screen (`absolute bottom-0`), 320px tall
+- Gradient fades **upward** into dark background, so header text ("ALL CLEAR", stars) sits on clean dark space
+- Photo is atmospheric backdrop behind stats/buttons area at bottom
+
+### Screens NOT YET Redesigned (still pending)
+- **LevelComplete.jsx** — approved mockup exists (`mockup-level-complete.html`), but photo already moved to bottom
+- **LevelIntro.jsx** — approved mockup exists (`mockup-level-intro.html`)
+- **ScoringIntro.jsx** — approved mockup exists (`mockup-scoring-intro.html`)
 
 ## Pending Work (as of March 2026)
 
@@ -397,9 +478,29 @@ All game screens must fit in viewport without scrolling. Key design decisions:
 - ✅ Field Exercise removed from L1 — Game teaches gameplay directly
 - ✅ Panel headers added — INCOMING THREATS + INTERCEPTORS persistent headers with tips
 - ✅ Ammo dots wrap to 2 lines — No +N cutoff
+- ✅ Cinematic visual overhaul — Title, briefing (threat/defense/quiz), summary screens redesigned with hero photos
+- ✅ Game renamed — "MISSILE DEFENSE" → "IRON DOME COMMAND" (פיקוד כיפת ברזל)
+- ✅ Hold fire key — "5" → "SPC" in AmmoStack
+- ✅ HUD glass blur — Backdrop-blur + accent glow line on gameplay top bar
+- ✅ Quiz visibility fix — z-index on content above photo overlay
+- ✅ Briefing text readability — Caption/label bumped to 15px with text-shadow
+- ✅ Progressive reveal re-enabled — `impactRevealed` was hardcoded true; now conditional on `reveal_pct`
+- ✅ Wasted intercept streak reset — Added `setStreak(0)` for correct system on open ground
+- ✅ Auto-zap cheats skip HF — All 3 cheat filters now check `t.is_populated`
+- ✅ Leaderboard levels column removed — was showing "/7" which confused 6-level campaigns
+- ✅ Fullscreen layout fix — `max-w-none` in fullscreen, panels no longer cramped
+- ✅ L4 infrastructure labels — smaller (2.0) and not bold for cleaner radar
+- ✅ LevelComplete photo to bottom — hero photo band moved from top to bottom, gradient flipped
+- ✅ L6 key infrastructure landmarks — Dimona, BAZAN, Ben Gurion shown as dimmed context markers
+- ✅ Hypersonic quiz corrected — answer now includes the United States
+- ✅ AmmoStack truncation fix — removed letter-spacing, "DAVID'S SLING" fully visible everywhere
 
 ### Still Pending
+- **LevelComplete redesign** — Approved mockup ready, not yet fully implemented (photo moved to bottom already)
+- **LevelIntro redesign** — Approved mockup ready, not yet implemented
+- **ScoringIntro redesign** — Approved mockup ready, not yet implemented
 - **SUFRIN portrait broken image** — Image path may have base URL issue in dev vs production
-- **Full playthrough not yet done** — Need visual playthrough of all 7 levels + level-complete + summary
 - **Cheat codes untested** — TZUR, SASHA, DVIR, SUFRIN, BH, BSD, HACK overlay
 - **Difficulty progression** — L5 (6.0) slightly below target (6.5-7.0), L7 (8.0) below target (8.5-9.5)
+- **~720 lines dead code** — FieldExercisePhase and animation components in EducationalBriefing.jsx could be removed
+- **Peak simultaneous threats**: L4 peaks at ~7, L5 peaks at 6, L6 peaks at ~10. User noticed high counts during playtesting — monitor feedback on whether these feel overwhelming
