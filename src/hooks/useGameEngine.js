@@ -310,7 +310,7 @@ export default function useGameEngine({ bonusLevelEnabled = false } = {}) {
     setTimeout(() => {
       const zapThreat = () => {
         const threats = activeThreatsRef.current.filter(
-          (t) => !t.intercepted && !t.held && !interceptedIdsRef.current.has(t.id)
+          (t) => !t.intercepted && !t.held && !interceptedIdsRef.current.has(t.id) && t.is_populated
         );
         if (threats.length === 0) return;
 
@@ -376,7 +376,7 @@ export default function useGameEngine({ bonusLevelEnabled = false } = {}) {
     setTimeout(() => {
       const zapThreat = () => {
         const threats = activeThreatsRef.current.filter(
-          (t) => !t.intercepted && !t.held && !interceptedIdsRef.current.has(t.id)
+          (t) => !t.intercepted && !t.held && !interceptedIdsRef.current.has(t.id) && t.is_populated
         );
         if (threats.length === 0) return;
 
@@ -439,7 +439,7 @@ export default function useGameEngine({ bonusLevelEnabled = false } = {}) {
     setTimeout(() => {
       const zapThreat = () => {
         const threats = activeThreatsRef.current.filter(
-          (t) => !t.intercepted && !t.held && !interceptedIdsRef.current.has(t.id)
+          (t) => !t.intercepted && !t.held && !interceptedIdsRef.current.has(t.id) && t.is_populated
         );
         if (threats.length === 0) return;
 
@@ -753,6 +753,7 @@ export default function useGameEngine({ bonusLevelEnabled = false } = {}) {
         showFeedback(msg, isCrossCompatible ? 'warning' : 'success');
       } else {
         setResultLog((prev) => [...prev, { ...threat, result: 'wasted_intercept', siren: false }]);
+        setStreak(0);
         addTrail(action, threat, 'intercept');
         showFeedback('INTERCEPTION SUCCESSFUL — but threat was headed for open ground. Interceptor wasted.', 'warning');
       }
@@ -804,7 +805,7 @@ export default function useGameEngine({ bonusLevelEnabled = false } = {}) {
           const newThreat = {
             ...t,
             timeLeft: t.countdown,
-            impactRevealed: true,  // Always reveal target immediately on spawn
+            impactRevealed: !t.reveal_pct || t.reveal_pct >= 1.0,  // Delayed reveal for ballistic/hypersonic
             _corrected: false,
           };
           const newThreats = [...prev, newThreat];

@@ -73,7 +73,7 @@ export const IMPACT_POSITIONS = {
   'Ramat David AFB': { x: 0.43, y: 0.22 },
   'Glilot (Unit 8200)': { x: 0.29, y: 0.33 },
   'Palmachim AFB': { x: 0.24, y: 0.38 },
-  'Nevatim AFB': { x: 0.36, y: 0.54 },
+  'Nevatim AFB': { x: 0.36, y: 0.51 },
   'Tel Nof AFB': { x: 0.31, y: 0.42 },
   'Ramon AFB': { x: 0.24, y: 0.62 },
   'Sdot Micha': { x: 0.36, y: 0.46 },

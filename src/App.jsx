@@ -557,7 +557,7 @@ export default function App() {
           </button>
 
           <div className="mt-3 text-[11px] font-mono text-gray-600 tracking-wider">
-            Enter team name to start
+            EDUCATIONAL SIMULATION
           </div>
         </div>
 

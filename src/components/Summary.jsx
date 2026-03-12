@@ -179,11 +179,6 @@ export default function Summary({ stats, onReset, teamName, onTeamNameChange }) 
               good
             />
           )}
-          <StatRow
-            label="LEVELS COMPLETED"
-            value={`${levelsCompleted} / ${effectiveTotalLevels}`}
-            good={levelsCompleted === effectiveTotalLevels}
-          />
         </div>
 
         {/* Save Score */}
@@ -233,7 +228,7 @@ export default function Summary({ stats, onReset, teamName, onTeamNameChange }) 
           <div className="text-[10px] text-gray-500 font-mono tracking-widest mb-3">
             SCREENSHOT & SHARE YOUR SCORE
           </div>
-          <div className="text-xs text-green-600 font-mono tracking-widest mb-1">MISSILE DEFENSE COMMANDER</div>
+          <div className="text-xs text-green-600 font-mono tracking-widest mb-1">IRON DOME COMMAND</div>
           <div className="text-5xl font-bold font-mono text-green-400 tabular-nums my-2">{totalScore}</div>
           <div className="text-lg font-bold font-mono text-white tracking-wider">{rating.label}</div>
           <div className="text-xl my-1">
@@ -242,7 +237,7 @@ export default function Summary({ stats, onReset, teamName, onTeamNameChange }) 
             ))}
           </div>
           <div className="text-xs text-gray-500 font-mono mt-2">
-            {totalCorrectIntercepts} intercepts &bull; {totalCorrectHolds} holds &bull; {levelsCompleted}/{effectiveTotalLevels} levels
+            {totalCorrectIntercepts} intercepts &bull; {totalCorrectHolds} correct holds
           </div>
         </div>
 
@@ -303,7 +298,6 @@ export function LeaderboardTable({ entries, gameMode = 'CAMPAIGN', highlightTime
             <th className="text-left py-1 px-2 w-8">#</th>
             <th className="text-left py-1 px-2">NAME</th>
             <th className="text-right py-1 px-2">SCORE</th>
-            <th className="text-center py-1 px-2">LVL</th>
             <th className="text-center py-1 px-2">RATING</th>
             <th className="text-center py-1 px-2">STARS</th>
           </tr>
@@ -325,9 +319,6 @@ export function LeaderboardTable({ entries, gameMode = 'CAMPAIGN', highlightTime
                 <td className="py-2 px-2 text-gray-600">{i + 1}</td>
                 <td className="py-2 px-2 font-bold tracking-wider">{entry.name}</td>
                 <td className="py-2 px-2 text-right tabular-nums">{entry.score}</td>
-                <td className="py-2 px-2 text-center text-xs tabular-nums opacity-70">
-                  {entry.levelsCompleted != null ? `${entry.levelsCompleted}/${entry.effectiveTotalLevels || 7}` : '—'}
-                </td>
                 <td className="py-2 px-2 text-center text-xs tracking-wider opacity-70">
                   {entry.rating}
                 </td>
