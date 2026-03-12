@@ -929,9 +929,9 @@ export default function RadarDisplay({
               // Bases/infra get larger labels/dots when they're the focus
               const baseDotRadius = currentLevel === 5 ? 1.2 : dotRadius;
               const baseLabelSize = currentLevel === 5 ? 2.2 : labelSize;
-              // Infrastructure gets prominent labels at L4 (matching city label size)
+              // Infrastructure labels at L4 — slightly smaller than cities for cleaner look
               const infraDotRadius = currentLevel === 4 ? 1.1 : dotRadius;
-              const infraLabelSize = currentLevel === 4 ? 2.2 : labelSize;
+              const infraLabelSize = currentLevel === 4 ? 2.0 : labelSize;
 
               // Visibility filtering:
               // - Tier 1 cities: always shown
@@ -942,8 +942,8 @@ export default function RadarDisplay({
               const citiesToRender = Object.entries(visibleCities).filter(([name, city]) => {
                 // At L6+, hide non-key bases unless being targeted (clutter control)
                 if (city.isBase && currentLevel >= 6 && !city.keyBase && !activeThreatTargets.has(name)) return false;
-                // At L6+, hide infrastructure unless being targeted (only featured at L4)
-                if (city.isInfra && currentLevel >= 6 && !activeThreatTargets.has(name)) return false;
+                // At L6+, hide non-key infrastructure unless being targeted (key infra: Dimona, BAZAN, Ben Gurion)
+                if (city.isInfra && currentLevel >= 6 && !city.keyInfra && !activeThreatTargets.has(name)) return false;
                 if (city.tier === 1) return true;
                 if (viewport.scale >= 1.5) return true; // zoomed in (L1/L2)
                 if (activeThreatTargets.has(name)) return true; // being targeted
@@ -957,13 +957,15 @@ export default function RadarDisplay({
                 // Marker type: base (amber ◆), infra (orange ▲), city (green ●)
                 const isBase = city.isBase;
                 const isInfra = city.isInfra;
-                // Is this a landmark reference city at L4-L5? (dimmed for context, not focus)
+                // Is this a landmark reference at L4-L5? (dimmed for context, not focus)
                 const isLandmark = (currentLevel === 4 || currentLevel === 5) && !isBase && !isInfra && city.revealLevel < currentLevel;
-                const r = isInfra ? infraDotRadius : isBase ? baseDotRadius : dotRadius;
-                const fontSize = isInfra ? infraLabelSize : isBase ? baseLabelSize : isLandmark ? labelSize * 0.8 : labelSize;
-                let dotColor = isInfra ? 'rgba(251, 146, 60, 0.5)' : isBase ? 'rgba(234, 179, 8, 0.4)' : isLandmark ? 'rgba(0, 255, 136, 0.2)' : 'rgba(0, 255, 136, 0.3)';
-                let strokeColor = isInfra ? 'rgba(251, 146, 60, 0.95)' : isBase ? 'rgba(234, 179, 8, 0.8)' : isLandmark ? 'rgba(0, 255, 136, 0.4)' : 'rgba(0, 255, 136, 0.7)';
-                let labelColor = isInfra ? 'rgba(251, 146, 60, 0.95)' : isBase ? 'rgba(234, 179, 8, 0.85)' : isLandmark ? 'rgba(0, 255, 136, 0.5)' : 'rgba(0, 255, 136, 0.7)';
+                // Key infrastructure shown as dimmed landmarks at L6+ (contextual, not focus)
+                const isInfraLandmark = isInfra && currentLevel >= 6;
+                const r = isInfraLandmark ? dotRadius * 0.8 : isInfra ? infraDotRadius : isBase ? baseDotRadius : dotRadius;
+                const fontSize = isInfraLandmark ? labelSize * 0.75 : isInfra ? infraLabelSize : isBase ? baseLabelSize : isLandmark ? labelSize * 0.8 : labelSize;
+                let dotColor = isInfraLandmark ? 'rgba(251, 146, 60, 0.2)' : isInfra ? 'rgba(251, 146, 60, 0.5)' : isBase ? 'rgba(234, 179, 8, 0.4)' : isLandmark ? 'rgba(0, 255, 136, 0.2)' : 'rgba(0, 255, 136, 0.3)';
+                let strokeColor = isInfraLandmark ? 'rgba(251, 146, 60, 0.4)' : isInfra ? 'rgba(251, 146, 60, 0.95)' : isBase ? 'rgba(234, 179, 8, 0.8)' : isLandmark ? 'rgba(0, 255, 136, 0.4)' : 'rgba(0, 255, 136, 0.7)';
+                let labelColor = isInfraLandmark ? 'rgba(251, 146, 60, 0.4)' : isInfra ? 'rgba(251, 146, 60, 0.95)' : isBase ? 'rgba(234, 179, 8, 0.85)' : isLandmark ? 'rgba(0, 255, 136, 0.5)' : 'rgba(0, 255, 136, 0.7)';
 
                 // Targeted warning — lights up immediately when a threat is heading here
                 const isTargeted = activeThreatTargets.has(name);
@@ -1047,7 +1049,7 @@ export default function RadarDisplay({
                           fontSize={fontSize}
                           fontFamily={currentLevel === 7 && city.he ? 'Arial, sans-serif' : 'monospace'}
                           textAnchor={offset.anchor}
-                          fontWeight={isBase || isInfra || isLandmark || offsetScale > 1 ? 'bold' : 'normal'}
+                          fontWeight={isBase || isLandmark || offsetScale > 1 ? 'bold' : 'normal'}
                           stroke={(offsetScale > 1 || isInfra) ? 'rgba(10, 14, 26, 0.85)' : 'none'}
                           strokeWidth={(offsetScale > 1 || isInfra) ? '0.5' : '0'}
                           paintOrder="stroke"

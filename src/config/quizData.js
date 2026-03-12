@@ -667,13 +667,13 @@ export const QUIZ_DATA = {
         id: 'l5q9',
         question: 'Which countries are developing hypersonic weapons?',
         options: [
-          'Only the United States',
-          'Russia, China, Iran, and North Korea',
           'Only Russia and China',
+          'Russia, China, the United States, Iran, and North Korea',
+          'Only the United States and Israel',
           'All NATO countries',
         ],
         correctIndex: 1,
-        explanation: 'Russia, China, Iran, and North Korea are all developing hypersonic weapons — Russia\'s Avangard reportedly reaches Mach 20.',
+        explanation: 'Russia, China, the U.S., Iran, and North Korea are all developing hypersonic weapons — Russia\'s Avangard reportedly reaches Mach 20, while the U.S. is testing its own programs.',
         linkedFacts: ['l5d3'],
       },
       {

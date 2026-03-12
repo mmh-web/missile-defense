@@ -140,17 +140,17 @@ export default function LevelComplete({ levelStats, campaignStats, effectiveTota
       style={{ background: '#0a0e1a' }}>
       {isPerfect && <PerfectParticles />}
 
-      {/* Hero photo — top band */}
-      <div className="absolute top-0 left-0 right-0 h-[280px] z-0"
+      {/* Hero photo — bottom band (avoids competing with header text) */}
+      <div className="absolute bottom-0 left-0 right-0 h-[320px] z-0"
         style={{
-          background: `url('${basePath}images/${heroImage}') center 30% / cover no-repeat`,
+          background: `url('${basePath}images/${heroImage}') center 60% / cover no-repeat`,
         }}>
         <div className="absolute inset-0"
           style={{
-            background: `linear-gradient(to bottom,
+            background: `linear-gradient(to top,
               rgba(10,14,26,0.2) 0%,
-              rgba(10,14,26,0.4) 40%,
-              rgba(10,14,26,0.9) 75%,
+              rgba(10,14,26,0.4) 35%,
+              rgba(10,14,26,0.9) 70%,
               #0a0e1a 100%
             )`,
           }} />

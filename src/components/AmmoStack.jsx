@@ -62,7 +62,7 @@ export default function AmmoStack({
               </span>
 
               <span
-                className="flex-1 min-w-0 text-sm font-mono font-bold tracking-wider truncate"
+                className="flex-1 min-w-0 text-sm font-mono font-bold truncate"
                 style={{ color: isAvailable ? color : '#374151' }}
               >
                 {label}
