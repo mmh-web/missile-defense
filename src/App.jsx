@@ -517,7 +517,8 @@ export default function App() {
             style={{ textShadow: '0 0 40px rgba(249,115,22,0.3)' }}>
             IRON DOME{'\n'}COMMAND
           </h1>
-          <div className="text-base md:text-lg font-mono tracking-[0.15em] mb-8" style={{ color: '#f9731680' }}>
+          <div className="text-2xl md:text-3xl font-bold tracking-[0.1em] mb-8"
+            style={{ fontFamily: 'Arial, sans-serif', color: '#f97316cc', textShadow: '0 0 30px rgba(249,115,22,0.2)' }}>
             פיקוד כיפת ברזל
           </div>
 
@@ -768,8 +769,14 @@ export default function App() {
       </div>
 
       {/* Top bar — level name centered prominently, score/timer on sides */}
-      <div className="flex items-center justify-between px-2 md:px-4 py-2 md:py-2.5 lg:py-3 bg-[#080c16] relative min-h-[44px] md:min-h-[56px] lg:min-h-[68px]"
-        style={{ borderBottom: `2px solid ${LEVEL_ACCENT_COLORS[currentLevel] || '#22c55e'}70` }}>
+      <div className="flex items-center justify-between px-2 md:px-4 py-2 md:py-2.5 lg:py-3 relative min-h-[44px] md:min-h-[56px] lg:min-h-[68px]"
+        style={{
+          background: 'rgba(8,12,22,0.85)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          borderBottom: `1px solid ${LEVEL_ACCENT_COLORS[currentLevel] || '#22c55e'}40`,
+          boxShadow: `0 1px 20px ${LEVEL_ACCENT_COLORS[currentLevel] || '#22c55e'}08`,
+        }}>
         {/* Left: music + score + streak */}
         <div className="flex items-center gap-2 md:gap-3 min-w-0">
           <button
@@ -828,12 +835,14 @@ export default function App() {
           </div>
           <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse hidden sm:block" />
         </div>
+        {/* Glow line accent under HUD */}
+        <div className="absolute bottom-0 left-[15%] right-[15%] h-px pointer-events-none" style={{ background: `linear-gradient(90deg, transparent, ${LEVEL_ACCENT_COLORS[currentLevel] || '#22c55e'}30, transparent)` }} />
       </div>
 
       {/* Main content area — desktop: 3-column flex (threats | radar | ammo). Radar stretches full height; panels self-center. */}
       <div className="flex-1 flex flex-col lg:flex-row lg:items-stretch min-h-0 overflow-hidden lg:max-w-[1200px] lg:mx-auto lg:w-full lg:gap-3">
         {/* ZONE A: Threat panel — mobile: below radar (order-2); desktop: left of radar (order-1) */}
-        <div className="flex-shrink-0 max-h-[240px] order-2 lg:order-1 lg:w-[260px] lg:max-h-none lg:self-stretch p-1 sm:p-2 md:p-3 lg:p-4 border-t lg:border-t-0 lg:border-r border-gray-800/30 flex flex-col overflow-hidden">
+        <div className="flex-shrink-0 max-h-[240px] order-2 lg:order-1 lg:w-[260px] lg:max-h-none lg:self-stretch p-1 sm:p-2 md:p-3 lg:p-4 border-t lg:border-t-0 lg:border-r border-white/[0.03] flex flex-col overflow-hidden">
           <ThreatPanel
             activeThreats={activeThreats}
             selectedThreatId={selectedThreatId}
@@ -863,7 +872,7 @@ export default function App() {
         </div>
 
         {/* ZONE C: Ammo stack — desktop only, right of radar */}
-        <div className="hidden lg:flex lg:flex-col lg:self-stretch order-3 lg:w-[220px] lg:flex-shrink-0 lg:border-l border-gray-800/30">
+        <div className="hidden lg:flex lg:flex-col lg:self-stretch order-3 lg:w-[220px] lg:flex-shrink-0 lg:border-l border-white/[0.03]">
           <AmmoStack
             ammo={ammo}
             onAction={handleAction}

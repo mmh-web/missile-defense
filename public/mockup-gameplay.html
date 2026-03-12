@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #060a14;
+    color: #e5e7eb;
+    font-family: 'JetBrains Mono', 'Courier New', monospace;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ─── ATMOSPHERIC BASE ─── */
+  .game-root {
+    position: relative;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ─── TOP BAR HUD ─── */
+  .hud {
+    position: relative;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    height: 52px;
+    background: rgba(6,10,20,0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(34,197,94,0.06);
+  }
+  /* Subtle glow line under HUD */
+  .hud::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 15%; right: 15%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(34,197,94,0.15), transparent);
+  }
+
+  .hud-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .hud-music {
+    color: #22c55e;
+    font-size: 16px;
+    opacity: 0.4;
+    cursor: pointer;
+  }
+  .hud-score-block {
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+  }
+  .hud-score-num {
+    font-size: 24px;
+    font-weight: 800;
+    color: #22c55e;
+    text-shadow: 0 0 15px rgba(34,197,94,0.12);
+    line-height: 1;
+  }
+  .hud-score-label {
+    font-size: 8px;
+    color: #374151;
+    letter-spacing: 0.2em;
+  }
+
+  .hud-center {
+    position: absolute;
+    left: 50%; transform: translateX(-50%);
+    text-align: center;
+  }
+  .hud-level-en {
+    font-size: 13px;
+    font-weight: 800;
+    color: #d1d5db;
+    letter-spacing: 0.15em;
+  }
+  .hud-level-he {
+    font-size: 11px;
+    color: rgba(34,197,94,0.35);
+    font-family: Arial, sans-serif;
+    font-weight: bold;
+    margin-top: 1px;
+  }
+
+  .hud-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .hud-timer {
+    font-size: 18px;
+    font-weight: 800;
+    color: #6b7280;
+    letter-spacing: 0.05em;
+  }
+  .hud-timer-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: #22c55e;
+    box-shadow: 0 0 6px rgba(34,197,94,0.5);
+    animation: pulse-dot 2s infinite;
+  }
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+  .hud-icon-btn {
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.05);
+    color: #374151;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .hud-icon-btn:hover {
+    background: rgba(255,255,255,0.04);
+    color: #9ca3af;
+  }
+
+  /* ─── 3-COLUMN LAYOUT ─── */
+  .game-cols {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    align-items: stretch;
+    height: calc(100vh - 52px);
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  /* ─── THREAT PANEL (LEFT) ─── */
+  .col-threats {
+    width: 240px;
+    flex-shrink: 0;
+    padding: 8px 6px 8px 10px;
+    display: flex;
+    flex-direction: column;
+  }
+  .panel-header {
+    text-align: center;
+    padding-bottom: 6px;
+    margin-bottom: 6px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .panel-title {
+    font-size: 11px;
+    color: #9ca3af;
+    letter-spacing: 0.25em;
+    font-weight: 700;
+  }
+  .panel-hint {
+    font-size: 9px;
+    color: #374151;
+    letter-spacing: 0.08em;
+    margin-top: 3px;
+  }
+  .active-count {
+    font-size: 10px;
+    color: rgba(34,197,94,0.45);
+    letter-spacing: 0.15em;
+    padding: 0 8px 4px;
+  }
+
+  /* Threat rows — compact, matching current game exactly */
+  .threat-row {
+    padding: 6px 8px 6px 0;
+    margin-bottom: 1px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.12s;
+    border-left: 3px solid;
+    padding-left: 10px;
+  }
+  .threat-row:hover { background: rgba(255,255,255,0.03); }
+  .threat-row.selected {
+    background: rgba(255,255,255,0.06);
+    box-shadow: 0 0 12px var(--tc) ;
+  }
+  .threat-row.critical { background: rgba(255,255,255,0.02); }
+  .threat-row.critical.selected { background: rgba(255,255,255,0.06); }
+
+  /* Row line 1: ID + type badge + countdown */
+  .tr-line1 {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .tr-id {
+    font-size: 12px;
+    font-weight: 800;
+    width: 26px;
+    flex-shrink: 0;
+  }
+  .tr-type {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    padding: 1px 5px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+  .tr-countdown {
+    margin-left: auto;
+    font-size: 17px;
+    font-weight: 800;
+    color: #22c55e;
+    text-shadow: 0 0 10px rgba(34,197,94,0.15);
+  }
+  .tr-countdown.urgent {
+    color: #fff;
+    text-shadow: 0 0 10px rgba(255,255,255,0.12);
+  }
+  /* Row line 2: impact zone */
+  .tr-line2 {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 2px;
+    padding-left: 2px;
+  }
+  .tr-arrow { font-size: 8px; color: #1f2937; }
+  .tr-impact {
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .tr-impact.populated { color: #e5e7eb; }
+  .tr-impact.open { color: #4b5563; }
+  .tr-impact.unrevealed {
+    color: #374151;
+    animation: pulse-text 2s infinite;
+  }
+  @keyframes pulse-text {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 0.8; }
+  }
+
+  /* ─── RADAR COLUMN (CENTER) ─── */
+  .col-radar {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    position: relative;
+  }
+  .radar-container {
+    position: relative;
+    width: 100%;
+    max-width: 900px;
+    max-height: 100%;
+    aspect-ratio: 1;
+  }
+
+  .radar-svg {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    z-index: 2;
+  }
+
+  /* ─── AMMO COLUMN (RIGHT) ─── */
+  .col-ammo {
+    width: 200px;
+    flex-shrink: 0;
+    padding: 8px 10px 8px 6px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+  }
+  .ammo-header {
+    text-align: center;
+    padding-bottom: 6px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .ammo-title {
+    font-size: 11px;
+    color: #9ca3af;
+    letter-spacing: 0.25em;
+    font-weight: 700;
+  }
+  .ammo-hint {
+    font-size: 9px;
+    color: #374151;
+    letter-spacing: 0.08em;
+    margin-top: 3px;
+  }
+
+  /* Ammo rows — compact, matching current game */
+  .ammo-row {
+    padding: 6px 8px;
+    border-radius: 6px;
+    border-left: 3px solid;
+    cursor: pointer;
+    transition: background 0.12s;
+  }
+  .ammo-row:hover { background: rgba(255,255,255,0.03); }
+  .ammo-row.unavail { opacity: 0.18; pointer-events: none; }
+  .ammo-row.low { animation: ammo-low 2s ease-in-out infinite; }
+  @keyframes ammo-low {
+    0%, 100% { background: transparent; }
+    50% { background: rgba(255,100,100,0.04); }
+  }
+
+  .ar-top {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .ar-key {
+    width: 24px; height: 24px;
+    border-radius: 5px;
+    border: 1.5px solid;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+  .ar-key.space {
+    font-size: 8px;
+    letter-spacing: -0.5px;
+  }
+  .ar-name {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    flex: 1;
+    min-width: 0;
+  }
+  .ar-count {
+    font-size: 16px;
+    font-weight: 800;
+    flex-shrink: 0;
+    opacity: 0.7;
+  }
+  .ar-dots {
+    display: flex;
+    gap: 3px;
+    margin-top: 3px;
+    padding-left: 30px;
+    flex-wrap: wrap;
+  }
+  .ar-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+  }
+  .ar-dot.live { opacity: 0.85; }
+  .ar-dot.spent { opacity: 0.12; }
+
+  .ammo-divider {
+    border-top: 1px solid rgba(255,255,255,0.04);
+    margin: 3px 8px;
+  }
+
+  /* Streak */
+  .streak-box {
+    text-align: center;
+    padding: 6px;
+    margin-top: 4px;
+  }
+  .streak-fire { font-size: 13px; }
+  .streak-num {
+    font-size: 13px;
+    font-weight: 800;
+    color: #f97316;
+  }
+
+  /* Feedback toast */
+  .feedback-toast {
+    text-align: center;
+    padding: 5px;
+    margin-top: 2px;
+    border-radius: 6px;
+    background: rgba(34,197,94,0.06);
+    border: 1px solid rgba(34,197,94,0.1);
+  }
+  .feedback-text {
+    font-size: 10px;
+    font-weight: 700;
+    color: #22c55e;
+    letter-spacing: 0.12em;
+  }
+
+  .mockup-label {
+    position: fixed; bottom: 12px; right: 12px; font-size: 10px; color: #4ade80;
+    background: rgba(6,10,20,0.9); padding: 3px 10px; border: 1px solid #22c55e40;
+    border-radius: 4px; z-index: 30;
+  }
+
+  /* ─── COMPARISON ANNOTATION ─── */
+  .compare-notes {
+    position: fixed;
+    top: 56px;
+    right: 8px;
+    z-index: 50;
+    background: rgba(6,10,20,0.92);
+    border: 1px solid rgba(34,197,94,0.15);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 9px;
+    color: #6b7280;
+    letter-spacing: 0.05em;
+    line-height: 1.7;
+    max-width: 220px;
+  }
+  .compare-notes strong { color: #22c55e; font-weight: 700; }
+  .compare-notes .cn-title {
+    color: #4ade80;
+    font-size: 8px;
+    letter-spacing: 0.3em;
+    margin-bottom: 6px;
+    font-weight: 700;
+  }
+</style>
+</head>
+<body>
+
+<div class="game-root">
+
+  <!-- ─── HUD ─── -->
+  <div class="hud">
+    <div class="hud-left">
+      <div class="hud-music">♪</div>
+      <div class="hud-score-block">
+        <span class="hud-score-num">420</span>
+        <span class="hud-score-label">SCORE</span>
+      </div>
+    </div>
+    <div class="hud-center">
+      <div class="hud-level-en">L3 — CENTRAL FRONT</div>
+      <div class="hud-level-he">חֲזִית הַמֶּרְכָּז</div>
+    </div>
+    <div class="hud-right">
+      <div class="hud-timer">1:42</div>
+      <div class="hud-timer-dot"></div>
+      <div class="hud-icon-btn">⛶</div>
+      <div class="hud-icon-btn">⚙</div>
+    </div>
+  </div>
+
+  <!-- ─── 3-COLUMN ─── -->
+  <div class="game-cols">
+
+    <!-- THREATS — matches current game's compact row format -->
+    <div class="col-threats">
+      <div class="panel-header">
+        <div class="panel-title">INCOMING THREATS</div>
+        <div class="panel-hint">Click card or radar blip to select</div>
+      </div>
+      <div class="active-count">5 ACTIVE</div>
+
+      <!-- T3: rocket, critical, selected -->
+      <div class="threat-row critical selected" style="border-color: #f97316; --tc: rgba(249,115,22,0.15);">
+        <div class="tr-line1">
+          <span class="tr-id" style="color: #f97316;">T3</span>
+          <span class="tr-type" style="color: #f97316; background: rgba(249,115,22,0.1);">ROCKET</span>
+          <span class="tr-countdown urgent">3s</span>
+        </div>
+        <div class="tr-line2">
+          <span class="tr-arrow">▸</span>
+          <span class="tr-impact populated">ASHKELON</span>
+        </div>
+      </div>
+
+      <!-- T5: cruise missile -->
+      <div class="threat-row" style="border-color: #3b82f6;">
+        <div class="tr-line1">
+          <span class="tr-id" style="color: #3b82f6;">T5</span>
+          <span class="tr-type" style="color: #3b82f6; background: rgba(59,130,246,0.1);">CRUISE</span>
+          <span class="tr-countdown">8s</span>
+        </div>
+        <div class="tr-line2">
+          <span class="tr-arrow">▸</span>
+          <span class="tr-impact populated">TEL AVIV</span>
+        </div>
+      </div>
+
+      <!-- T6: rocket, open ground -->
+      <div class="threat-row" style="border-color: #f97316;">
+        <div class="tr-line1">
+          <span class="tr-id" style="color: #f97316;">T6</span>
+          <span class="tr-type" style="color: #f97316; background: rgba(249,115,22,0.1);">ROCKET</span>
+          <span class="tr-countdown">11s</span>
+        </div>
+        <div class="tr-line2">
+          <span class="tr-arrow">▸</span>
+          <span class="tr-impact open">OPEN GROUND</span>
+        </div>
+      </div>
+
+      <!-- T7: drone, unrevealed -->
+      <div class="threat-row" style="border-color: #eab308;">
+        <div class="tr-line1">
+          <span class="tr-id" style="color: #eab308;">T7</span>
+          <span class="tr-type" style="color: #eab308; background: rgba(234,179,8,0.1);">DRONE</span>
+          <span class="tr-countdown">14s</span>
+        </div>
+        <div class="tr-line2">
+          <span class="tr-arrow">▸</span>
+          <span class="tr-impact unrevealed">CALCULATING...</span>
+        </div>
+      </div>
+
+      <!-- T8: cruise -->
+      <div class="threat-row" style="border-color: #3b82f6;">
+        <div class="tr-line1">
+          <span class="tr-id" style="color: #3b82f6;">T8</span>
+          <span class="tr-type" style="color: #3b82f6; background: rgba(59,130,246,0.1);">CRUISE</span>
+          <span class="tr-countdown">17s</span>
+        </div>
+        <div class="tr-line2">
+          <span class="tr-arrow">▸</span>
+          <span class="tr-impact populated">RISHON LEZION</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- RADAR — the actual game SVG, enhanced atmosphere -->
+    <div class="col-radar">
+      <div class="radar-container">
+        <svg class="radar-svg" viewBox="0 0 100 100">
+          <defs>
+            <clipPath id="rc"><circle cx="50" cy="50" r="49" /></clipPath>
+            <radialGradient id="rg" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#0f1520" />
+              <stop offset="70%" stop-color="#0a0e18" />
+              <stop offset="100%" stop-color="#060a14" />
+            </radialGradient>
+            <radialGradient id="vig" cx="50%" cy="50%" r="50%">
+              <stop offset="60%" stop-color="transparent" />
+              <stop offset="100%" stop-color="rgba(0,0,0,0.4)" />
+            </radialGradient>
+          </defs>
+
+          <!-- Base fill -->
+          <circle cx="50" cy="50" r="49" fill="url(#rg)" />
+
+          <!-- Faint green wash -->
+          <circle cx="50" cy="50" r="48" fill="#22c55e" opacity="0.012" />
+
+          <!-- Range rings -->
+          <circle cx="50" cy="50" r="9.8" fill="none" stroke="#22c55e" stroke-width="0.2" opacity="0.15" />
+          <circle cx="50" cy="50" r="19.6" fill="none" stroke="#22c55e" stroke-width="0.2" opacity="0.15" />
+          <circle cx="50" cy="50" r="29.4" fill="none" stroke="#22c55e" stroke-width="0.2" opacity="0.15" />
+          <circle cx="50" cy="50" r="39.2" fill="none" stroke="#22c55e" stroke-width="0.2" opacity="0.15" />
+          <circle cx="50" cy="50" r="49" fill="none" stroke="#22c55e" stroke-width="0.2" opacity="0.15" />
+
+          <!-- Crosshairs -->
+          <line x1="1" y1="50" x2="99" y2="50" stroke="#22c55e" stroke-width="0.12" opacity="0.1" />
+          <line x1="50" y1="1" x2="50" y2="99" stroke="#22c55e" stroke-width="0.12" opacity="0.1" />
+
+          <!-- Clipped content -->
+          <g clip-path="url(#rc)">
+            <!-- Land mass silhouette -->
+            <path d="M38,12 L42,10 L46,13 L48,20 L50,30 L48,40 L46,50 L43,60 L40,70 L37,80 L35,88 L33,82 L31,72 L30,62 L31,52 L33,42 L34,32 L36,22 Z"
+              fill="#22c55e" opacity="0.035" />
+
+            <!-- City dots + labels (matching actual game rendering) -->
+            <circle cx="44" cy="18" r="0.7" fill="#22c55e" opacity="0.4" />
+            <text x="46" y="18.5" fill="#22c55e" font-size="2.2" opacity="0.35" font-family="monospace">Haifa</text>
+
+            <circle cx="40" cy="32" r="0.6" fill="#22c55e" opacity="0.35" />
+            <text x="42" y="32.5" fill="#22c55e" font-size="2" opacity="0.3" font-family="monospace">Netanya</text>
+
+            <circle cx="36" cy="40" r="0.8" fill="#22c55e" opacity="0.5" />
+            <text x="22" y="40.5" fill="#22c55e" font-size="2.6" opacity="0.5" font-family="monospace" font-weight="bold">Tel Aviv</text>
+
+            <circle cx="42" cy="46" r="0.6" fill="#22c55e" opacity="0.35" />
+            <text x="44" y="46.5" fill="#22c55e" font-size="2" opacity="0.3" font-family="monospace">Rishon LeZion</text>
+
+            <circle cx="30" cy="56" r="0.7" fill="#22c55e" opacity="0.45" />
+            <text x="18" y="56.5" fill="#22c55e" font-size="2.2" opacity="0.4" font-family="monospace">Ashkelon</text>
+            <!-- Ashkelon targeted glow -->
+            <circle cx="30" cy="56" r="3" fill="#f97316" opacity="0.05">
+              <animate attributeName="r" values="3;5;3" dur="1.5s" repeatCount="indefinite" />
+              <animate attributeName="opacity" values="0.05;0.02;0.05" dur="1.5s" repeatCount="indefinite" />
+            </circle>
+
+            <circle cx="28" cy="70" r="0.6" fill="#22c55e" opacity="0.35" />
+            <text x="30" y="70.5" fill="#22c55e" font-size="2" opacity="0.3" font-family="monospace">Beersheba</text>
+
+            <!-- Region label -->
+            <text x="46" y="52" fill="rgba(0,180,230,0.25)" font-size="2" font-family="monospace" font-weight="bold" letter-spacing="0.8">Central</text>
+            <text x="46" y="54.5" fill="rgba(0,180,230,0.25)" font-size="2" font-family="monospace" font-weight="bold" letter-spacing="0.8">Israel</text>
+
+            <!-- Blip trails -->
+            <line x1="78" y1="52" x2="34" y2="55" stroke="#f97316" stroke-width="0.35" opacity="0.07" stroke-dasharray="1,2" />
+            <line x1="82" y1="38" x2="40" y2="40" stroke="#3b82f6" stroke-width="0.35" opacity="0.07" stroke-dasharray="1,2" />
+            <line x1="75" y1="60" x2="52" y2="62" stroke="#f97316" stroke-width="0.25" opacity="0.05" stroke-dasharray="1,2" />
+
+            <!-- ═══ BLIPS ═══ -->
+            <!-- T3: rocket near Ashkelon — CRITICAL, SELECTED -->
+            <circle cx="34" cy="55" r="4.5" fill="none" stroke="#22c55e" stroke-width="0.5" opacity="0.6">
+              <animate attributeName="r" values="4.5;6;4.5" dur="1.5s" repeatCount="indefinite" />
+              <animate attributeName="opacity" values="0.6;0.25;0.6" dur="1.5s" repeatCount="indefinite" />
+            </circle>
+            <circle cx="34" cy="55" r="2" fill="#f97316" opacity="0.12">
+              <animate attributeName="r" values="2;4;2" dur="0.8s" repeatCount="indefinite" />
+              <animate attributeName="opacity" values="0.12;0.03;0.12" dur="0.8s" repeatCount="indefinite" />
+            </circle>
+            <circle cx="34" cy="55" r="1.4" fill="#f97316" opacity="0.9" />
+
+            <!-- T5: cruise heading to Tel Aviv -->
+            <circle cx="55" cy="39" r="1.7" fill="#3b82f6" opacity="0.8" />
+
+            <!-- T6: rocket, open ground -->
+            <circle cx="60" cy="61" r="1.4" fill="#f97316" opacity="0.5" />
+
+            <!-- T7: drone, far -->
+            <circle cx="72" cy="34" r="1.2" fill="#eab308" opacity="0.6" />
+
+            <!-- T8: cruise, far -->
+            <circle cx="78" cy="46" r="1.7" fill="#3b82f6" opacity="0.4" />
+          </g>
+
+          <!-- Sweep line -->
+          <line x1="50" y1="50" x2="88" y2="22" stroke="#22c55e" stroke-width="0.35" opacity="0.15">
+            <animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="8s" repeatCount="indefinite" />
+          </line>
+          <path d="M50,50 L88,22 A49,49 0 0,1 92,35 Z" fill="#22c55e" opacity="0.015">
+            <animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="8s" repeatCount="indefinite" />
+          </path>
+
+          <!-- Vignette -->
+          <circle cx="50" cy="50" r="49" fill="url(#vig)" />
+
+          <!-- Border -->
+          <circle cx="50" cy="50" r="49" fill="none" stroke="#22c55e" stroke-width="0.3" opacity="0.18" />
+        </svg>
+      </div>
+    </div>
+
+    <!-- AMMO STACK — matches current game's compact format -->
+    <div class="col-ammo">
+      <div class="ammo-header">
+        <div class="ammo-title">INTERCEPTORS</div>
+        <div class="ammo-hint">Press 1–4 to fire</div>
+      </div>
+
+      <!-- Iron Dome -->
+      <div class="ammo-row" style="border-color: #eab308;">
+        <div class="ar-top">
+          <div class="ar-key" style="border-color: #eab308; color: #eab308;">1</div>
+          <span class="ar-name" style="color: #eab308;">IRON DOME</span>
+          <span class="ar-count" style="color: #eab308;">6</span>
+        </div>
+        <div class="ar-dots">
+          <div class="ar-dot live" style="background: #eab308;"></div>
+          <div class="ar-dot live" style="background: #eab308;"></div>
+          <div class="ar-dot live" style="background: #eab308;"></div>
+          <div class="ar-dot live" style="background: #eab308;"></div>
+          <div class="ar-dot live" style="background: #eab308;"></div>
+          <div class="ar-dot live" style="background: #eab308;"></div>
+          <div class="ar-dot spent" style="background: #eab308;"></div>
+          <div class="ar-dot spent" style="background: #eab308;"></div>
+        </div>
+      </div>
+
+      <!-- David's Sling -->
+      <div class="ammo-row" style="border-color: #3b82f6;">
+        <div class="ar-top">
+          <div class="ar-key" style="border-color: #3b82f6; color: #3b82f6;">2</div>
+          <span class="ar-name" style="color: #3b82f6;">DAVID'S SLING</span>
+          <span class="ar-count" style="color: #3b82f6;">4</span>
+        </div>
+        <div class="ar-dots">
+          <div class="ar-dot live" style="background: #3b82f6;"></div>
+          <div class="ar-dot live" style="background: #3b82f6;"></div>
+          <div class="ar-dot live" style="background: #3b82f6;"></div>
+          <div class="ar-dot live" style="background: #3b82f6;"></div>
+        </div>
+      </div>
+
+      <!-- Arrow 2 — unavailable -->
+      <div class="ammo-row unavail" style="border-color: #ef4444;">
+        <div class="ar-top">
+          <div class="ar-key" style="border-color: #ef4444; color: #ef4444;">3</div>
+          <span class="ar-name" style="color: #ef4444;">ARROW 2</span>
+        </div>
+      </div>
+
+      <!-- Arrow 3 — unavailable -->
+      <div class="ammo-row unavail" style="border-color: #a855f7;">
+        <div class="ar-top">
+          <div class="ar-key" style="border-color: #a855f7; color: #a855f7;">4</div>
+          <span class="ar-name" style="color: #a855f7;">ARROW 3</span>
+        </div>
+      </div>
+
+      <div class="ammo-divider"></div>
+
+      <!-- Hold Fire -->
+      <div class="ammo-row" style="border-color: #4b5563;">
+        <div class="ar-top">
+          <div class="ar-key space" style="border-color: #4b5563; color: #9ca3af;">SPC</div>
+          <span class="ar-name" style="color: #9ca3af;">HOLD FIRE</span>
+        </div>
+      </div>
+
+      <!-- Streak -->
+      <div class="streak-box">
+        <span class="streak-fire">🔥</span>
+        <span class="streak-num">5</span>
+      </div>
+
+      <!-- Feedback -->
+      <div class="feedback-toast">
+        <div class="feedback-text">✓ INTERCEPT</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Annotation: what changed vs current -->
+<div class="compare-notes">
+  <div class="cn-title">CHANGES VS CURRENT</div>
+  <strong>HUD:</strong> Glass blur + glow line, cleaner spacing<br>
+  <strong>Panels:</strong> Matching compact rows, subtle headers<br>
+  <strong>Radar:</strong> Same as game — untouched (it works)<br>
+  <strong>Philosophy:</strong> Polish existing layout, don't redesign it<br><br>
+  <em style="color:#4b5563;">This mockup stays faithful to the current game's functional layout. Changes are atmospheric only.</em>
+</div>
+
+<div class="mockup-label">MOCKUP — GAMEPLAY v3 (faithful to current)</div>
+
+</body>
+</html>

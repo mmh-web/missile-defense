@@ -1119,14 +1119,14 @@ function ThreatBriefingPhase({ data, onComplete, onSkip }) {
             style={{ padding: '18px 22px', background: 'linear-gradient(to bottom, rgba(10,14,26,0.15) 0%, rgba(10,14,26,0.3) 40%, rgba(10,14,26,0.88) 100%)' }}
           >
             {data.heroCaption && (
-              <div className="absolute top-3 left-4 text-[9px] tracking-[0.25em] uppercase" style={{ color: `${data.color}70` }}>
+              <div className="absolute top-3 left-4 text-[11px] font-bold tracking-[0.25em] uppercase" style={{ color: `${data.color}bb` }}>
                 {data.heroCaption}
               </div>
             )}
             <div className="font-mono font-black text-[52px] leading-none tracking-tight" style={{ color: data.color, textShadow: `0 0 40px ${data.color}40` }}>
               {data.heroStat}
             </div>
-            <div className="font-mono text-[13px] text-gray-300 mt-1.5 leading-relaxed tracking-wide">
+            <div className="font-mono text-[15px] text-gray-100 mt-1.5 leading-relaxed tracking-wide">
               {data.heroLabel}
             </div>
           </div>
@@ -1235,14 +1235,14 @@ function DefenseBriefingPhase({ data, onComplete, onSkip, level }) {
             style={{ padding: '16px 22px', background: 'linear-gradient(to bottom, rgba(10,14,26,0.15) 0%, rgba(10,14,26,0.35) 40%, rgba(10,14,26,0.9) 100%)' }}
           >
             {data.heroCaption && (
-              <div className="absolute top-3 left-4 text-[9px] tracking-[0.25em] uppercase" style={{ color: `${data.color}70` }}>
+              <div className="absolute top-3 left-4 text-[11px] font-bold tracking-[0.25em] uppercase" style={{ color: `${data.color}bb` }}>
                 {data.heroCaption}
               </div>
             )}
             <div className="font-mono font-black text-[48px] leading-none tracking-tight" style={{ color: data.color, textShadow: `0 0 40px ${data.color}35` }}>
               {data.heroStat}
             </div>
-            <div className="font-mono text-[13px] text-gray-300 mt-1.5 leading-relaxed tracking-wide">
+            <div className="font-mono text-[15px] text-gray-100 mt-1.5 leading-relaxed tracking-wide">
               {data.heroLabel}
             </div>
           </div>
@@ -2152,7 +2152,7 @@ export default function EducationalBriefing({ level, onComplete }) {
         </div>
       </div>
 
-      <div className="max-w-2xl w-full mx-auto px-4 pt-2 pb-0.5 flex-shrink-0">
+      <div className="max-w-2xl w-full mx-auto px-4 pt-2 pb-0.5 flex-shrink-0 relative z-10">
         {/* Header — clear level briefing title */}
         <div className="text-center mb-1.5 pr-20">
           <h1 className="text-xl lg:text-2xl font-bold font-mono tracking-wider"
@@ -2180,7 +2180,7 @@ export default function EducationalBriefing({ level, onComplete }) {
       </div>
 
       {/* Phase content — scrollable if needed */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto relative z-10">
         <div className="max-w-2xl w-full mx-auto px-4 pb-2">
           {phase === 'threat' && contentRef.current.threat && (
             <ThreatBriefingPhase data={contentRef.current.threat} onComplete={handleThreatComplete} onSkip={handleSkipBriefing} />
