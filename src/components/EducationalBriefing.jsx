@@ -1119,14 +1119,14 @@ function ThreatBriefingPhase({ data, onComplete, onSkip }) {
             style={{ padding: '18px 22px', background: 'linear-gradient(to bottom, rgba(10,14,26,0.15) 0%, rgba(10,14,26,0.3) 40%, rgba(10,14,26,0.88) 100%)' }}
           >
             {data.heroCaption && (
-              <div className="absolute top-3 left-4 text-[11px] font-bold tracking-[0.25em] uppercase" style={{ color: `${data.color}bb` }}>
+              <div className="absolute top-3 left-4 text-[15px] font-bold tracking-[0.25em] uppercase" style={{ color: data.color, textShadow: '0 1px 6px rgba(0,0,0,0.8)' }}>
                 {data.heroCaption}
               </div>
             )}
             <div className="font-mono font-black text-[52px] leading-none tracking-tight" style={{ color: data.color, textShadow: `0 0 40px ${data.color}40` }}>
               {data.heroStat}
             </div>
-            <div className="font-mono text-[15px] text-gray-100 mt-1.5 leading-relaxed tracking-wide">
+            <div className="font-mono text-[15px] text-white mt-1.5 leading-relaxed" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.6)' }}>
               {data.heroLabel}
             </div>
           </div>
@@ -1235,14 +1235,14 @@ function DefenseBriefingPhase({ data, onComplete, onSkip, level }) {
             style={{ padding: '16px 22px', background: 'linear-gradient(to bottom, rgba(10,14,26,0.15) 0%, rgba(10,14,26,0.35) 40%, rgba(10,14,26,0.9) 100%)' }}
           >
             {data.heroCaption && (
-              <div className="absolute top-3 left-4 text-[11px] font-bold tracking-[0.25em] uppercase" style={{ color: `${data.color}bb` }}>
+              <div className="absolute top-3 left-4 text-[15px] font-bold tracking-[0.25em] uppercase" style={{ color: data.color, textShadow: '0 1px 6px rgba(0,0,0,0.8)' }}>
                 {data.heroCaption}
               </div>
             )}
             <div className="font-mono font-black text-[48px] leading-none tracking-tight" style={{ color: data.color, textShadow: `0 0 40px ${data.color}35` }}>
               {data.heroStat}
             </div>
-            <div className="font-mono text-[15px] text-gray-100 mt-1.5 leading-relaxed tracking-wide">
+            <div className="font-mono text-[15px] text-white mt-1.5 leading-relaxed" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.6)' }}>
               {data.heroLabel}
             </div>
           </div>
