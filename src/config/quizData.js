@@ -201,14 +201,6 @@ export const QUIZ_DATA = {
         explanation: 'Over 80,000 northern residents were evacuated in October 2023 and couldn\'t return for over a year — entire communities became ghost towns.',
         linkedFacts: ['l2t5'],
       },
-      {
-        id: 'l2q6',
-        question: 'How many rockets does Hezbollah\'s arsenal reportedly contain?',
-        options: ['About 10,000', 'About 50,000', 'Over 150,000', 'Over 500,000'],
-        correctIndex: 2,
-        explanation: 'Hezbollah\'s arsenal of 150,000+ rockets puts all of northern Israel at risk — including the Galilee region and its critical freshwater source, the Sea of Galilee.',
-        linkedFacts: ['l2t6'],
-      },
       // Screen 2: Attack Drones questions (linked to l2d facts)
       {
         id: 'l2q7',

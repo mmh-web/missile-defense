@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0a0e1a;
+    color: #e5e7eb;
+    font-family: 'Courier New', monospace;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .page {
+    width: 100%;
+    max-width: 520px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  /* Full-height hero photo */
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background: url('/missile-defense/images/ID2.jpg') center center / cover no-repeat;
+  }
+  .hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(10,14,26,0.4) 0%,
+      rgba(10,14,26,0.25) 30%,
+      rgba(10,14,26,0.5) 60%,
+      rgba(10,14,26,0.92) 100%
+    );
+  }
+  .hero-vignette {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 30%, rgba(10,14,26,0.4) 100%);
+  }
+
+  .content {
+    position: relative;
+    z-index: 2;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 0 28px 20px;
+  }
+
+  /* Level badge */
+  .level-badge {
+    display: inline-block;
+    font-size: 14px;
+    font-weight: 900;
+    letter-spacing: 0.3em;
+    color: #eab308;
+    border: 2px solid #eab30860;
+    padding: 5px 18px;
+    border-radius: 6px;
+    margin-bottom: 14px;
+    align-self: flex-start;
+    text-shadow: 0 0 20px rgba(234,179,8,0.3);
+  }
+
+  .level-title {
+    font-size: 32px;
+    font-weight: 900;
+    color: #eab308;
+    letter-spacing: 0.1em;
+    text-shadow: 0 0 40px rgba(234,179,8,0.3);
+    line-height: 1.1;
+    margin-bottom: 4px;
+  }
+
+  .level-hebrew {
+    font-size: 22px;
+    font-weight: bold;
+    color: #eab308c0;
+    letter-spacing: 0.08em;
+    margin-bottom: 16px;
+    text-shadow: 0 0 25px rgba(234,179,8,0.2);
+    font-family: Arial, sans-serif;
+  }
+
+  .level-desc {
+    font-size: 14px;
+    color: #c9cdd4;
+    line-height: 1.6;
+    margin-bottom: 20px;
+    max-width: 380px;
+  }
+  .level-desc strong { color: #eab308; }
+
+  /* New threat + system badges */
+  .badges {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    border-radius: 6px;
+    background: rgba(17,24,39,0.6);
+    border: 1px solid;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+  }
+  .badge-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+  }
+
+  /* Progress dots */
+  .progress-dots {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: 1px solid #374151;
+  }
+  .dot.complete {
+    background: #22c55e;
+    border-color: #22c55e;
+  }
+  .dot.current {
+    background: #eab308;
+    border-color: #eab308;
+    box-shadow: 0 0 8px #eab30880;
+  }
+
+  .btn-row {
+    display: flex;
+    gap: 10px;
+  }
+  .btn {
+    padding: 10px 32px;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    letter-spacing: 0.15em;
+    border-radius: 8px;
+    border: 1px solid;
+  }
+  .btn-primary { background: rgba(234,179,8,0.15); border-color: #eab308; color: #eab308; }
+  .btn-secondary { background: rgba(55,65,81,0.2); border-color: #4b5563; color: #9ca3af; }
+
+  .mockup-label {
+    position: fixed; top: 8px; right: 12px; font-size: 10px; color: #4ade80;
+    background: #0a0e1a; padding: 2px 8px; border: 1px solid #22c55e40;
+    border-radius: 4px; z-index: 10;
+  }
+</style>
+</head>
+<body>
+
+<div class="mockup-label">MOCKUP — LEVEL INTRO (L2)</div>
+
+<div class="page">
+  <div class="hero-bg"></div>
+  <div class="hero-overlay"></div>
+  <div class="hero-vignette"></div>
+
+  <div class="content">
+    <div class="level-badge">LEVEL 2</div>
+    <div class="level-title">GALIL & GOLAN</div>
+    <div class="level-hebrew">גָּלִיל וְגוֹלָן</div>
+    <div class="level-desc">
+      The northern border faces <strong>150,000+ rockets</strong> in Hezbollah's arsenal. A new threat emerges — <strong>attack drones</strong> that fly low and slow, guided by GPS.
+    </div>
+
+    <div class="badges">
+      <div class="badge" style="border-color: #eab30840; color: #eab308;">
+        <div class="badge-dot" style="background: #eab308;"></div>
+        NEW THREAT: DRONES
+      </div>
+      <div class="badge" style="border-color: #eab30840; color: #eab30890;">
+        <div class="badge-dot" style="background: #eab308;"></div>
+        IRON DOME
+      </div>
+    </div>
+
+    <div class="progress-dots">
+      <div class="dot complete"></div>
+      <div class="dot current"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </div>
+
+    <div class="btn-row">
+      <div class="btn btn-primary">BEGIN LEVEL ▸</div>
+      <div class="btn btn-secondary">SKIP</div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -388,6 +388,7 @@ At `lg:` breakpoint, 3-column flex layout with dynamic max-width:
 - **MUTE GAME IN PREVIEW**: Always mute audio before playtesting: `document.querySelectorAll('audio,video').forEach(a=>{a.muted=true;a.pause()})`
 - `window.__game = game` debug hook exists in App.jsx — useful for testing (`window.__game.startLevel(3)`)
 - Sound files in `public/sounds/` (music-level-1.mp3 through music-level-7.mp3, briefing-music.mp3, siren.mp3, etc.)
+- **Music intensity note**: L6 and L7 music files were SWAPPED (like the threat arrays). `music-level-6.mp3` contains the intense finale track because most campaigns end at L6. Don't "fix" this.
 - Images in `public/images/` (ID1.jpg through ID8.avif — interception photos, sufrin.png for cheat portrait)
 - Image paths: always use `import.meta.env.BASE_URL` (resolves to `/missile-defense/` in prod, `/missile-defense/` in dev)
 - Facilitator panel: ESC key toggles, auto-pauses gameplay
@@ -494,6 +495,7 @@ const basePath = import.meta.env.BASE_URL || '/missile-defense/';
 - ✅ L6 key infrastructure landmarks — Dimona, BAZAN, Ben Gurion shown as dimmed context markers
 - ✅ Hypersonic quiz corrected — answer now includes the United States
 - ✅ AmmoStack truncation fix — removed letter-spacing, "DAVID'S SLING" fully visible everywhere
+- ✅ Music swap L6/L7 — L6 now has the intense track (campaign finale for most players), L7 gets the former L6 track. Files swapped in `public/sounds/`, no code changes needed.
 
 ### Still Pending
 - **LevelComplete redesign** — Approved mockup ready, not yet fully implemented (photo moved to bottom already)
@@ -504,3 +506,4 @@ const basePath = import.meta.env.BASE_URL || '/missile-defense/';
 - **Difficulty progression** — L5 (6.0) slightly below target (6.5-7.0), L7 (8.0) below target (8.5-9.5)
 - **~720 lines dead code** — FieldExercisePhase and animation components in EducationalBriefing.jsx could be removed
 - **Peak simultaneous threats**: L4 peaks at ~7, L5 peaks at 6, L6 peaks at ~10. User noticed high counts during playtesting — monitor feedback on whether these feel overwhelming
+- **"150k rockets in Hezbollah arsenal" fact** — User flagged as out of date (severely degraded since Oct 2023). Searched codebase — fact does NOT currently exist in any briefing or quiz. May have been removed in a prior session or never added. If it surfaces, delete it.
