@@ -469,11 +469,12 @@ const THREATS_L4 = [
 
 // ============================================================
 // THREATS_L5 array — Used by LEVEL 6 (Wave Assault)
-// Duration: 152s | 45 threats (39 live, 6 hold-fire)
-// Rocket hold-fire: ~43%. Drone: ~10%. Cruise: ~8%. Ballistic: ~14%. Hypersonic: 0%.
+// Duration: 160s | 51 threats (44 live, 7 hold-fire)
+// Rocket hold-fire: ~40%. Drone: ~8%. Cruise: ~7%. Ballistic: ~13%. Hypersonic: 0%.
 // Geography: Full country view. All 5 origins active (Yemen).
 // All 5 threat types including hypersonic (added for L6 use).
-// Wave assault from all fronts — expanded geography IS the challenge.
+// Wave assault from all fronts — intensified waves with preserved respites.
+// Difficulty target: 8.0 (up from 7.0)
 // ============================================================
 const THREATS_L5 = [
   // === Phase 1: Full map introduction — showcase all 5 origins (6 threats, 4-22s) ===
@@ -483,56 +484,60 @@ const THREATS_L5 = [
   threat(4,  17, 'drone',     'Golan Heights',   false, 8,  'full', 1.0, { origin: 'northeast' }),   // hold fire, Syria
   threat(5,  20, 'ballistic', 'Nevatim AFB',     true,  10, 'full', 0.40, { origin: 'east' }),       // Iran
   threat(6,  22, 'drone',     'Eilat',           true,  8,  'full', 0.50, { origin: 'southeast' }),  // Yemen — first time! (delayed reveal)
-  // === Phase 2: Pairs from multiple origins (10 threats, 28-52s) ===
-  threat(7,  28, 'cruise',    'Jerusalem',       true,  8,  'full', 1.0, { origin: 'east' }),        // Iran
-  threat(8,  30, 'rocket',    'Ashkelon',        true,  5,  'full', 1.0, { origin: 'gaza' }),        // Gaza
-  threat(9,  34, 'ballistic', 'Tel Aviv',        true,  9,  'full', 0.40, { origin: 'east' }),       // Iran
-  threat(10, 34, 'drone',     'Beersheba',       true,  8,  'full', 1.0, { origin: 'southeast' }),   // Yemen (pair!)
-  threat(11, 38, 'cruise',    'Netanya',         true,  7,  'full', 1.0, { origin: 'east' }),        // Iran
-  threat(12, 41, 'rocket',    'Ashdod',          true,  5,  'full', 1.0, { origin: 'gaza' }),        // Gaza
-  threat(13, 44, 'ballistic', 'Haifa',           true,  8,  'full', 0.40, { origin: 'east' }),       // Iran
-  threat(14, 44, 'drone',     'Netanya',         true,  8,  'full', 0.50, { origin: 'north' }),      // Lebanon (pair!) (delayed reveal)
-  threat(15, 48, 'cruise',    'Beersheba',       true,  7,  'full', 1.0, { origin: 'east' }),        // Iran
-  // T16 (HF ballistic) removed — was bridging P2→P3 respite gap
+  // === Phase 2: Pairs from multiple origins — intensified (12 threats, 28-52s) ===
+  threat(7,  28, 'cruise',    'Jerusalem',       true,  7,  'full', 1.0, { origin: 'east' }),        // Iran (shortened from 8s)
+  threat(8,  28, 'rocket',    'Ashkelon',        true,  5,  'full', 1.0, { origin: 'gaza' }),        // Gaza (simultaneous pair!)
+  threat(9,  33, 'ballistic', 'Tel Aviv',        true,  8,  'full', 0.40, { origin: 'east' }),       // Iran (shortened from 9s)
+  threat(10, 33, 'drone',     'Beersheba',       true,  7,  'full', 1.0, { origin: 'southeast' }),   // Yemen (pair! shortened from 8s)
+  threat(11, 37, 'cruise',    'Netanya',         true,  6,  'full', 1.0, { origin: 'east' }),        // Iran (shortened from 7s)
+  threat(12, 40, 'rocket',    'Ashdod',          true,  5,  'full', 1.0, { origin: 'gaza' }),        // Gaza
+  threat(48, 40, 'hypersonic', 'Dimona',          true,  6,  'full', 0.35, { origin: 'east', priority: true }),  // NEW: early hypersonic pressure
+  threat(13, 44, 'ballistic', 'Haifa',           true,  7,  'full', 0.40, { origin: 'east' }),       // Iran (shortened from 8s)
+  threat(14, 44, 'drone',     'Netanya',         true,  7,  'full', 0.50, { origin: 'north' }),      // Lebanon (pair!) (delayed reveal)
+  threat(15, 48, 'cruise',    'Beersheba',       true,  6,  'full', 1.0, { origin: 'east' }),        // Iran (shortened from 7s)
   //                                    === 6s BREATHING GAP (T15 ends t=55 → P3 at t=63) ===
-  // === Phase 3: Triples — multi-front pressure (10 threats, 63-87s) ===
+  // === Phase 3: Triples — multi-front pressure, intensified (12 threats, 63-89s) ===
   threat(17, 63, 'hypersonic', 'Dimona',          true,  6,  'full', 0.35, { origin: 'east', priority: true }),  // Iran → strategic (hypersonic)
-  threat(18, 64, 'cruise',    'Haifa',           true,  7,  'full', 1.0, { origin: 'north' }),       // Lebanon
+  threat(18, 63, 'cruise',    'Haifa',           true,  6,  'full', 1.0, { origin: 'north' }),       // Lebanon (simultaneous! shortened from 7s)
   threat(19, 66, 'rocket',    'Sderot',          true,  5,  'full', 1.0, { origin: 'gaza' }),        // Gaza (triple!)
-  threat(20, 70, 'drone',     'Ashkelon',        true,  8,  'full', 1.0, { origin: 'north' }),       // Lebanon
-  threat(21, 72, 'ballistic', 'Ramat David AFB', true,  8,  'full', 0.40, { origin: 'east' }),       // Iran → base
-  threat(22, 75, 'cruise',    'Tel Aviv',        true,  7,  'full', 1.0, { origin: 'east' }),        // Iran
-  threat(23, 78, 'drone',     'Beersheba',       true,  8,  'full', 0.50, { origin: 'southeast' }),  // Yemen → population (delayed reveal)
-  threat(24, 81, 'ballistic', 'Jerusalem',       true,  8,  'full', 0.40, { origin: 'east' }),       // Iran
-  threat(25, 84, 'cruise',    'Netanya',         true,  7,  'full', 1.0, { origin: 'east' }),        // Iran
-  threat(26, 87, 'rocket',    'Netivot',         true,  5,  'full', 1.0, { origin: 'gaza' }),        // Gaza
-  //                                    === 5s BREATHING GAP (T25/26 end t=92 → P4 at t=98) ===
-  // === Phase 4: Quads and sustained barrage (9 threats, 98-117s) ===
-  threat(27, 98, 'hypersonic', 'Palmachim AFB',   true,  6,  'full', 0.40, { origin: 'east' }),       // Iran → base (hypersonic)
-  threat(28, 98, 'cruise',    'Beersheba',       true,  7,  'full', 1.0, { origin: 'east' }),        // Iran (pair!)
-  threat(29, 101,'drone',     'Eilat',           true,  8,  'full', 1.0, { origin: 'southeast' }),   // Yemen
-  threat(30, 103,'rocket',    'Ashkelon',        true,  5,  'full', 1.0, { origin: 'gaza' }),        // Gaza
-  threat(31, 107,'hypersonic', 'Tel Aviv',        true,  6,  'full', 0.35, { origin: 'east' }),       // Iran (hypersonic quad!)
-  threat(32, 107,'cruise',    'Jerusalem',       true,  7,  'full', 1.0, { origin: 'east' }),        // Iran
-  threat(33, 109,'drone',     'Haifa',           true,  8,  'full', 1.0, { origin: 'north' }),       // Lebanon
-  threat(34, 112,'rocket',    'Sderot',          true,  5,  'full', 1.0, { origin: 'gaza' }),        // Gaza
-  threat(35, 117,'ballistic', 'Nevatim AFB',     true,  8,  'full', 0.40, { origin: 'east' }),       // Iran → base
-  // T36 (HF cruise) removed — was bridging P4→P5 respite gap
-  //                                    === 5s BREATHING GAP (T35 ends t=125 → P5 at t=132) ===
-  // === Phase 5: Closing barrage — relentless (6 threats, 132-150s) ===
-  threat(37, 132,'hypersonic', 'Dimona',          true,  6,  'full', 0.35, { origin: 'east', priority: true }),  // Iran → strategic (hypersonic)
-  threat(38, 135,'cruise',    'Tel Aviv',        true,  7,  'full', 1.0, { origin: 'east' }),        // Iran
-  threat(39, 139,'drone',     'Beersheba',       true,  8,  'full', 1.0, { origin: 'southeast' }),   // Yemen
-  threat(40, 142,'hypersonic', 'Haifa',           true,  6,  'full', 0.35, { origin: 'east' }),       // Iran (hypersonic)
-  threat(41, 146,'rocket',    'Ashdod',          true,  5,  'full', 1.0, { origin: 'gaza' }),        // Gaza
-  threat(42, 150,'cruise',    'Netanya',         true,  7,  'full', 1.0, { origin: 'north' }),       // Lebanon
-  // === HOLD-FIRE ROCKETS — unguided rockets missing populated areas (~43% miss rate) ===
+  threat(20, 69, 'drone',     'Ashkelon',        true,  7,  'full', 1.0, { origin: 'north' }),       // Lebanon (shortened from 8s)
+  threat(21, 72, 'ballistic', 'Ramat David AFB', true,  7,  'full', 0.40, { origin: 'east' }),       // Iran → base (shortened from 8s)
+  threat(49, 72, 'rocket',    'Netivot',         true,  5,  'full', 1.0, { origin: 'gaza' }),        // NEW: simultaneous rocket
+  threat(22, 75, 'cruise',    'Tel Aviv',        true,  6,  'full', 1.0, { origin: 'east' }),        // Iran (shortened from 7s)
+  threat(23, 78, 'drone',     'Beersheba',       true,  7,  'full', 0.50, { origin: 'southeast' }),  // Yemen → population (delayed reveal)
+  threat(24, 81, 'ballistic', 'Jerusalem',       true,  7,  'full', 0.40, { origin: 'east' }),       // Iran (shortened from 8s)
+  threat(25, 84, 'cruise',    'Netanya',         true,  6,  'full', 1.0, { origin: 'east' }),        // Iran (shortened from 7s)
+  threat(26, 87, 'rocket',    'Ashdod',          true,  5,  'full', 1.0, { origin: 'gaza' }),        // Gaza
+  threat(50, 89, 'drone',     'Eilat',           true,  7,  'full', 1.0, { origin: 'southeast' }),   // NEW: Yemen trailing
+  //                                    === 5s BREATHING GAP (T50 ends t=96 → P4 at t=101) ===
+  // === Phase 4: Quads and sustained barrage — intensified (11 threats, 101-122s) ===
+  threat(27, 101,'hypersonic', 'Palmachim AFB',   true,  5,  'full', 0.40, { origin: 'east' }),       // Iran → base (shortened from 6s)
+  threat(28, 101,'cruise',    'Beersheba',       true,  6,  'full', 1.0, { origin: 'east' }),        // Iran (pair! shortened from 7s)
+  threat(29, 104,'drone',     'Eilat',           true,  7,  'full', 1.0, { origin: 'southeast' }),   // Yemen (shortened from 8s)
+  threat(30, 106,'rocket',    'Ashkelon',        true,  5,  'full', 1.0, { origin: 'gaza' }),        // Gaza
+  threat(31, 109,'hypersonic', 'Tel Aviv',        true,  5,  'full', 0.35, { origin: 'east' }),       // Iran (shortened from 6s)
+  threat(32, 109,'cruise',    'Jerusalem',       true,  6,  'full', 1.0, { origin: 'east' }),        // Iran (pair!)
+  threat(51, 109,'rocket',    'Sderot',          true,  5,  'full', 1.0, { origin: 'gaza' }),        // NEW: triple spawn!
+  threat(33, 112,'drone',     'Haifa',           true,  7,  'full', 1.0, { origin: 'north' }),       // Lebanon (shortened from 8s)
+  threat(34, 115,'rocket',    'Netivot',         true,  5,  'full', 1.0, { origin: 'gaza' }),        // Gaza
+  threat(35, 119,'ballistic', 'Nevatim AFB',     true,  7,  'full', 0.40, { origin: 'east' }),       // Iran → base (shortened from 8s)
+  threat(52, 122,'cruise',    'Haifa',           true,  6,  'full', 1.0, { origin: 'north' }),       // NEW: trailing pressure
+  //                                    === 5s BREATHING GAP (T52 ends t=128 → P5 at t=134) ===
+  // === Phase 5: Closing barrage — relentless (6 threats, 134-152s) ===
+  threat(37, 134,'hypersonic', 'Dimona',          true,  5,  'full', 0.35, { origin: 'east', priority: true }),  // Iran → strategic (shortened from 6s)
+  threat(38, 137,'cruise',    'Tel Aviv',        true,  6,  'full', 1.0, { origin: 'east' }),        // Iran (shortened from 7s)
+  threat(39, 140,'drone',     'Beersheba',       true,  7,  'full', 1.0, { origin: 'southeast' }),   // Yemen (shortened from 8s)
+  threat(40, 143,'hypersonic', 'Haifa',           true,  5,  'full', 0.35, { origin: 'east' }),       // Iran (shortened from 6s)
+  threat(41, 147,'rocket',    'Ashdod',          true,  5,  'full', 1.0, { origin: 'gaza' }),        // Gaza
+  threat(42, 151,'cruise',    'Netanya',         true,  6,  'full', 1.0, { origin: 'north' }),       // Lebanon (shortened from 7s)
+  // === HOLD-FIRE ROCKETS — unguided rockets missing populated areas (~40% miss rate) ===
   threat(43, 7,  'rocket', 'Northern Negev',            false, 5,  'full', 1.0, { origin: 'gaza' }),
   threat(44, 25, 'rocket', 'Mediterranean (off-coast)', false, 5,  'full', 1.0, { origin: 'gaza' }),
-  threat(45, 46, 'rocket', 'Negev Desert',              false, 5,  'full', 1.0, { origin: 'gaza' }),
+  threat(45, 36, 'rocket', 'Negev Desert',              false, 5,  'full', 1.0, { origin: 'gaza' }),
   threat(46, 75, 'rocket', 'Sinai Border Region',       false, 5,  'full', 1.0, { origin: 'gaza' }),
   threat(47, 105,'rocket', 'Northern Negev',            false, 5,  'full', 1.0, { origin: 'gaza' }),
-  // T48 (HF rocket) removed — was bridging P4→P5 respite gap
+  threat(53, 68, 'rocket', 'Western Negev',             false, 5,  'full', 1.0, { origin: 'gaza' }),
+  threat(54, 140,'rocket', 'Sinai Border Region',       false, 5,  'full', 1.0, { origin: 'gaza' }),
 ];
 
 // ============================================================
@@ -759,7 +764,7 @@ export const LEVELS = [
   {
     id: 6,
     duration: 160,
-    ammo: { iron_dome: 17, davids_sling: 11, arrow_2: 6, arrow_3: 5 },
+    ammo: { iron_dome: 18, davids_sling: 12, arrow_2: 6, arrow_3: 6 },
     available_systems: ['iron_dome', 'davids_sling', 'arrow_2', 'arrow_3'],
     auto_end_delay: 6000,
     new_system: null,
