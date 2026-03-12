@@ -44,13 +44,7 @@ export default function Summary({ stats, onReset, teamName, onTeamNameChange }) 
       const entry = await saveScore({
         name: teamName,
         score: totalScore,
-        stars: rating.stars,
-        rating: rating.label,
         gameMode: 'CAMPAIGN',
-        levelsCompleted,
-        correctIntercepts: totalCorrectIntercepts,
-        sirenCount: totalSirens,
-        bestStreak: overallBestStreak,
       });
       setSaved(true);
       setSavedEntryTimestamp(entry.timestamp);
@@ -223,24 +217,6 @@ export default function Summary({ stats, onReset, teamName, onTeamNameChange }) 
           highlightTimestamp={savedEntryTimestamp}
         />
 
-        {/* E4: Shareable results card — screenshot-friendly */}
-        <div className="mb-6 p-6 border-2 border-green-700 rounded-lg bg-gradient-to-b from-gray-900 to-[#0a0e1a] text-center">
-          <div className="text-[10px] text-gray-500 font-mono tracking-widest mb-3">
-            SCREENSHOT & SHARE YOUR SCORE
-          </div>
-          <div className="text-xs text-green-600 font-mono tracking-widest mb-1">IRON DOME COMMAND</div>
-          <div className="text-5xl font-bold font-mono text-green-400 tabular-nums my-2">{totalScore}</div>
-          <div className="text-lg font-bold font-mono text-white tracking-wider">{rating.label}</div>
-          <div className="text-xl my-1">
-            {stars.map((filled, i) => (
-              <span key={i} className={filled ? 'text-yellow-400' : 'text-gray-700'}>&#9733;</span>
-            ))}
-          </div>
-          <div className="text-xs text-gray-500 font-mono mt-2">
-            {totalCorrectIntercepts} intercepts &bull; {totalCorrectHolds} correct holds
-          </div>
-        </div>
-
         {/* Reset button */}
         <div className="text-center mt-6">
           <button
@@ -298,8 +274,6 @@ export function LeaderboardTable({ entries, gameMode = 'CAMPAIGN', highlightTime
             <th className="text-left py-1 px-2 w-8">#</th>
             <th className="text-left py-1 px-2">NAME</th>
             <th className="text-right py-1 px-2">SCORE</th>
-            <th className="text-center py-1 px-2">RATING</th>
-            <th className="text-center py-1 px-2">STARS</th>
           </tr>
         </thead>
         <tbody>
@@ -319,14 +293,6 @@ export function LeaderboardTable({ entries, gameMode = 'CAMPAIGN', highlightTime
                 <td className="py-2 px-2 text-gray-600">{i + 1}</td>
                 <td className="py-2 px-2 font-bold tracking-wider">{entry.name}</td>
                 <td className="py-2 px-2 text-right tabular-nums">{entry.score}</td>
-                <td className="py-2 px-2 text-center text-xs tracking-wider opacity-70">
-                  {entry.rating}
-                </td>
-                <td className="py-2 px-2 text-center">
-                  {Array.from({ length: entry.stars }, (_, j) => (
-                    <span key={j} className="text-yellow-400 text-xs">&#9733;</span>
-                  ))}
-                </td>
               </tr>
             );
           })}
