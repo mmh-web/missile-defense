@@ -476,43 +476,64 @@ export default function App() {
   // PRE-GAME SCREEN
   // ========================
   if (gameState === GAME_STATES.PRE_GAME) {
+    const basePath = import.meta.env.BASE_URL || '/missile-defense/';
     return (
-      <div key="screen-pre-game" className="screen-fade-in min-h-screen bg-[#0a0e1a] flex items-center justify-center relative">
+      <div key="screen-pre-game" className="screen-fade-in h-screen bg-[#0a0e1a] flex items-center justify-center relative overflow-hidden">
+        {/* Full-bleed hero background */}
+        <div className="absolute inset-0" style={{ background: `url('${basePath}images/ID3.jpg') center 40% / cover no-repeat` }} />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(10,14,26,0.5) 0%, rgba(10,14,26,0.35) 30%, rgba(10,14,26,0.35) 50%, rgba(10,14,26,0.6) 70%, rgba(10,14,26,0.92) 100%)' }} />
+        <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at center, transparent 40%, rgba(10,14,26,0.5) 100%)' }} />
+
         {/* Top-right controls */}
-        <div className="absolute top-4 right-4 flex items-center gap-3">
+        <div className="absolute top-4 right-4 flex items-center gap-3 z-10">
           <button
             onClick={toggleFullscreen}
-            className="hidden lg:block text-gray-600 hover:text-gray-400 transition-colors cursor-pointer text-lg"
+            className="hidden lg:block text-gray-500 hover:text-gray-300 transition-colors cursor-pointer text-lg"
             title="Fullscreen (F)"
           >
             {isFullscreen ? '⊡' : '⛶'}
           </button>
           <button
             onClick={openLeaderboard}
-            className="text-gray-600 hover:text-yellow-400 transition-colors cursor-pointer text-2xl"
+            className="text-gray-500 hover:text-yellow-400 transition-colors cursor-pointer text-2xl"
             title="Leaderboard"
           >
             &#127942;
           </button>
           <button
             onClick={() => setShowFacilitator(true)}
-            className="text-gray-600 hover:text-gray-400 transition-colors cursor-pointer text-2xl"
+            className="text-gray-500 hover:text-gray-300 transition-colors cursor-pointer text-2xl"
             title="Settings"
           >
             &#9881;
           </button>
         </div>
 
-        <div className="text-center">
-          <div className="text-green-900 font-mono text-xs tracking-[1em] mb-6">
-            &#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;
+        <div className="text-center relative z-10" style={{ marginTop: '40px' }}>
+          {/* Accent line */}
+          <div className="w-[60px] h-[2px] mx-auto mb-4" style={{ background: '#f97316', boxShadow: '0 0 12px rgba(249,115,22,0.4)' }} />
+
+          <h1 className="text-3xl md:text-4xl font-black font-mono tracking-[0.2em] text-orange-500 leading-tight mb-1.5"
+            style={{ textShadow: '0 0 40px rgba(249,115,22,0.3)' }}>
+            IRON DOME{'\n'}COMMAND
+          </h1>
+          <div className="text-base md:text-lg font-mono tracking-[0.15em] mb-8" style={{ color: '#f9731680' }}>
+            פיקוד כיפת ברזל
           </div>
 
-          <h1 className="text-5xl md:text-6xl font-bold font-mono text-green-400 tracking-wider mb-3 drop-shadow-[0_0_20px_rgba(0,255,136,0.3)]">
-            MISSILE DEFENSE
-          </h1>
-          <div className="text-4xl md:text-5xl font-bold text-green-400/90 tracking-wider mb-12 drop-shadow-[0_0_15px_rgba(0,255,136,0.25)]" style={{ fontFamily: 'Arial, sans-serif' }}>
-            הֲגַנַּת טִילִים
+          {/* System badges */}
+          <div className="flex justify-center gap-5 mb-10">
+            {[
+              { name: 'IRON DOME', color: '#eab308' },
+              { name: "DAVID'S SLING", color: '#3b82f6' },
+              { name: 'ARROW 2', color: '#ef4444' },
+              { name: 'ARROW 3', color: '#a855f7' },
+            ].map(sys => (
+              <div key={sys.name} className="flex flex-col items-center gap-1">
+                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: sys.color, boxShadow: `0 0 8px ${sys.color}` }} />
+                <span className="text-[9px] font-mono tracking-[0.15em] text-gray-500">{sys.name}</span>
+              </div>
+            ))}
           </div>
 
           <button
@@ -520,32 +541,34 @@ export default function App() {
               seenBriefingsRef.current.clear();
               startCampaign();
             }}
-            className="px-12 py-5 bg-green-900/30 border-2 border-green-500 text-green-400
-              font-mono font-bold text-xl tracking-widest rounded-lg
-              hover:bg-green-900/50 hover:border-green-300 hover:text-green-300
-              hover:shadow-[0_0_30px_rgba(0,255,136,0.3)]
-              transition-all active:scale-95 cursor-pointer"
+            className="px-12 py-3.5 font-mono font-bold text-base tracking-[0.2em] rounded-lg
+              cursor-pointer transition-all active:scale-95
+              hover:shadow-[0_0_30px_rgba(249,115,22,0.15)]"
+            style={{
+              background: 'rgba(249,115,22,0.15)',
+              border: '2px solid #f97316',
+              color: '#f97316',
+              textShadow: '0 0 20px rgba(249,115,22,0.3)',
+              boxShadow: '0 0 30px rgba(249,115,22,0.1), inset 0 0 30px rgba(249,115,22,0.05)',
+            }}
           >
-            START CAMPAIGN
+            BEGIN MISSION ▸
           </button>
 
-          <button
-            onClick={openLeaderboard}
-            className="mt-4 px-6 py-2 border border-gray-700 text-gray-500
-              font-mono text-xs tracking-widest rounded
-              hover:border-gray-500 hover:text-gray-400 transition-all
-              active:scale-95 cursor-pointer block mx-auto"
-          >
-            LEADERBOARD
-          </button>
-
-          <div className="text-green-900 font-mono text-xs tracking-[1em] mt-8">
-            &#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;
+          <div className="mt-3 text-[11px] font-mono text-gray-600 tracking-wider">
+            Enter team name to start
           </div>
+        </div>
 
-          <div className="text-gray-700 font-mono text-[10px] tracking-widest mt-6">
-            &copy; HECHT STUDIO 2026
+        {/* Bottom bar */}
+        <div className="absolute bottom-4 left-5 z-10">
+          <div className="text-[10px] font-mono tracking-[0.2em] px-2 py-0.5 rounded"
+            style={{ color: '#f9731640', border: '1px solid #f9731625' }}>
+            EDUCATIONAL SIMULATION
           </div>
+        </div>
+        <div className="absolute bottom-4 right-5 z-10 text-[10px] font-mono tracking-wider text-gray-700">
+          v2.0
         </div>
 
         {/* Leaderboard modal */}

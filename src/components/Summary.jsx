@@ -62,27 +62,40 @@ export default function Summary({ stats, onReset, teamName, onTeamNameChange }) 
     }
   };
 
+  const basePath = import.meta.env.BASE_URL || '/missile-defense/';
+
   return (
-    <div className="h-screen bg-[#0a0e1a] flex items-center justify-center overflow-y-auto">
-      <div className="max-w-2xl w-full py-8 px-4">
+    <div className="h-screen bg-[#0a0e1a] flex flex-col items-center overflow-y-auto relative">
+      {/* Hero photo band */}
+      <div className="absolute top-0 left-0 right-0 h-[260px] z-0"
+        style={{ background: `url('${basePath}images/ID3.jpg') center 40% / cover no-repeat` }}>
+        <div className="absolute inset-0" style={{
+          background: 'linear-gradient(to bottom, rgba(10,14,26,0.3) 0%, rgba(10,14,26,0.55) 40%, rgba(10,14,26,0.95) 80%, #0a0e1a 100%)'
+        }} />
+      </div>
+
+      <div className="max-w-xl w-full py-6 px-5 relative z-10">
         {/* Header */}
-        <div className="text-center mb-6">
-          <div className={`font-mono text-sm tracking-[0.3em] mb-2 ${isIncomplete ? 'text-red-400' : 'text-green-500'}`}>
+        <div className="text-center mb-4">
+          <div className={`font-mono text-sm font-bold tracking-[0.2em] mb-1 ${isIncomplete ? 'text-red-400' : 'text-green-400'}`}
+            style={!isIncomplete ? { textShadow: '0 0 30px rgba(34,197,94,0.3)' } : undefined}>
             {isIncomplete ? 'CAMPAIGN INCOMPLETE' : 'CAMPAIGN COMPLETE'}
           </div>
-          <div className={`text-4xl font-bold font-mono tracking-wider mb-2 ${isIncomplete ? 'text-red-400' : 'text-green-400'}`}>
-            {isIncomplete && endedEarly ? "TIME'S UP" : isIncomplete ? 'MISSION ABORTED' : 'ALL CLEAR'}
+          <div className="text-[10px] font-mono tracking-[0.15em]" style={{ color: isIncomplete ? '#ef444480' : '#22c55e70' }}>
+            {isIncomplete
+              ? (endedEarly ? "TIME'S UP" : 'MISSION ABORTED')
+              : 'MISSION DEBRIEF · תדריך סיום'}
           </div>
           {isIncomplete && (
-            <div className="text-lg font-mono text-gray-400 tracking-wider mb-2">
+            <div className="text-sm font-mono text-gray-400 tracking-wider mt-1">
               {levelsCompleted} / {effectiveTotalLevels} LEVELS COMPLETED
             </div>
           )}
-          <div className={`h-px w-48 mx-auto ${isIncomplete ? 'bg-red-900' : 'bg-green-900'}`} />
         </div>
 
         {/* Total Score — prominent */}
-        <div className="text-center mb-5 py-6 border border-green-900/50 rounded-lg bg-green-950/20">
+        <div className="text-center mb-4 py-4 rounded-xl bg-[#0a0e1a]/70 backdrop-blur-sm"
+          style={{ border: '1px solid rgba(34,197,94,0.25)' }}>
           <div className="text-xs text-gray-500 font-mono tracking-widest mb-2">TOTAL SCORE</div>
           <div className="text-6xl font-bold font-mono text-green-400 tabular-nums mb-4">
             {totalScore}

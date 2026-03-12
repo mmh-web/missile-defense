@@ -131,7 +131,7 @@ export default function ThreatPanel({
     <div className="flex flex-col h-full min-h-0">
       <div className="hidden lg:block text-center mb-2 flex-shrink-0 border-b border-gray-800/50 pb-2">
         <div className="text-sm text-gray-300 font-mono tracking-[0.25em] font-bold">INCOMING THREATS</div>
-        <div className="text-xs text-gray-500 font-mono mt-1">Click card below or blip on radar to select target</div>
+        <div className="text-xs text-gray-500 font-mono mt-1">Click card below or radar blip to select target</div>
       </div>
       {live.length === 0 ? (
         <div className="pt-6 lg:pt-10">

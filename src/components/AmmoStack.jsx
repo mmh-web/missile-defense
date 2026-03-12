@@ -21,7 +21,7 @@ export default function AmmoStack({
       {/* Column header */}
       <div className="text-center mb-2 border-b border-gray-800/50 pb-2">
         <div className="text-sm text-gray-300 font-mono tracking-[0.25em] font-bold">INTERCEPTORS</div>
-        <div className="text-xs text-gray-500 font-mono mt-1">Press 1–5 to activate</div>
+        <div className="text-xs text-gray-500 font-mono mt-1">Press 1–4 to fire</div>
       </div>
       {/* Interceptors */}
       {ALL_INTERCEPTORS.map(({ key, label, shortcut }) => {
@@ -106,8 +106,8 @@ export default function AmmoStack({
         style={{ borderLeft: '3px solid #6b7280' }}
       >
         <div className="flex items-center gap-2">
-          <span className="w-7 h-7 rounded border-2 border-gray-500 flex items-center justify-center text-sm font-bold font-mono text-gray-400 flex-shrink-0">
-            5
+          <span className="w-7 h-7 rounded border-2 border-gray-500 flex items-center justify-center text-[9px] font-bold font-mono text-gray-400 flex-shrink-0 tracking-tight">
+            SPC
           </span>
           <span className="text-sm font-mono font-bold tracking-wider text-gray-400">
             HOLD FIRE

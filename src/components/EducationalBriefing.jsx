@@ -13,13 +13,17 @@ const BRIEFING_CONTENT = {
       subtitle: 'Communities in the Line of Fire',
       color: '#f97316',
       displayCount: 3,
+      heroImage: 'ID1.jpg',
+      heroCaption: 'SOUTHERN ISRAEL · דְּרוֹם יִשְׂרָאֵל',
+      heroStat: '20,000+',
+      heroLabel: 'rockets and mortars fired at Israel since 2001 — ranging from Sderot to Beersheba',
       factPool: [
-        { id: 'l1t1', icon: '🏘️', text: 'Sderot (pop. ~35,000) sits less than a mile (1 km) from the Gaza fence — when a rocket launches, residents have approximately 15 seconds of warning before impact' },
-        { id: 'l1t2', icon: '🏗️', text: 'Ashkelon (pop. ~150,000) is a coastal city 8 miles (13 km) from Gaza — home to a major power station and desalination plant, making it both a civilian center and a strategic target' },
-        { id: 'l1t3', icon: '🏙️', text: 'Beersheba (pop. ~210,000) is the capital of the Negev, 25 miles (40 km) from Gaza — home to Ben-Gurion University and Soroka Hospital, the region\'s only Level 1 trauma center' },
-        { id: 'l1t4', icon: '🌾', text: 'The "Gaza Envelope" includes over 50 small farming communities within 4 miles (7 km) of the border — including Kfar Aza, Be\'eri, and Nir Oz, which were attacked on October 7, 2023' },
-        { id: 'l1t5', icon: '👥', text: 'Over one million Israelis — roughly 12% of the population — live within rocket range of Gaza. During major escalations, daily life across the entire south grinds to a halt' },
-        { id: 'l1t6', icon: '🚨', text: 'The "Color Red" (Tzeva Adom) alert system warns residents by siren and smartphone app — in border towns like Sderot, it can sound dozens of times in a single day during conflict' },
+        { id: 'l1t1', icon: '🏘️', stat: '15 seconds', detail: 'Warning time in Sderot (pop. 35,000) — just 1 km from the Gaza fence' },
+        { id: 'l1t2', icon: '🏗️', stat: '150,000', detail: 'People in Ashkelon, 13 km from Gaza — home to a power station and desalination plant' },
+        { id: 'l1t3', icon: '🏙️', stat: '210,000', detail: 'People in Beersheba, 40 km from Gaza — home to the region\'s only Level 1 trauma center' },
+        { id: 'l1t4', icon: '🌾', stat: '50+', detail: 'Farming communities in the "Gaza Envelope" within 7 km of the border — including Kfar Aza, Be\'eri, Nir Oz' },
+        { id: 'l1t5', icon: '👥', stat: '1 million+', detail: 'Israelis live within rocket range of Gaza — 12% of the population' },
+        { id: 'l1t6', icon: '🚨', stat: 'TZEVA ADOM', detail: '"Color Red" siren system — can sound dozens of times per day in border towns during conflict' },
       ],
       animation: 'rocket',
     },
@@ -29,13 +33,17 @@ const BRIEFING_CONTENT = {
       subtitle: 'The Cheapest Threat, The Smartest Shield',
       color: '#22c55e',
       displayCount: 3,
+      heroImage: 'ID5.jpeg',
+      heroCaption: 'IRON DOME · כִּפַּת בַּרְזֶל',
+      heroStat: '90%+',
+      heroLabel: 'interception success rate — Iron Dome calculates each trajectory and only fires when a populated area is threatened',
       factPool: [
-        { id: 'l1d1', icon: '🚀', text: 'Qassam rockets are built in Gaza from sugar, fertilizer, and metal pipes — costing about $800 each. They are completely unguided and cannot steer after launch' },
-        { id: 'l1d2', icon: '🔢', text: 'Over 20,000 rockets and mortars have been fired from Gaza since 2001 — with a range of 3-28 miles (5-45 km), they can strike anywhere from Sderot to Beersheba' },
-        { id: 'l1d3', icon: '💰', text: 'A Qassam costs ~$800 to build; the Tamir interceptor that destroys it costs ~$50,000 — this 62:1 cost ratio is itself a strategic weapon for the attacker' },
-        { id: 'l1d4', icon: '🛡️', text: 'Iron Dome became operational in 2011 with a 90%+ success rate — it calculates each rocket\'s trajectory and only fires if it threatens a populated area, saving interceptors for real threats' },
-        { id: 'l1d5', icon: '🏭', text: 'Developed by Rafael Advanced Defense Systems with US backing — each Iron Dome battery has a radar unit, control center, and 3-4 launchers, enough to protect a medium-sized city' },
-        { id: 'l1d6', icon: '🧠', text: 'Iron Dome\'s "selective fire" is its secret weapon — by letting rockets headed for open fields pass harmlessly, it saves its limited Tamir interceptors for the rockets that truly threaten lives' },
+        { id: 'l1d1', icon: '🚀', stat: '$800', detail: 'Cost of a Qassam rocket — built from sugar, fertilizer, and pipes. Completely unguided' },
+        { id: 'l1d2', icon: '🔢', stat: '20,000+', detail: 'Rockets and mortars fired from Gaza since 2001 — range of 5-45 km, Sderot to Beersheba' },
+        { id: 'l1d3', icon: '💰', stat: '62:1', detail: 'Cost ratio — $800 Qassam vs $50,000 Tamir interceptor. The ratio itself is a weapon' },
+        { id: 'l1d4', icon: '🛡️', stat: '90%+', detail: 'Iron Dome success rate since 2011 — only fires at rockets headed for populated areas' },
+        { id: 'l1d5', icon: '🏭', stat: '3-4', detail: 'Launchers per Iron Dome battery, plus radar and control center — enough for a medium city' },
+        { id: 'l1d6', icon: '🧠', stat: 'SELECTIVE FIRE', detail: 'Iron Dome\'s secret — lets rockets aimed at open fields pass, saving interceptors for real threats' },
       ],
       animation: 'iron_dome',
     },
@@ -50,13 +58,17 @@ const BRIEFING_CONTENT = {
       subtitle: 'The Northern Border Under Threat',
       color: '#eab308',
       displayCount: 3,
+      heroImage: 'ID2.jpg',
+      heroCaption: 'NORTHERN ISRAEL · צְפוֹן יִשְׂרָאֵל',
+      heroStat: '150,000+',
+      heroLabel: 'rockets in Hezbollah\'s arsenal — putting the Galilee and all of northern Israel at risk',
       factPool: [
-        { id: 'l2t1', icon: '🏘️', text: 'Kiryat Shmona (pop. ~24,000) sits just 3 miles (5 km) from the Lebanese border — in October 2023, the entire city was evacuated and residents couldn\'t return for over a year' },
-        { id: 'l2t2', icon: '📍', text: 'Metula (pop. ~2,000) is Israel\'s northernmost town — literally built against the border fence. Its residents can see Hezbollah positions from their backyards' },
-        { id: 'l2t3', icon: '⚓', text: 'Haifa (pop. ~285,000, metro ~1 million) is Israel\'s third-largest city and main port — Hezbollah fired over 4,000 rockets at northern Israel during the 2006 war, many aimed at Haifa' },
-        { id: 'l2t4', icon: '🏖️', text: 'Nahariya (pop. ~60,000) is a coastal city just 6 miles (10 km) from the Lebanese border — during the 2006 war, rockets struck its hospital, and it has been targeted in every northern conflict' },
-        { id: 'l2t5', icon: '👥', text: 'Over 80,000 northern residents were evacuated in October 2023 and couldn\'t return for over a year — communities remained empty while cross-border rocket and drone fire continued' },
-        { id: 'l2t6', icon: '🏔️', text: 'The Galilee holds the Sea of Galilee — Israel\'s largest freshwater lake — plus major farmland. Hezbollah\'s arsenal of 150,000+ rockets puts all of northern Israel at risk' },
+        { id: 'l2t1', icon: '🏘️', stat: '5 km', detail: 'Kiryat Shmona to the Lebanese border — entire city evacuated Oct 2023, couldn\'t return for a year' },
+        { id: 'l2t2', icon: '📍', stat: '0 km', detail: 'Metula is built against the border fence — residents can see Hezbollah positions from their backyards' },
+        { id: 'l2t3', icon: '⚓', stat: '4,000+', detail: 'Rockets fired at northern Israel in the 2006 war — many aimed at Haifa (pop. 1 million metro)' },
+        { id: 'l2t4', icon: '🏖️', stat: '10 km', detail: 'Nahariya to the Lebanese border — rockets struck its hospital in 2006' },
+        { id: 'l2t5', icon: '👥', stat: '80,000', detail: 'Northern residents evacuated in Oct 2023 — couldn\'t return for over a year' },
+        { id: 'l2t6', icon: '🏔️', stat: '150,000+', detail: 'Rockets in Hezbollah\'s arsenal — putting all of the Galilee and northern Israel at risk' },
       ],
       animation: 'drone',
     },
@@ -66,13 +78,17 @@ const BRIEFING_CONTENT = {
       subtitle: 'Slow, Cheap, and Deadly in Swarms',
       color: '#eab308',
       displayCount: 3,
+      heroImage: 'ID6.webp',
+      heroCaption: 'IRON DOME · כִּפַּת בַּרְזֶל',
+      heroStat: '$20,000',
+      heroLabel: 'cost per drone — 2.5× cheaper than the interceptor that destroys it, designed to overwhelm',
       factPool: [
-        { id: 'l2d1', icon: '🇮🇷', text: 'Iran manufactures the Shahed-136 "kamikaze" drone and supplies it to Hezbollah and allied groups — the drone IS the weapon, crashing directly into its target and detonating on impact' },
-        { id: 'l2d2', icon: '📡', text: 'Attack drones cruise at 300-6,000 feet (100-2,000 m) and fly slow (~115 mph / 185 km/h) — they hug the terrain to avoid radar, making them harder to detect than rockets or missiles' },
-        { id: 'l2d3', icon: '📏', text: 'The Shahed-136 has a range of 1,550 miles (2,500 km) — launched from Iran, it takes 7+ hours to reach Israel, but from Lebanon the flight time is just minutes' },
-        { id: 'l2d4', icon: '🐝', text: 'Drones are launched in swarms of 10-50+ to overwhelm air defenses — even if most are shot down, the few that get through can strike power plants, radar stations, or airfields' },
-        { id: 'l2d5', icon: '💰', text: 'At ~$20,000 each, drones are 2.5× cheaper than the interceptors used to destroy them — attackers can afford to lose dozens while draining the defender\'s missile supply' },
-        { id: 'l2d6', icon: '🎯', text: 'Unlike unguided Qassam rockets, drones use GPS navigation and can be pre-programmed to hit specific buildings — turning a cheap weapon into a precision-guided threat' },
+        { id: 'l2d1', icon: '🇮🇷', stat: 'SHAHED-136', detail: 'Iranian "kamikaze" drone — the drone IS the weapon, crashing into its target and detonating' },
+        { id: 'l2d2', icon: '📡', stat: '185 km/h', detail: 'Drone cruise speed — slow and low (100-2,000m), hugging terrain to avoid radar detection' },
+        { id: 'l2d3', icon: '📏', stat: '2,500 km', detail: 'Shahed-136 range — 7+ hours from Iran, but just minutes from Lebanon' },
+        { id: 'l2d4', icon: '🐝', stat: '10-50+', detail: 'Drones per swarm — designed to overwhelm defenses. Even a few getting through can be devastating' },
+        { id: 'l2d5', icon: '💰', stat: '$20,000', detail: 'Cost per drone — 2.5× cheaper than the interceptor that destroys it' },
+        { id: 'l2d6', icon: '🎯', stat: 'GPS-GUIDED', detail: 'Unlike unguided rockets, drones are pre-programmed to hit specific buildings' },
       ],
       animation: 'iron_dome',
     },
@@ -92,13 +108,17 @@ const BRIEFING_CONTENT = {
       subtitle: 'The Heart of the Nation',
       color: '#3b82f6',
       displayCount: 3,
+      heroImage: 'ID4.jpeg',
+      heroCaption: 'CENTRAL ISRAEL · מֶרְכַּז יִשְׂרָאֵל',
+      heroStat: '15 km',
+      heroLabel: 'Israel\'s width at its narrowest — a cruise missile could cross the entire country in under a minute',
       factPool: [
-        { id: 'l3t1', icon: '🏙️', text: 'Tel Aviv (pop. ~460,000, metro 4+ million) is Israel\'s economic engine — home to the stock exchange, most major tech companies, and the country\'s busiest cultural scene' },
-        { id: 'l3t2', icon: '🕌', text: 'Jerusalem (pop. ~1 million) is holy to Judaism, Christianity, and Islam — home to the Western Wall, Church of the Holy Sepulchre, and Al-Aqsa Mosque, making it one of the most sensitive targets on Earth' },
-        { id: 'l3t3', icon: '📐', text: 'At its narrowest point near Netanya, Israel is just 9 miles (15 km) wide — a cruise missile launched from the east could cross the entire country in under a minute' },
-        { id: 'l3t4', icon: '✈️', text: 'Ben Gurion Airport near Tel Aviv is Israel\'s only major international airport — missile attacks force it to shut down, instantly cutting the country off from the outside world' },
-        { id: 'l3t5', icon: '👥', text: 'Nearly 5 million people — close to half of Israel\'s population — live in the narrow central corridor between Tel Aviv and Jerusalem, making it the most densely populated target zone' },
-        { id: 'l3t6', icon: '💻', text: 'The "Silicon Wadi" tech corridor from Tel Aviv to Herzliya hosts thousands of startups and R&D centers for Google, Apple, and Microsoft — a strike here would ripple through the global tech economy' },
+        { id: 'l3t1', icon: '🏙️', stat: '4 million+', detail: 'People in the Tel Aviv metro area — Israel\'s economic engine, stock exchange, and tech hub' },
+        { id: 'l3t2', icon: '🕌', stat: '3 FAITHS', detail: 'Jerusalem is holy to Judaism, Christianity, and Islam — one of the most sensitive targets on Earth' },
+        { id: 'l3t3', icon: '📐', stat: '15 km', detail: 'Israel\'s width at its narrowest — a cruise missile could cross the entire country in under a minute' },
+        { id: 'l3t4', icon: '✈️', stat: '1 AIRPORT', detail: 'Ben Gurion is Israel\'s only major international airport — a missile attack cuts the country off' },
+        { id: 'l3t5', icon: '👥', stat: '~5 million', detail: 'People in the central corridor between Tel Aviv and Jerusalem — nearly half the population' },
+        { id: 'l3t6', icon: '💻', stat: 'SILICON WADI', detail: 'Thousands of startups plus Google, Apple, Microsoft R&D — a strike ripples through global tech' },
       ],
       animation: 'cruise',
     },
@@ -108,13 +128,17 @@ const BRIEFING_CONTENT = {
       subtitle: 'Low-Flying Threat, Precision Shield',
       color: '#3b82f6',
       displayCount: 3,
+      heroImage: 'ID8.avif',
+      heroCaption: "DAVID'S SLING · קֶלַע דָּוִד",
+      heroStat: 'HIT-TO-KILL',
+      heroLabel: 'Stunner interceptors use no explosive warhead — pure kinetic impact at 40-300 km range',
       factPool: [
-        { id: 'l3d1', icon: '✈️', text: 'Cruise missiles fly like small aircraft — jet-powered with wings, they hug terrain at low altitude to sneak under radar, and use GPS to strike targets with meter-level accuracy' },
-        { id: 'l3d2', icon: '🇮🇷', text: 'Iran\'s Paveh cruise missile has a range of over 1,000 miles (1,600 km) — enough to reach central Israel from deep inside Iranian territory, flying low the entire way' },
-        { id: 'l3d3', icon: '📡', text: 'Unlike ballistic missiles that arc high into the sky, cruise missiles stay low and hug the terrain — making them difficult to detect by distant radar until they are within close range' },
-        { id: 'l3d4', icon: '🛡️', text: "David's Sling became operational in 2017, filling the gap between Iron Dome and Arrow — it fires Stunner interceptors that use hit-to-kill technology with no explosive warhead" },
-        { id: 'l3d5', icon: '👁️', text: "The Stunner has a dual-seeker system — both infrared and radar guidance — allowing it to track and hit maneuvering cruise missiles at ranges of 25-185 miles (40-300 km)" },
-        { id: 'l3d6', icon: '🏭', text: "David's Sling was jointly developed by Rafael (Israel) and Raytheon (US). Each Stunner interceptor costs about $1 million — expensive, but far cheaper than what it protects" },
+        { id: 'l3d1', icon: '✈️', stat: 'LOW & SLOW', detail: 'Cruise missiles fly like small aircraft, hugging terrain to sneak under radar with GPS accuracy' },
+        { id: 'l3d2', icon: '🇮🇷', stat: '1,600 km', detail: 'Range of Iran\'s Paveh cruise missile — enough to reach central Israel flying low the entire way' },
+        { id: 'l3d3', icon: '📡', stat: 'TERRAIN HUG', detail: 'Unlike high-arc ballistic missiles, cruise missiles stay low — hard to detect until close range' },
+        { id: 'l3d4', icon: '🛡️', stat: 'HIT-TO-KILL', detail: 'David\'s Sling Stunner interceptors use no explosive warhead — pure kinetic impact, operational 2017' },
+        { id: 'l3d5', icon: '👁️', stat: 'DUAL SEEKER', detail: 'Stunner uses both infrared and radar guidance to track maneuvering targets at 40-300 km range' },
+        { id: 'l3d6', icon: '🏭', stat: '$1 million', detail: 'Cost per Stunner interceptor — expensive, but far cheaper than what it protects' },
       ],
       animation: 'davids_sling',
     },
@@ -126,7 +150,6 @@ const BRIEFING_CONTENT = {
     },
   },
 
-
   4: {
     phases: ['threat', 'defense', 'quiz'],
     threat: {
@@ -135,13 +158,17 @@ const BRIEFING_CONTENT = {
       subtitle: 'Why Missile Defense Matters',
       color: '#ef4444',
       displayCount: 3,
+      heroImage: 'ID3.jpg',
+      heroCaption: 'STRATEGIC TARGETS · מַטָּרוֹת אִסְטְרָטֶגִיּוֹת',
+      heroStat: '~200',
+      heroLabel: 'ballistic missiles Iran fired at Israel in Oct 2024 — the largest such attack in history',
       factPool: [
-        { id: 'l4t1', icon: '🗺️', text: 'Israel is roughly the size of New Jersey and only 15 km (9 miles) wide at its narrowest point — nearly all critical infrastructure sits along a tiny coastal strip, within range of enemy missiles' },
-        { id: 'l4t2', icon: '⛽', text: 'The BAZAN refinery in Haifa Bay supplies about 65% of Israel\'s diesel fuel. In 2016, Hezbollah\'s leader threatened that striking its ammonia tanks would have "the effect of a nuclear bomb" — Israel shut down the ammonia storage facility by 2017' },
-        { id: 'l4t3', icon: '💧', text: 'Israel gets over 80% of its drinking water from desalination — the Sorek plant south of Tel Aviv is one of the world\'s largest, providing water for millions. Losing it would create a national crisis within days' },
-        { id: 'l4t4', icon: '⚡', text: 'Orot Rabin in Hadera is Israel\'s largest power station at 2,590 megawatts — a single complex powering over a million homes. Israel\'s grid depends on just a handful of plants like this' },
-        { id: 'l4t5', icon: '☢️', text: 'The Dimona nuclear reactor in the Negev is one of Iran\'s top stated strategic targets — Iranian missiles landed in the Dimona area during the October 2024 attack on Israel' },
-        { id: 'l4t6', icon: '🏛️', text: 'The Kirya in central Tel Aviv is Israel\'s Pentagon — housing IDF headquarters, the Ministry of Defense, and top intelligence offices. In October 2024, an Iranian ballistic missile landed just 500 meters (5 football fields) away' },
+        { id: 'l4t1', icon: '🗺️', stat: '15 km WIDE', detail: 'Israel at its narrowest — nearly all critical infrastructure on a tiny coastal strip in missile range' },
+        { id: 'l4t2', icon: '⛽', stat: '65%', detail: 'Of Israel\'s diesel comes from the BAZAN refinery in Haifa Bay — Hezbollah\'s stated top target' },
+        { id: 'l4t3', icon: '💧', stat: '80%+', detail: 'Of Israel\'s drinking water comes from desalination — losing Sorek plant means national crisis in days' },
+        { id: 'l4t4', icon: '⚡', stat: '2,590 MW', detail: 'Orot Rabin power station — a single complex powering over a million homes' },
+        { id: 'l4t5', icon: '☢️', stat: 'DIMONA', detail: 'Nuclear reactor in the Negev — Iran\'s top stated target. Missiles hit the area in October 2024' },
+        { id: 'l4t6', icon: '🏛️', stat: '500 m', detail: 'How close an Iranian ballistic missile landed to the Kirya (Israel\'s Pentagon) in October 2024' },
       ],
       animation: 'ballistic',
     },
@@ -151,13 +178,17 @@ const BRIEFING_CONTENT = {
       subtitle: 'High Arc Threat, High Altitude Shield',
       color: '#ef4444',
       displayCount: 3,
+      heroImage: 'ID7.jpeg',
+      heroCaption: 'ARROW 2 · חֵץ 2',
+      heroStat: 'MACH 9',
+      heroLabel: 'Arrow 2 speed — intercepts at 50+ km altitude, 5× higher than airliners fly',
       factPool: [
-        { id: 'l4d1', icon: '🎯', text: 'Ballistic missiles follow a high arc into the upper atmosphere, then dive toward their target at extreme speed — Iran\'s Emad and Khorramshahr missiles can reach Israel in under 12 minutes' },
-        { id: 'l4d2', icon: '💥', text: 'Iran launched approximately 200 ballistic missiles at Israel in October 2024 — the largest ballistic missile attack in history. Arrow 2 and Arrow 3 intercepted many of them at altitude' },
-        { id: 'l4d3', icon: '📅', text: 'Arrow 2 became operational in 2000 — the world\'s first modern anti-ballistic missile system. Iraq\'s 39 Scud strikes on Israel in 1991 made building it a national priority' },
-        { id: 'l4d4', icon: '🚀', text: 'Arrow 2 flies at Mach 9 and intercepts at up to 30 miles (50 km) altitude — 5x the cruising altitude of an airliner. It uses a directed fragmentation warhead that destroys targets within a 165-foot (50 m) radius' },
-        { id: 'l4d5', icon: '🏭', text: 'Jointly developed by Israel Aerospace Industries (IAI) and Boeing — the US has funded 50-80% of the Arrow program, investing over $2.4 billion since 1989' },
-        { id: 'l4d6', icon: '📡', text: 'Paired with the Green Pine radar — able to detect missiles at 300+ miles (500+ km), track 30 targets simultaneously, and guide the Arrow to within 13 feet (4 m) of its target' },
+        { id: 'l4d1', icon: '🎯', stat: '<12 min', detail: 'Flight time from Iran — ballistic missiles arc through upper atmosphere then dive at extreme speed' },
+        { id: 'l4d2', icon: '💥', stat: '~200', detail: 'Ballistic missiles Iran fired at Israel in Oct 2024 — the largest such attack in history' },
+        { id: 'l4d3', icon: '📅', stat: 'YEAR 2000', detail: 'Arrow 2 became operational — world\'s first modern anti-ballistic missile system, born from 1991 Scud attacks' },
+        { id: 'l4d4', icon: '🚀', stat: 'MACH 9', detail: 'Arrow 2 speed — intercepts at 50+ km altitude, 5× higher than airliners fly' },
+        { id: 'l4d5', icon: '🏭', stat: '$2.4 billion', detail: 'US investment in Arrow program since 1989 — jointly built by IAI and Boeing' },
+        { id: 'l4d6', icon: '📡', stat: '500+ km', detail: 'Green Pine radar detection range — tracks 30 targets simultaneously, guides Arrow to within 4 meters' },
       ],
       animation: 'arrow_2',
     },
@@ -177,13 +208,17 @@ const BRIEFING_CONTENT = {
       subtitle: 'Why Enemies Target the Bases',
       color: '#a855f7',
       displayCount: 3,
+      heroImage: 'ID1.jpg',
+      heroCaption: 'MILITARY BASES · בְּסִיסֵי צָבָא',
+      heroStat: 'NEVATIM',
+      heroLabel: 'Home to all of Israel\'s F-35s — Iran fired missiles directly at it in October 2024',
       factPool: [
-        { id: 'l5t1', icon: '✈️', text: 'Nevatim AFB in the Negev is home to Israel\'s entire F-35 "Adir" stealth fighter fleet — Iran fired missiles directly at it in October 2024, and satellite images showed damage to the base' },
-        { id: 'l5t2', icon: '🚀', text: 'Palmachim AFB on the coast is Israel\'s spaceport — it launches satellites, tests Arrow interceptors, and is one of only a handful of orbital launch sites in the world. Israel launches westward over the sea to avoid overflying hostile neighbors' },
-        { id: 'l5t3', icon: '🕵️', text: 'Glilot base near Tel Aviv houses Unit 8200, Israel\'s signals intelligence unit — often compared to the NSA. Its alumni have founded hundreds of tech companies worth over $160 billion combined' },
-        { id: 'l5t4', icon: '☢️', text: 'Sdot Micha is believed to house Israel\'s Jericho ballistic missiles — the country\'s ultimate strategic deterrent. It has no runway, only underground missile storage, and is itself protected by Arrow batteries' },
-        { id: 'l5t5', icon: '🛩️', text: 'Ramat David AFB in the Jezreel Valley is the northernmost fighter base — just 30 miles (50 km) from the Lebanese border, making it Hezbollah\'s first target in any northern war' },
-        { id: 'l5t6', icon: '🦅', text: 'Tel Nof AFB near Rehovot houses Israel\'s F-15 long-range strike fleet. Israel was the first country outside the US to fly the F-15 — receiving its first Eagles in 1976' },
+        { id: 'l5t1', icon: '✈️', stat: 'NEVATIM AFB', detail: 'Home to all of Israel\'s F-35s — Iran fired missiles directly at it in Oct 2024' },
+        { id: 'l5t2', icon: '🚀', stat: 'PALMACHIM', detail: 'Israel\'s spaceport — launches satellites and tests Arrow interceptors. Launches westward over sea' },
+        { id: 'l5t3', icon: '🕵️', stat: 'UNIT 8200', detail: 'Glilot base signals intelligence — compared to the NSA. Alumni founded $160B+ in tech companies' },
+        { id: 'l5t4', icon: '☢️', stat: 'SDOT MICHA', detail: 'Believed to house Jericho ballistic missiles — Israel\'s ultimate deterrent, protected by Arrow' },
+        { id: 'l5t5', icon: '🛩️', stat: '50 km', detail: 'Ramat David AFB to the Lebanese border — Hezbollah\'s first target in any northern war' },
+        { id: 'l5t6', icon: '🦅', stat: 'TEL NOF', detail: 'Israel\'s F-15 long-range strike fleet — first country outside the US to fly the F-15 (1976)' },
       ],
       animation: 'hypersonic',
     },
@@ -193,13 +228,17 @@ const BRIEFING_CONTENT = {
       subtitle: 'Fastest Threat, Highest Shield',
       color: '#a855f7',
       displayCount: 3,
+      heroImage: 'ID5.jpeg',
+      heroCaption: 'ARROW 3 · חֵץ 3',
+      heroStat: 'IN SPACE',
+      heroLabel: 'Arrow 3 intercepts outside the atmosphere — hit-to-kill with pure kinetic energy, no warhead',
       factPool: [
-        { id: 'l5d1', icon: '⚡', text: 'Hypersonic weapons travel at Mach 5+ — over 3,700 mph. They boost to the edge of space, then glide back while maneuvering, making them nearly impossible to predict' },
-        { id: 'l5d2', icon: '⏱️', text: 'A hypersonic weapon at Mach 7 crosses 60 miles (100 km) in about 40 seconds — air friction heats its surface to over 3,600°F, requiring special materials to survive' },
-        { id: 'l5d3', icon: '🇷🇺', text: 'Russia, China, Iran, and North Korea are all developing hypersonic weapons — Russia\'s Avangard reportedly reaches Mach 20, and Iran has tested its own Fattah hypersonic missile' },
-        { id: 'l5d4', icon: '🌌', text: 'Arrow 3 intercepts threats in space — outside the atmosphere, before reentry. It uses hit-to-kill technology: pure kinetic energy, no explosive warhead needed' },
-        { id: 'l5d5', icon: '📏', text: 'Arrow 3 engages threats at altitudes over 62 miles (100 km) — the highest layer of Israeli defense. It was successfully tested against a real target in space in 2019' },
-        { id: 'l5d6', icon: '🌐', text: 'Destroying threats in space means debris burns up on reentry — protecting people below. Arrow 3 was developed by IAI with the US Missile Defense Agency' },
+        { id: 'l5d1', icon: '⚡', stat: 'MACH 5+', detail: 'Hypersonic speed — over 3,700 mph, boost to edge of space then glide while maneuvering' },
+        { id: 'l5d2', icon: '⏱️', stat: '40 seconds', detail: 'To cross 100 km at Mach 7 — surface heats to 3,600°F from air friction' },
+        { id: 'l5d3', icon: '🇷🇺', stat: 'MACH 20', detail: 'Russia\'s Avangard speed — Russia, China, Iran, North Korea all developing hypersonics' },
+        { id: 'l5d4', icon: '🌌', stat: 'IN SPACE', detail: 'Arrow 3 intercepts outside the atmosphere — hit-to-kill with pure kinetic energy, no warhead' },
+        { id: 'l5d5', icon: '📏', stat: '100+ km', detail: 'Arrow 3 engagement altitude — highest layer of Israeli defense. Tested in space in 2019' },
+        { id: 'l5d6', icon: '🌐', stat: 'BURNS UP', detail: 'Debris from space intercepts burns on reentry — protecting people below' },
       ],
       animation: 'arrow_3',
     },
@@ -219,13 +258,17 @@ const BRIEFING_CONTENT = {
       subtitle: 'Five Fronts — 360° of Danger',
       color: '#a855f7',
       displayCount: 3,
+      heroImage: 'ID3.jpg',
+      heroCaption: 'ALL FRONTS · טַבַּעַת הָאִיּוּמִים',
+      heroStat: '5 FRONTS',
+      heroLabel: 'Gaza, Lebanon, Syria, Iran, Yemen — Israel faces simultaneous threats from every direction',
       factPool: [
-        { id: 'l6t1', icon: '🗺️', text: 'Israel faces threats from 5 directions simultaneously — Gaza (southwest), Lebanon (north), Syria (northeast), Iran (east), and Yemen (southeast)' },
-        { id: 'l6t2', icon: '🇾🇪', text: 'Yemen\'s Houthi rebels, backed by Iran, have launched ballistic missiles and drones at Israel from over 2,000 km (1,250 miles) away — the farthest threat origin' },
-        { id: 'l6t3', icon: '🔗', text: 'Iran\'s "Axis of Resistance" coordinates attacks across all fronts — Gaza, Lebanon, Syria, Iraq, and Yemen can strike simultaneously' },
-        { id: 'l6t4', icon: '📐', text: 'Defending 360° is exponentially harder than one front — operators must constantly scan the entire radar for threats from any direction' },
-        { id: 'l6t5', icon: '🌍', text: 'Israel is one of the smallest countries facing multi-front missile threats — the entire country is only 290 miles (470 km) long and 85 miles (135 km) wide at its widest' },
-        { id: 'l6t6', icon: '⏱️', text: 'A ballistic missile from Iran reaches Israel in under 12 minutes, while a drone from Yemen takes 4+ hours — defenders must handle vastly different timelines' },
+        { id: 'l6t1', icon: '🗺️', stat: '5 FRONTS', detail: 'Gaza, Lebanon, Syria, Iran, Yemen — Israel faces simultaneous threats from every direction' },
+        { id: 'l6t2', icon: '🇾🇪', stat: '2,000+ km', detail: 'Yemen Houthi launch distance — the farthest threat origin, backed by Iran' },
+        { id: 'l6t3', icon: '🔗', stat: 'AXIS', detail: 'Iran\'s "Axis of Resistance" — Gaza, Lebanon, Syria, Iraq, and Yemen can all strike at once' },
+        { id: 'l6t4', icon: '📐', stat: '360°', detail: 'Defense perimeter — exponentially harder than one front, operators must scan every direction' },
+        { id: 'l6t5', icon: '🌍', stat: '470 × 135 km', detail: 'Israel\'s total size — one of the smallest countries facing multi-front missile threats' },
+        { id: 'l6t6', icon: '⏱️', stat: '12 min vs 4 hr', detail: 'Iranian ballistic missile vs Yemeni drone — defenders handle vastly different timelines at once' },
       ],
       animation: 'layered',
     },
@@ -235,13 +278,17 @@ const BRIEFING_CONTENT = {
       subtitle: 'Integrated Air Defense Network',
       color: '#a855f7',
       displayCount: 3,
+      heroImage: 'ID6.webp',
+      heroCaption: 'MULTI-LAYER · הֲגָנָה רַב-שִׁכְבָתִית',
+      heroStat: '4 LAYERS',
+      heroLabel: 'Iron Dome → David\'s Sling → Arrow 2 → Arrow 3 — each assigned to specific threat types',
       factPool: [
-        { id: 'l6d1', icon: '🛡️', text: 'Israel\'s multi-layered defense assigns each system to specific threat types — Iron Dome for rockets/drones, David\'s Sling for cruise missiles, Arrow for ballistic' },
-        { id: 'l6d2', icon: '📡', text: 'The entire system is connected by a unified command network — operators see all threats on one screen regardless of origin direction' },
-        { id: 'l6d3', icon: '🎯', text: 'Each interceptor battery protects a zone — multiple batteries spread across the country provide overlapping coverage' },
-        { id: 'l6d4', icon: '🧠', text: 'Deciding which threats to intercept and which to let pass (hold fire) becomes critical when threats come from every direction simultaneously' },
-        { id: 'l6d5', icon: '📏', text: 'Israel has deployed Iron Dome batteries from Eilat in the south to Haifa in the north — each covering a specific region' },
-        { id: 'l6d6', icon: '🔄', text: 'During multi-front attacks, interceptor batteries can be repositioned within hours to reinforce the most threatened areas' },
+        { id: 'l6d1', icon: '🛡️', stat: '4 LAYERS', detail: 'Iron Dome → David\'s Sling → Arrow 2 → Arrow 3 — each assigned to specific threat types' },
+        { id: 'l6d2', icon: '📡', stat: '1 SCREEN', detail: 'Unified command network — operators see all threats regardless of origin on a single display' },
+        { id: 'l6d3', icon: '🎯', stat: 'OVERLAP', detail: 'Multiple batteries per region provide overlapping coverage across the country' },
+        { id: 'l6d4', icon: '🧠', stat: 'HOLD FIRE', detail: 'The hardest decision — which threats to intercept vs let pass when attacks come from everywhere' },
+        { id: 'l6d5', icon: '📏', stat: 'EILAT → HAIFA', detail: 'Iron Dome batteries deployed the full length of the country, each covering a specific region' },
+        { id: 'l6d6', icon: '🔄', stat: 'HOURS', detail: 'Time to reposition batteries during multi-front attacks to reinforce the most threatened areas' },
       ],
       animation: 'wave_tactics',
     },
@@ -256,13 +303,17 @@ const BRIEFING_CONTENT = {
       subtitle: 'The Night Everything Fired',
       color: '#ef4444',
       displayCount: 3,
+      heroImage: 'ID3.jpg',
+      heroCaption: 'APRIL 13, 2024 · שְׁלוֹשָׁה עָשָׂר בְּאַפְּרִיל',
+      heroStat: '300+',
+      heroLabel: 'projectiles Iran launched — 170+ drones, 30+ cruise missiles, 120+ ballistic missiles',
       factPool: [
-        { id: 'l7t1', icon: '🚀', text: 'On April 13, 2024, Iran launched over 300 projectiles at Israel — 170+ drones, 30+ cruise missiles, and 120+ ballistic missiles' },
-        { id: 'l7t2', icon: '⏱️', text: 'Iran staggered launches — slow drones first, then cruise missiles, then ballistic — all timed to arrive simultaneously for maximum overload' },
-        { id: 'l7t3', icon: '🤝', text: 'A coalition of the US, UK, France, and Jordan helped Israel intercept the attack — US Navy destroyers shot down ballistic missiles from the Red Sea' },
-        { id: 'l7t4', icon: '🎯', text: '99% of incoming projectiles were intercepted — only a handful of ballistic missiles struck near Nevatim Air Base, causing minor damage' },
-        { id: 'l7t5', icon: '🛡️', text: 'All four defense tiers activated simultaneously — Iron Dome, David\'s Sling, Arrow 2, and Arrow 3 each engaged their designated threats' },
-        { id: 'l7t6', icon: '💰', text: 'Defending against the April 13 attack cost an estimated $1.35 billion — while Iran\'s total attack cost roughly $80-100 million' },
+        { id: 'l7t1', icon: '🚀', stat: '300+', detail: 'Projectiles Iran launched — 170+ drones, 30+ cruise missiles, 120+ ballistic missiles' },
+        { id: 'l7t2', icon: '⏱️', stat: 'STAGGERED', detail: 'Slow drones first, then cruise, then ballistic — all timed to arrive simultaneously' },
+        { id: 'l7t3', icon: '🤝', stat: '4 NATIONS', detail: 'US, UK, France, Jordan helped intercept — US Navy destroyers shot down ballistic missiles' },
+        { id: 'l7t4', icon: '🎯', stat: '99%', detail: 'Of incoming projectiles intercepted — only a handful hit near Nevatim AFB, minor damage' },
+        { id: 'l7t5', icon: '🛡️', stat: 'ALL 4 TIERS', detail: 'Iron Dome, David\'s Sling, Arrow 2, and Arrow 3 all fired simultaneously for the first time' },
+        { id: 'l7t6', icon: '💰', stat: '$1.35 billion', detail: 'Defense cost — vs Iran\'s $80-100 million attack cost' },
       ],
       animation: 'final_stand',
     },
@@ -272,13 +323,17 @@ const BRIEFING_CONTENT = {
       subtitle: 'When Defense Costs More Than Attack',
       color: '#f97316',
       displayCount: 3,
+      heroImage: 'ID5.jpeg',
+      heroCaption: 'THE COST PROBLEM · בְּעָיַת הָעֲלוּת',
+      heroStat: '$1.35B',
+      heroLabel: 'defense cost for one night — vs Iran\'s $80-100 million attack. The economics of survival',
       factPool: [
-        { id: 'l7d1', icon: '💰', text: 'A Qassam rocket costs $800 to build — the Tamir that destroys it costs $50,000 (a 62:1 cost ratio favoring the attacker)' },
-        { id: 'l7d2', icon: '🚀', text: 'An Arrow 3 interceptor costs ~$2-3 million — adversaries can force a launch with a much cheaper decoy missile' },
-        { id: 'l7d3', icon: '🔦', text: 'Iron Beam is a laser defense system under development — each shot costs roughly $3.50 in electricity vs $50,000 for a Tamir' },
-        { id: 'l7d4', icon: '⚡', text: 'Iron Beam has no ammunition limit — as long as there is power, it can keep firing, eliminating the supply exhaustion problem' },
-        { id: 'l7d5', icon: '🌧️', text: 'Iron Beam\'s main limitation is weather — lasers lose effectiveness in heavy cloud cover, rain, or sandstorms' },
-        { id: 'l7d6', icon: '🔬', text: 'The US is co-investing in Iron Beam technology — the system could transform missile defense economics worldwide' },
+        { id: 'l7d1', icon: '💰', stat: '62:1', detail: '$800 Qassam vs $50,000 Tamir — the cost ratio is itself a weapon for the attacker' },
+        { id: 'l7d2', icon: '🚀', stat: '$2-3 million', detail: 'Arrow 3 interceptor cost — adversaries can force a launch with a cheaper decoy' },
+        { id: 'l7d3', icon: '🔦', stat: '$3.50', detail: 'Iron Beam cost per shot — laser defense, vs $50,000 for a Tamir interceptor' },
+        { id: 'l7d4', icon: '⚡', stat: '∞ AMMO', detail: 'Iron Beam has no ammunition limit — fires as long as there is power' },
+        { id: 'l7d5', icon: '🌧️', stat: 'WEATHER', detail: 'Iron Beam\'s main limitation — lasers lose effectiveness in clouds, rain, and sandstorms' },
+        { id: 'l7d6', icon: '🔬', stat: 'GAME CHANGER', detail: 'US co-investing in Iron Beam — could transform missile defense economics worldwide' },
       ],
       animation: 'resource_mgmt',
     },
@@ -1039,6 +1094,7 @@ function ThreatBriefingPhase({ data, onComplete, onSkip }) {
   const [visibleBullets, setVisibleBullets] = useState(0);
   const [canContinue, setCanContinue] = useState(false);
   const bullets = data.bullets;
+  const basePath = import.meta.env.BASE_URL || '/missile-defense/';
 
   useEffect(() => {
     const timers = bullets.map((_, i) =>
@@ -1049,59 +1105,63 @@ function ThreatBriefingPhase({ data, onComplete, onSkip }) {
     return () => { timers.forEach(clearTimeout); clearTimeout(readyTimer); };
   }, [bullets]);
 
-  const AnimComponent = THREAT_ANIMATIONS[data.animation] || null;
-
   return (
-    <div>
-      <div className="text-center mb-2">
-        <h2 className="text-lg font-bold font-mono tracking-wider" style={{ color: data.color }}>
-          {data.title}
-          {data.hebrewTitle && (
-            <span className="text-base font-bold ml-2" style={{ color: data.color, opacity: 0.65, fontFamily: 'Arial, sans-serif' }}>{data.hebrewTitle}</span>
-          )}
-        </h2>
-        <div className="text-[10px] text-gray-500 font-mono mt-0.5">{data.subtitle}</div>
-      </div>
-
-      <div className="relative">
-        {/* Radar background */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden" style={{ opacity: 0.06 }}>
-          <svg viewBox="0 0 200 200" className="w-full max-w-[400px] aspect-square" fill="none" stroke={data.color}>
-            <circle cx="100" cy="100" r="90" strokeWidth="0.5"/>
-            <circle cx="100" cy="100" r="60" strokeWidth="0.5"/>
-            <circle cx="100" cy="100" r="30" strokeWidth="0.5"/>
-            <line x1="100" y1="10" x2="100" y2="190" strokeWidth="0.3"/>
-            <line x1="10" y1="100" x2="190" y2="100" strokeWidth="0.3"/>
-            <line x1="36" y1="36" x2="164" y2="164" strokeWidth="0.2"/>
-            <line x1="164" y1="36" x2="36" y2="164" strokeWidth="0.2"/>
-          </svg>
-        </div>
-        <div className="relative space-y-2">
-          {bullets.map((bullet, i) => {
-            const isVisible = i < visibleBullets;
-            return (
-              <div
-                key={i}
-                className={`flex items-start gap-2.5 p-2.5 rounded-lg bg-gray-900/50 border border-gray-800 ${
-                  isVisible ? 'dossier-reveal' : 'opacity-0'
-                }`}
-                style={isVisible ? {
-                  '--accent-color': data.color,
-                  '--accent-glow': `${data.color}40`,
-                  animationDelay: '0s',
-                } : undefined}
-              >
-                <BriefingIcon emoji={bullet.icon} color={data.color} />
-                <span className="text-sm font-mono text-gray-300 leading-relaxed">{bullet.text}</span>
+    <div className="flex flex-col gap-2">
+      {/* Hero image with big stat */}
+      {data.heroImage && (
+        <div className="relative rounded-xl overflow-hidden flex-shrink-0">
+          <div
+            className="w-full h-[220px]"
+            style={{ background: `url('${basePath}images/${data.heroImage}') center center / cover no-repeat` }}
+          />
+          <div
+            className="absolute inset-0 flex flex-col justify-end"
+            style={{ padding: '18px 22px', background: 'linear-gradient(to bottom, rgba(10,14,26,0.15) 0%, rgba(10,14,26,0.3) 40%, rgba(10,14,26,0.88) 100%)' }}
+          >
+            {data.heroCaption && (
+              <div className="absolute top-3 left-4 text-[9px] tracking-[0.25em] uppercase" style={{ color: `${data.color}70` }}>
+                {data.heroCaption}
               </div>
-            );
-          })}
+            )}
+            <div className="font-mono font-black text-[52px] leading-none tracking-tight" style={{ color: data.color, textShadow: `0 0 40px ${data.color}40` }}>
+              {data.heroStat}
+            </div>
+            <div className="font-mono text-[13px] text-gray-300 mt-1.5 leading-relaxed tracking-wide">
+              {data.heroLabel}
+            </div>
+          </div>
         </div>
+      )}
+
+      {/* Fact cards */}
+      <div className="flex flex-col gap-1.5">
+        {bullets.map((bullet, i) => {
+          const isVisible = i < visibleBullets;
+          return (
+            <div
+              key={i}
+              className={`flex items-start gap-3 p-3 rounded-lg bg-gray-900/55 border border-gray-800/80 ${
+                isVisible ? 'dossier-reveal' : 'opacity-0'
+              }`}
+              style={isVisible ? {
+                '--accent-color': data.color,
+                '--accent-glow': `${data.color}40`,
+                animationDelay: '0s',
+              } : undefined}
+            >
+              <BriefingIcon emoji={bullet.icon} color={data.color} />
+              <div className="flex-1 min-w-0">
+                <span className="font-mono font-bold text-sm tracking-wide" style={{ color: data.color }}>{bullet.stat}</span>
+                <span className="text-[13px] font-mono text-gray-400 ml-2">{bullet.detail}</span>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       <CountdownBar duration={25} onComplete={onComplete} paused={false} />
 
-      <div className="flex items-center justify-center gap-3 mt-3">
+      <div className="flex items-center justify-center gap-3">
         {canContinue && (
           <button
             onClick={onComplete}
@@ -1150,6 +1210,7 @@ function DefenseBriefingPhase({ data, onComplete, onSkip, level }) {
   const [canContinue, setCanContinue] = useState(false);
   const bullets = data.bullets;
   const profile = THREAT_PROFILES[level];
+  const basePath = import.meta.env.BASE_URL || '/missile-defense/';
 
   useEffect(() => {
     const timers = bullets.map((_, i) =>
@@ -1161,79 +1222,85 @@ function DefenseBriefingPhase({ data, onComplete, onSkip, level }) {
   }, [bullets]);
 
   return (
-    <div>
-      <div className="text-center mb-2">
-        <h2 className="text-lg font-bold font-mono tracking-wider" style={{ color: data.color }}>
-          {data.title}
-          {data.hebrewTitle && (
-            <span className="text-base font-bold ml-2" style={{ color: data.color, opacity: 0.65, fontFamily: 'Arial, sans-serif' }}>{data.hebrewTitle}</span>
-          )}
-        </h2>
-        <div className="text-[10px] text-gray-500 font-mono mt-0.5">{data.subtitle}</div>
-      </div>
-
-      {/* Threat Profile Card */}
-      {profile && (
-        <div className="mb-2 px-3 py-1.5 rounded border bg-gray-900/60 flex items-center justify-between gap-2 text-[10px] font-mono"
-          style={{ borderColor: `${data.color}40` }}>
-          <div className="flex items-center gap-3">
-            <span className="tracking-widest text-gray-500">SPEED</span>
-            <span style={{ color: data.color }}>{profile.speed}</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="tracking-widest text-gray-500">RANGE</span>
-            <span style={{ color: data.color }}>{profile.range}</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="tracking-widest text-gray-500">ALT</span>
-            <span style={{ color: data.color }}>{profile.altitude}</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="tracking-widest text-gray-500">COST</span>
-            <span style={{ color: data.color }}>{profile.cost}</span>
+    <div className="flex flex-col gap-2">
+      {/* Hero image with defense stat */}
+      {data.heroImage && (
+        <div className="relative rounded-xl overflow-hidden flex-shrink-0">
+          <div
+            className="w-full h-[200px]"
+            style={{ background: `url('${basePath}images/${data.heroImage}') center 35% / cover no-repeat` }}
+          />
+          <div
+            className="absolute inset-0 flex flex-col justify-end"
+            style={{ padding: '16px 22px', background: 'linear-gradient(to bottom, rgba(10,14,26,0.15) 0%, rgba(10,14,26,0.35) 40%, rgba(10,14,26,0.9) 100%)' }}
+          >
+            {data.heroCaption && (
+              <div className="absolute top-3 left-4 text-[9px] tracking-[0.25em] uppercase" style={{ color: `${data.color}70` }}>
+                {data.heroCaption}
+              </div>
+            )}
+            <div className="font-mono font-black text-[48px] leading-none tracking-tight" style={{ color: data.color, textShadow: `0 0 40px ${data.color}35` }}>
+              {data.heroStat}
+            </div>
+            <div className="font-mono text-[13px] text-gray-300 mt-1.5 leading-relaxed tracking-wide">
+              {data.heroLabel}
+            </div>
           </div>
         </div>
       )}
 
-      <div className="relative">
-        {/* Radar background */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden" style={{ opacity: 0.06 }}>
-          <svg viewBox="0 0 200 200" className="w-full max-w-[400px] aspect-square" fill="none" stroke={data.color}>
-            <circle cx="100" cy="100" r="90" strokeWidth="0.5"/>
-            <circle cx="100" cy="100" r="60" strokeWidth="0.5"/>
-            <circle cx="100" cy="100" r="30" strokeWidth="0.5"/>
-            <line x1="100" y1="10" x2="100" y2="190" strokeWidth="0.3"/>
-            <line x1="10" y1="100" x2="190" y2="100" strokeWidth="0.3"/>
-            <line x1="36" y1="36" x2="164" y2="164" strokeWidth="0.2"/>
-            <line x1="164" y1="36" x2="36" y2="164" strokeWidth="0.2"/>
-          </svg>
+      {/* Threat Profile Bar */}
+      {profile && (
+        <div className="px-3.5 py-2 rounded-lg bg-gray-900/60 flex items-center justify-between gap-2 text-[10px] font-mono"
+          style={{ border: `1px solid ${data.color}25` }}>
+          <div className="flex items-center gap-2">
+            <span className="tracking-[0.18em] text-gray-500">SPEED</span>
+            <span className="font-bold" style={{ color: data.color }}>{profile.speed}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="tracking-[0.18em] text-gray-500">RANGE</span>
+            <span className="font-bold" style={{ color: data.color }}>{profile.range}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="tracking-[0.18em] text-gray-500">ALT</span>
+            <span className="font-bold" style={{ color: data.color }}>{profile.altitude}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="tracking-[0.18em] text-gray-500">COST</span>
+            <span className="font-bold" style={{ color: data.color }}>{profile.cost}</span>
+          </div>
         </div>
-        <div className="relative space-y-2">
-          {bullets.map((bullet, i) => {
-            const isVisible = i < visibleBullets;
-            return (
-              <div
-                key={i}
-                className={`flex items-start gap-2.5 p-2.5 rounded-lg bg-gray-900/50 border border-gray-800 ${
-                  isVisible ? 'dossier-reveal' : 'opacity-0'
-                }`}
-                style={isVisible ? {
-                  '--accent-color': data.color,
-                  '--accent-glow': `${data.color}40`,
-                  animationDelay: '0s',
-                } : undefined}
-              >
-                <BriefingIcon emoji={bullet.icon} color={data.color} />
-                <span className="text-sm font-mono text-gray-300 leading-relaxed">{bullet.text}</span>
+      )}
+
+      {/* Fact cards */}
+      <div className="flex flex-col gap-1.5">
+        {bullets.map((bullet, i) => {
+          const isVisible = i < visibleBullets;
+          return (
+            <div
+              key={i}
+              className={`flex items-start gap-3 p-3 rounded-lg bg-gray-900/55 border border-gray-800/80 ${
+                isVisible ? 'dossier-reveal' : 'opacity-0'
+              }`}
+              style={isVisible ? {
+                '--accent-color': data.color,
+                '--accent-glow': `${data.color}40`,
+                animationDelay: '0s',
+              } : undefined}
+            >
+              <BriefingIcon emoji={bullet.icon} color={data.color} />
+              <div className="flex-1 min-w-0">
+                <span className="font-mono font-bold text-sm tracking-wide" style={{ color: data.color }}>{bullet.stat}</span>
+                <span className="text-[13px] font-mono text-gray-400 ml-2">{bullet.detail}</span>
               </div>
-            );
-          })}
-        </div>
+            </div>
+          );
+        })}
       </div>
 
       <CountdownBar duration={25} onComplete={onComplete} paused={false} />
 
-      <div className="flex items-center justify-center gap-3 mt-3">
+      <div className="flex items-center justify-center gap-3">
         {canContinue && (
           <button
             onClick={onComplete}
@@ -1351,11 +1418,15 @@ function IntelCheckPhase({ level, shownFactIds, onComplete, onSkip }) {
 
   return (
     <div>
-      <div className="text-center mb-3">
-        <div className="text-xs text-gray-500 font-mono tracking-[0.4em] mb-0.5">INTEL CHECK</div>
-        <h2 className="text-xl font-bold font-mono text-cyan-400 tracking-wider">
-          QUESTION {currentQ + 1} OF {questions.length}
-        </h2>
+      <div className="text-center mb-2">
+        <div className="font-mono text-base font-black tracking-[0.2em] text-cyan-400"
+          style={{ textShadow: '0 0 20px rgba(6,182,212,0.2)' }}>
+          READINESS CHECK
+        </div>
+        <div className="font-mono text-[10px] tracking-[0.15em] mt-0.5"
+          style={{ color: 'rgba(6,182,212,0.44)' }}>
+          QUESTION {currentQ + 1} OF {questions.length} · +{quizConfig.pointsPerCorrect} PER CORRECT
+        </div>
       </div>
 
       {/* Timer bar */}
@@ -1383,20 +1454,41 @@ function IntelCheckPhase({ level, shownFactIds, onComplete, onSkip }) {
       </div>
 
       {/* Options */}
-      <div className="space-y-2 max-w-lg mx-auto">
+      <div className="flex flex-col gap-1.5 max-w-lg mx-auto">
         {q.options.map((option, i) => {
-          let btnClass = 'border-gray-700 bg-gray-900/50 text-gray-300 hover:border-gray-500 cursor-pointer';
-          let indicator = null;
+          const letter = String.fromCharCode(65 + i);
+          let borderColor = '#1e2736';
+          let bgColor = 'rgba(17,24,39,0.55)';
+          let keyBg = 'rgba(6,182,212,0.15)';
+          let keyBorder = 'rgba(6,182,212,0.25)';
+          let keyColor = '#06b6d4';
+          let keyText = letter;
+          let textColor = '#d1d5db';
 
           if (showResult) {
             if (i === q.correctIndex) {
-              btnClass = 'border-green-400 bg-green-900/60 text-green-200 shadow-[0_0_20px_rgba(34,197,94,0.4)] scale-[1.02]';
-              indicator = <span className="ml-auto text-green-400 font-bold">✓</span>;
+              borderColor = '#22c55e';
+              bgColor = 'rgba(34,197,94,0.1)';
+              keyBg = 'rgba(34,197,94,0.2)';
+              keyBorder = 'rgba(34,197,94,0.38)';
+              keyColor = '#22c55e';
+              keyText = '✓';
+              textColor = '#22c55e';
             } else if (i === selectedAnswer && !isCorrect) {
-              btnClass = 'border-red-400 bg-red-900/60 text-red-200 shadow-[0_0_20px_rgba(239,68,68,0.4)]';
-              indicator = <span className="ml-auto text-red-400 font-bold">✗</span>;
+              borderColor = '#ef4444';
+              bgColor = 'rgba(239,68,68,0.1)';
+              keyBg = 'rgba(239,68,68,0.2)';
+              keyBorder = 'rgba(239,68,68,0.38)';
+              keyColor = '#ef4444';
+              keyText = '✗';
+              textColor = '#ef4444';
             } else {
-              btnClass = 'border-gray-800 bg-gray-900/30 text-gray-600';
+              borderColor = '#1e2736';
+              bgColor = 'rgba(17,24,39,0.3)';
+              textColor = '#6b7280';
+              keyColor = '#4b5563';
+              keyBg = 'rgba(75,85,99,0.15)';
+              keyBorder = 'rgba(75,85,99,0.25)';
             }
           }
 
@@ -1405,15 +1497,24 @@ function IntelCheckPhase({ level, shownFactIds, onComplete, onSkip }) {
               key={i}
               onClick={() => handleAnswer(i)}
               disabled={showResult}
-              className={`w-full py-2.5 px-4 rounded-lg font-mono text-sm tracking-wide
-                border-2 transition-all duration-300 ${btnClass}
-                ${showResult ? 'cursor-default' : 'active:scale-[0.98]'}
+              className={`w-full flex items-center gap-2.5 px-3.5 py-3 rounded-xl font-mono transition-all duration-200
+                ${showResult ? 'cursor-default' : 'cursor-pointer hover:opacity-80 active:scale-[0.98]'}
               `}
+              style={{
+                background: bgColor,
+                border: `1px solid ${borderColor}`,
+              }}
             >
-              <span className="flex items-center">
-                <span className="mr-3 text-gray-600">{String.fromCharCode(65 + i)}.</span>
-                <span className="flex-1">{option}</span>
-                {indicator}
+              <div className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 text-[11px] font-bold"
+                style={{
+                  background: keyBg,
+                  border: `1px solid ${keyBorder}`,
+                  color: keyColor,
+                }}>
+                {keyText}
+              </div>
+              <span className="text-[13px] text-left" style={{ color: textColor }}>
+                {option}
               </span>
             </button>
           );
@@ -1422,48 +1523,28 @@ function IntelCheckPhase({ level, shownFactIds, onComplete, onSkip }) {
 
       {/* Result feedback */}
       {showResult && (
-        <div className={`mt-3 p-3 rounded-lg text-center font-mono text-sm ${
-          timedOut
-            ? 'bg-yellow-900/30 border border-yellow-700 text-yellow-400'
-            : isCorrect
-            ? 'bg-green-900/30 border border-green-700 text-green-400'
-            : 'bg-red-900/30 border border-red-700 text-red-400'
-        }`}>
-          {timedOut && (
-            <>
-              <div className="font-bold tracking-wider mb-1">TIME'S UP</div>
-              <div className="text-xs text-gray-400">{q.explanation}</div>
-            </>
-          )}
-          {!timedOut && isCorrect && (
-            <>
-              <div className="font-bold tracking-wider mb-1">✓ CORRECT — +{quizConfig.pointsPerCorrect} PTS</div>
-              <div className="text-xs text-gray-400">{q.explanation}</div>
-            </>
-          )}
-          {!timedOut && !isCorrect && (
-            <>
-              <div className="font-bold tracking-wider mb-1">✗ INCORRECT</div>
-              <div className="text-xs text-gray-400">{q.explanation}</div>
-            </>
-          )}
+        <div className="mt-2.5 px-3.5 py-2.5 rounded-lg" style={{
+          background: timedOut ? 'rgba(234,179,8,0.06)' : isCorrect ? 'rgba(34,197,94,0.06)' : 'rgba(239,68,68,0.06)',
+          border: `1px solid ${timedOut ? 'rgba(234,179,8,0.15)' : isCorrect ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)'}`,
+        }}>
+          <div className="font-mono text-[11px] font-bold tracking-[0.15em] mb-1"
+            style={{ color: timedOut ? '#eab308' : isCorrect ? '#22c55e' : '#ef4444' }}>
+            {timedOut ? "TIME'S UP" : isCorrect ? `✓ CORRECT — +${quizConfig.pointsPerCorrect} POINTS` : '✗ INCORRECT'}
+          </div>
+          <div className="font-mono text-xs text-gray-400 leading-relaxed">{q.explanation}</div>
         </div>
       )}
 
-      {/* Points tracker + skip */}
-      <div className="mt-4 flex items-center justify-center gap-4">
-        <span className="font-mono text-xs text-gray-600 tracking-widest">INTEL SCORE: <span className="text-sm text-cyan-400 font-bold">{totalPoints} PTS</span></span>
-        {onSkip && (
-          <button
-            onClick={onSkip}
-            className="px-4 py-1.5 bg-gray-800/60 border border-gray-600 text-gray-400
-              font-mono text-[10px] tracking-widest rounded-lg
-              hover:bg-gray-700/80 hover:border-gray-400 hover:text-gray-300
-              transition-all active:scale-95 cursor-pointer"
-          >
-            SKIP ⚠
-          </button>
-        )}
+      {/* Points tracker */}
+      <div className="mt-3 flex justify-center gap-4">
+        <div className="text-center">
+          <div className="font-mono text-lg font-black text-green-400">{totalPoints}</div>
+          <div className="font-mono text-[8px] text-gray-500 tracking-[0.15em] mt-0.5">QUIZ POINTS</div>
+        </div>
+        <div className="text-center">
+          <div className="font-mono text-lg font-black text-green-400">{currentQ + (showResult ? 1 : 0)}/{questions.length}</div>
+          <div className="font-mono text-[8px] text-gray-500 tracking-[0.15em] mt-0.5">ANSWERED</div>
+        </div>
       </div>
     </div>
   );
@@ -2006,6 +2087,9 @@ export default function EducationalBriefing({ level, onComplete }) {
     onComplete({ quizPoints: 0 });
   }, [onComplete]);
 
+  const quizBasePath = import.meta.env.BASE_URL || '/missile-defense/';
+  const quizHeroImage = contentRef.current?.threat?.heroImage || 'ID1.jpg';
+
   return (
     <div
       className="h-screen flex flex-col relative overflow-hidden"
@@ -2018,7 +2102,24 @@ export default function EducationalBriefing({ level, onComplete }) {
         `,
       }}
     >
+      {/* Quiz phase background photo */}
+      {phase === 'quiz' && (
+        <>
+          <div className="absolute inset-0 pointer-events-none"
+            style={{ background: `url('${quizBasePath}images/${quizHeroImage}') center center / cover no-repeat` }} />
+          <div className="absolute inset-0 pointer-events-none"
+            style={{
+              background: `linear-gradient(to bottom,
+                rgba(10,14,26,0.45) 0%,
+                rgba(10,14,26,0.6) 25%,
+                rgba(10,14,26,0.85) 55%,
+                #0a0e1a 100%
+              )`,
+            }} />
+        </>
+      )}
       {/* Decorative background grid — parallax shift on phase change */}
+      {phase !== 'quiz' && (
       <div
         className={`absolute inset-0 pointer-events-none briefing-grid-phase-${phases.indexOf(phase)}`}
         style={{
@@ -2031,6 +2132,7 @@ export default function EducationalBriefing({ level, onComplete }) {
           WebkitMaskImage: 'radial-gradient(ellipse at 50% 50%, black 30%, transparent 70%)',
         }}
       />
+      )}
       {/* Accent glow bar at top — visible color strip */}
       <div
         className="absolute top-0 left-0 right-0 h-1 pointer-events-none"

@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0a0e1a;
+    color: #e5e7eb;
+    font-family: 'Courier New', monospace;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .page {
+    width: 100%;
+    max-width: 520px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  /* Hero photo — top half */
+  .hero-bg {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 280px;
+    background: url('/missile-defense/images/ID5.jpeg') center 30% / cover no-repeat;
+    z-index: 0;
+  }
+  .hero-bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(10,14,26,0.2) 0%,
+      rgba(10,14,26,0.4) 40%,
+      rgba(10,14,26,0.9) 75%,
+      #0a0e1a 100%
+    );
+  }
+
+  .content {
+    position: relative;
+    z-index: 2;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 0 24px;
+  }
+
+  /* Victory header — overlaid on photo */
+  .victory-header {
+    text-align: center;
+    padding-top: 20px;
+    margin-bottom: 8px;
+  }
+  .victory-badge {
+    display: inline-block;
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    color: #22c55e;
+    border: 1px solid #22c55e40;
+    padding: 3px 12px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+  }
+  .victory-title {
+    font-size: 24px;
+    font-weight: 900;
+    color: #22c55e;
+    letter-spacing: 0.15em;
+    text-shadow: 0 0 40px rgba(34,197,94,0.3);
+    line-height: 1.2;
+  }
+  .victory-sub {
+    font-size: 11px;
+    color: #22c55e70;
+    letter-spacing: 0.15em;
+    margin-top: 4px;
+  }
+
+  /* Score + stars */
+  .score-block {
+    text-align: center;
+    padding: 16px 0 12px;
+  }
+  .score-value {
+    font-size: 52px;
+    font-weight: 900;
+    color: #22c55e;
+    line-height: 1;
+    text-shadow: 0 0 30px rgba(34,197,94,0.25);
+  }
+  .score-label {
+    font-size: 10px;
+    color: #6b7280;
+    letter-spacing: 0.2em;
+    margin-top: 4px;
+  }
+  .stars {
+    margin-top: 6px;
+    font-size: 24px;
+    letter-spacing: 4px;
+  }
+  .star-on { color: #eab308; }
+  .star-off { color: #374151; }
+
+  /* Stats grid */
+  .stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px;
+    margin-bottom: 10px;
+  }
+  .stat-card {
+    padding: 8px;
+    border-radius: 8px;
+    background: rgba(17,24,39,0.5);
+    border: 1px solid #1e2736;
+    text-align: center;
+  }
+  .stat-val {
+    font-size: 20px;
+    font-weight: 900;
+    line-height: 1;
+  }
+  .stat-val.good { color: #22c55e; }
+  .stat-val.bad { color: #ef4444; }
+  .stat-val.neutral { color: #f97316; }
+  .stat-lbl {
+    font-size: 8px;
+    color: #6b7280;
+    letter-spacing: 0.15em;
+    margin-top: 4px;
+  }
+
+  /* Debrief callout */
+  .debrief {
+    padding: 10px 14px;
+    border-radius: 8px;
+    background: rgba(34,197,94,0.06);
+    border: 1px solid #22c55e20;
+    margin-bottom: 10px;
+  }
+  .debrief-label {
+    font-size: 9px;
+    color: #22c55e60;
+    letter-spacing: 0.2em;
+    margin-bottom: 4px;
+  }
+  .debrief-text {
+    font-size: 12px;
+    color: #9ca3af;
+    line-height: 1.5;
+  }
+  .debrief-text strong { color: #22c55e; }
+
+  /* Campaign progress */
+  .campaign-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: rgba(17,24,39,0.5);
+    border: 1px solid #1e2736;
+    margin-bottom: 10px;
+  }
+  .campaign-label {
+    font-size: 10px;
+    color: #6b7280;
+    letter-spacing: 0.15em;
+    white-space: nowrap;
+  }
+  .campaign-track {
+    flex: 1;
+    height: 4px;
+    background: #1f2937;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .campaign-fill {
+    height: 100%;
+    width: 33%;
+    background: #22c55e;
+    border-radius: 2px;
+  }
+  .campaign-score {
+    font-size: 12px;
+    color: #22c55e;
+    font-weight: bold;
+    white-space: nowrap;
+  }
+
+  /* Bottom buttons */
+  .btn-row {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    padding: 6px 0 14px;
+    margin-top: auto;
+  }
+  .btn {
+    padding: 9px 28px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    border-radius: 8px;
+    border: 1px solid;
+  }
+  .btn-primary { background: rgba(22,101,52,0.25); border-color: #15803d; color: #4ade80; }
+  .btn-secondary { background: rgba(55,65,81,0.2); border-color: #4b5563; color: #9ca3af; }
+
+  .mockup-label {
+    position: fixed; top: 8px; right: 12px; font-size: 10px; color: #4ade80;
+    background: #0a0e1a; padding: 2px 8px; border: 1px solid #22c55e40;
+    border-radius: 4px; z-index: 10;
+  }
+</style>
+</head>
+<body>
+
+<div class="mockup-label">MOCKUP — LEVEL COMPLETE</div>
+
+<div class="page">
+  <div class="hero-bg"></div>
+
+  <div class="content">
+    <div class="victory-header">
+      <div class="victory-badge">LEVEL 1 COMPLETE</div>
+      <div class="victory-title">ALL CLEAR</div>
+      <div class="victory-sub">OTEF AZA · עוטף עזה</div>
+    </div>
+
+    <div class="score-block">
+      <div class="score-value">820</div>
+      <div class="score-label">LEVEL SCORE</div>
+      <div class="stars">
+        <span class="star-on">★</span>
+        <span class="star-on">★</span>
+        <span class="star-on">★</span>
+        <span class="star-off">★</span>
+        <span class="star-off">★</span>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-val good">8</div>
+        <div class="stat-lbl">INTERCEPTS</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val good">4</div>
+        <div class="stat-lbl">CORRECT HOLDS</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val bad">1</div>
+        <div class="stat-lbl">SIRENS</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val neutral">7</div>
+        <div class="stat-lbl">BEST STREAK</div>
+      </div>
+    </div>
+
+    <div class="debrief">
+      <div class="debrief-label">TACTICAL DEBRIEF</div>
+      <div class="debrief-text">
+        Your <strong>4 correct holds</strong> saved ~$200K in interceptors — real Iron Dome operators make this same call dozens of times per hour.
+      </div>
+    </div>
+
+    <div class="campaign-bar">
+      <span class="campaign-label">CAMPAIGN</span>
+      <div class="campaign-track"><div class="campaign-fill"></div></div>
+      <span class="campaign-score">820 PTS</span>
+    </div>
+
+    <div class="btn-row">
+      <div class="btn btn-primary">NEXT LEVEL ▸</div>
+      <div class="btn btn-secondary">END CAMPAIGN</div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
