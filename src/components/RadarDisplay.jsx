@@ -1160,7 +1160,7 @@ export default function RadarDisplay({
                           className="explore-glow"
                         />
                         <circle
-                          cx={p.x} cy={p.y} r="7"
+                          cx={p.x} cy={p.y} r={r + 2}
                           fill="transparent"
                           style={{ cursor: 'pointer' }}
                           onMouseEnter={() => handleMarkerEnter(name, city, p.x, p.y)}
@@ -1227,7 +1227,7 @@ export default function RadarDisplay({
                           className="explore-glow"
                         />
                         <circle
-                          cx={hq.x} cy={hq.y} r="7"
+                          cx={hq.x} cy={hq.y} r={r + 2}
                           fill="transparent"
                           style={{ cursor: 'pointer' }}
                           onMouseEnter={() => handleMarkerEnter(battery.label, { isBase: true, he: '' }, hq.x, hq.y)}
