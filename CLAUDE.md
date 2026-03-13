@@ -33,7 +33,8 @@ Built for classroom/escape-room use with facilitator controls and escape room ti
 | `src/components/LocationPopup.jsx` | Pause & Explore knowledge cards (hover city markers when paused) |
 | `src/config/locationData.js` | Educational content for all 41 locations (summary, facts, photos) |
 | `src/utils/firebase.js` | Firebase config + Firestore init |
-| `src/utils/leaderboard.js` | Shared leaderboard (Firestore + localStorage fallback) |
+| `src/utils/leaderboard.js` | Shared leaderboard (Firestore + localStorage fallback), event code system |
+| `src/utils/nameFilter.js` | Client-side profanity filter for team names |
 
 ## Level Progression
 
@@ -354,6 +355,17 @@ To make a level **harder** (higher score):
 - Security rules: test mode (read/write open for 30 days from creation)
 - `isHighScore()` uses localStorage only for instant sync check
 - If Firestore is down, everything degrades gracefully to localStorage-only
+- **Profanity filter**: `src/utils/nameFilter.js` blocks inappropriate team names on save (client-side)
+
+### Event Code System (School-Specific Leaderboards)
+- URL param `?event=CODE` scopes all scores to that event (e.g., `?event=LINCOLN`)
+- `getEventCode()` in `leaderboard.js` reads and sanitizes the param (uppercase, alphanumeric + hyphens, max 20 chars)
+- Each score document gets an `event` field (`''` = global, `'LINCOLN'` = school-specific)
+- `getLeaderboard()` and `subscribeLeaderboard()` filter by event automatically
+- `LeaderboardTable` header shows event name (e.g., "LINCOLN LEADERBOARD")
+- Facilitator panel (ESC → unlock) displays active event code or setup instructions
+- No event param = global leaderboard (backward compatible with existing scores)
+- **Tour workflow**: Bookmark `https://mmh-web.github.io/missile-defense/?event=SCHOOLNAME` per school, share link with on-site team for setup
 
 ## Responsive Design (Mobile + Tablet + Desktop)
 
@@ -534,6 +546,10 @@ const basePath = import.meta.env.BASE_URL || '/missile-defense/';
 - ✅ Paused banner hint — upgraded to 13px green semibold with slow pulse animation
 - ✅ Top bar icons — fullscreen (⛶) and gear (⚙) moved inline into top bar as bordered square buttons
 - ✅ L1 orientation window — all threat appear times shifted +5s, first threat at t=8, duration 80→85s
+
+- ✅ Profanity filter — client-side word filter blocks inappropriate team names on save
+- ✅ Event code system — `?event=CODE` URL param scopes leaderboard per school/event
+- ✅ Hover popup misalignment fix — shrunk hover targets from r=7 to proportional r={markerSize+2}
 
 ### No Pending Work
 All previously tracked items have been completed and merged.
