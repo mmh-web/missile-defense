@@ -194,41 +194,42 @@ function threat(id, time, type, zone, populated, cdn, intel, reveal, extra = {})
 // All threats from Gaza. Only Otef Aza cities targeted.
 // ============================================================
 const THREATS_L1 = [
-  // === SINGLES — learn the basics (4 threats, 3-12s) ===
-  threat(1,  3,  'rocket', 'Sderot',          true,  8, 'full', 1.0, { origin: 'gaza' }),
-  threat(2,  7,  'rocket', 'Northern Negev',  false, 8, 'full', 1.0, { origin: 'gaza' }),     // hold fire
-  threat(3,  9,  'rocket', 'Ashkelon',        true,  7, 'full', 1.0, { origin: 'gaza' }),
-  threat(4,  12, 'rocket', "Be'eri",          true,  7, 'full', 1.0, { origin: 'gaza' }),
-  // === PAIRS — waves of 2 (8 threats, 16-29s) ===
-  threat(5,  16, 'rocket', 'Kfar Aza',        true,  7, 'full', 1.0, { origin: 'gaza' }),
-  threat(6,  16, 'rocket', 'Sderot',          true,  7, 'full', 1.0, { origin: 'gaza' }),     // simultaneous pair
-  threat(7,  21, 'rocket', 'Northern Negev',  false, 7, 'full', 1.0, { origin: 'gaza' }),     // hold fire
-  threat(8,  21, 'rocket', 'Netivot',         true,  7, 'full', 1.0, { origin: 'gaza' }),     // pair with hold fire
-  threat(9,  26, 'rocket', "Re'im",           true,  7, 'full', 1.0, { origin: 'gaza' }),
-  threat(10, 26, 'rocket', 'Ashkelon',        true,  7, 'full', 1.0, { origin: 'gaza' }),     // pair
-  threat(11, 29, 'rocket', "Be'eri",          true,  7, 'full', 1.0, { origin: 'gaza' }),
-  threat(12, 29, 'rocket', 'Kfar Aza',        true,  7, 'full', 1.0, { origin: 'gaza' }),     // pair
-  // === TRIPLES — waves of 3 with 6s breathing gaps (9 threats, 33-48s) ===
-  threat(13, 33, 'rocket', 'Sderot',          true,  7, 'full', 1.0, { origin: 'gaza' }),
-  threat(14, 33, 'rocket', 'Netivot',         true,  7, 'full', 1.0, { origin: 'gaza' }),
-  threat(15, 33, 'rocket', 'Northern Negev',  false, 7, 'full', 1.0, { origin: 'gaza' }),     // triple! (1 hold fire)
+  // === 8s ORIENTATION WINDOW — player reads the radar, panels, and controls ===
+  // === SINGLES — learn the basics (4 threats, 8-17s) ===
+  threat(1,  8,  'rocket', 'Sderot',          true,  8, 'full', 1.0, { origin: 'gaza' }),
+  threat(2,  12, 'rocket', 'Northern Negev',  false, 8, 'full', 1.0, { origin: 'gaza' }),     // hold fire
+  threat(3,  14, 'rocket', 'Ashkelon',        true,  7, 'full', 1.0, { origin: 'gaza' }),
+  threat(4,  17, 'rocket', "Be'eri",          true,  7, 'full', 1.0, { origin: 'gaza' }),
+  // === PAIRS — waves of 2 (8 threats, 21-34s) ===
+  threat(5,  21, 'rocket', 'Kfar Aza',        true,  7, 'full', 1.0, { origin: 'gaza' }),
+  threat(6,  21, 'rocket', 'Sderot',          true,  7, 'full', 1.0, { origin: 'gaza' }),     // simultaneous pair
+  threat(7,  26, 'rocket', 'Northern Negev',  false, 7, 'full', 1.0, { origin: 'gaza' }),     // hold fire
+  threat(8,  26, 'rocket', 'Netivot',         true,  7, 'full', 1.0, { origin: 'gaza' }),     // pair with hold fire
+  threat(9,  31, 'rocket', "Re'im",           true,  7, 'full', 1.0, { origin: 'gaza' }),
+  threat(10, 31, 'rocket', 'Ashkelon',        true,  7, 'full', 1.0, { origin: 'gaza' }),     // pair
+  threat(11, 34, 'rocket', "Be'eri",          true,  7, 'full', 1.0, { origin: 'gaza' }),
+  threat(12, 34, 'rocket', 'Kfar Aza',        true,  7, 'full', 1.0, { origin: 'gaza' }),     // pair
+  // === TRIPLES — waves of 3 with 6s breathing gaps (9 threats, 38-53s) ===
+  threat(13, 38, 'rocket', 'Sderot',          true,  7, 'full', 1.0, { origin: 'gaza' }),
+  threat(14, 38, 'rocket', 'Netivot',         true,  7, 'full', 1.0, { origin: 'gaza' }),
+  threat(15, 38, 'rocket', 'Northern Negev',  false, 7, 'full', 1.0, { origin: 'gaza' }),     // triple! (1 hold fire)
   //                                    === 6s BREATHING GAP ===
-  threat(16, 42, 'rocket', 'Ashkelon',        true,  6, 'full', 1.0, { origin: 'gaza' }),
-  threat(17, 42, 'rocket', "Re'im",           true,  6, 'full', 1.0, { origin: 'gaza' }),     // pair
-  //                                    === 11s RESPITE (resolve t=47 → next t=58) ===
-  // === FINAL SURGE — dense pair salvos (4 threats, 58-65s) ===
-  threat(22, 58, 'rocket', 'Ashkelon',        true,  5, 'full', 1.0, { origin: 'gaza' }),
-  threat(23, 58, 'rocket', 'Netivot',         true,  5, 'full', 1.0, { origin: 'gaza' }),     // pair (was triple — removed 1 for pacing)
-  threat(25, 65, 'rocket', 'Sderot',          true,  5, 'full', 1.0, { origin: 'gaza' }),
-  threat(26, 65, 'rocket', "Be'eri",          true,  5, 'full', 1.0, { origin: 'gaza' }),     // closing pair
+  threat(16, 47, 'rocket', 'Ashkelon',        true,  6, 'full', 1.0, { origin: 'gaza' }),
+  threat(17, 47, 'rocket', "Re'im",           true,  6, 'full', 1.0, { origin: 'gaza' }),     // pair
+  //                                    === 11s RESPITE (resolve t=52 → next t=63) ===
+  // === FINAL SURGE — dense pair salvos (4 threats, 63-70s) ===
+  threat(22, 63, 'rocket', 'Ashkelon',        true,  5, 'full', 1.0, { origin: 'gaza' }),
+  threat(23, 63, 'rocket', 'Netivot',         true,  5, 'full', 1.0, { origin: 'gaza' }),     // pair (was triple — removed 1 for pacing)
+  threat(25, 70, 'rocket', 'Sderot',          true,  5, 'full', 1.0, { origin: 'gaza' }),
+  threat(26, 70, 'rocket', "Be'eri",          true,  5, 'full', 1.0, { origin: 'gaza' }),     // closing pair
   // === HOLD-FIRE — unguided Qassams landing in open ground ===
   // Placed in low-density windows to avoid 5-6 simultaneous threats during barrages.
   // HF 27,28,30,33 removed — caused pile-ups during pairs/triples phases.
-  threat(29, 14, 'rocket', 'Negev Desert',             false, 5, 'full', 1.0, { origin: 'gaza' }),   // between singles & pairs, clears by t=19
-  threat(31, 23, 'rocket', 'Sinai Border Region',      false, 5, 'full', 1.0, { origin: 'gaza' }),   // between pair waves, clears by t=28
-  threat(32, 36, 'rocket', 'Judean Hills',             false, 5, 'full', 1.0, { origin: 'gaza' }),   // after triple starts, clears by t=41
-  threat(39, 61, 'rocket', 'Negev Desert',             false, 5, 'full', 1.0, { origin: 'gaza' }),
-  threat(40, 68, 'rocket', 'Dead Sea Region',          false, 5, 'full', 1.0, { origin: 'gaza' }),
+  threat(29, 19, 'rocket', 'Negev Desert',             false, 5, 'full', 1.0, { origin: 'gaza' }),   // between singles & pairs, clears by t=24
+  threat(31, 28, 'rocket', 'Sinai Border Region',      false, 5, 'full', 1.0, { origin: 'gaza' }),   // between pair waves, clears by t=33
+  threat(32, 41, 'rocket', 'Judean Hills',             false, 5, 'full', 1.0, { origin: 'gaza' }),   // after triple starts, clears by t=46
+  threat(39, 66, 'rocket', 'Negev Desert',             false, 5, 'full', 1.0, { origin: 'gaza' }),
+  threat(40, 73, 'rocket', 'Dead Sea Region',          false, 5, 'full', 1.0, { origin: 'gaza' }),
 ];
 
 // ============================================================
@@ -238,40 +239,41 @@ const THREATS_L1 = [
 // Same hold-fire rockets as variant A (open ground doesn't change).
 // ============================================================
 const THREATS_L1_B = [
-  // === SINGLES — learn the basics (4 threats, 3-12s) ===
-  threat(1,  3,  'rocket', 'Kfar Aza',        true,  8, 'full', 1.0, { origin: 'gaza' }),
-  threat(2,  7,  'rocket', 'Northern Negev',  false, 8, 'full', 1.0, { origin: 'gaza' }),     // hold fire
-  threat(3,  9,  'rocket', 'Sderot',          true,  7, 'full', 1.0, { origin: 'gaza' }),
-  threat(4,  12, 'rocket', 'Netivot',         true,  7, 'full', 1.0, { origin: 'gaza' }),
-  // === PAIRS — waves of 2 (8 threats, 16-29s) ===
-  threat(5,  16, 'rocket', "Re'im",           true,  7, 'full', 1.0, { origin: 'gaza' }),
-  threat(6,  16, 'rocket', 'Ashkelon',        true,  7, 'full', 1.0, { origin: 'gaza' }),     // simultaneous pair
-  threat(7,  21, 'rocket', 'Northern Negev',  false, 7, 'full', 1.0, { origin: 'gaza' }),     // hold fire
-  threat(8,  21, 'rocket', "Be'eri",          true,  7, 'full', 1.0, { origin: 'gaza' }),     // pair with hold fire
-  threat(9,  26, 'rocket', 'Sderot',          true,  7, 'full', 1.0, { origin: 'gaza' }),
-  threat(10, 26, 'rocket', 'Kfar Aza',        true,  7, 'full', 1.0, { origin: 'gaza' }),     // pair
-  threat(11, 29, 'rocket', 'Netivot',         true,  7, 'full', 1.0, { origin: 'gaza' }),
-  threat(12, 29, 'rocket', "Re'im",           true,  7, 'full', 1.0, { origin: 'gaza' }),     // pair
-  // === TRIPLES — waves of 3 with 6s breathing gaps (9 threats, 33-48s) ===
-  threat(13, 33, 'rocket', 'Ashkelon',        true,  7, 'full', 1.0, { origin: 'gaza' }),
-  threat(14, 33, 'rocket', "Be'eri",          true,  7, 'full', 1.0, { origin: 'gaza' }),
-  threat(15, 33, 'rocket', 'Northern Negev',  false, 7, 'full', 1.0, { origin: 'gaza' }),     // triple! (1 hold fire)
+  // === 8s ORIENTATION WINDOW — player reads the radar, panels, and controls ===
+  // === SINGLES — learn the basics (4 threats, 8-17s) ===
+  threat(1,  8,  'rocket', 'Kfar Aza',        true,  8, 'full', 1.0, { origin: 'gaza' }),
+  threat(2,  12, 'rocket', 'Northern Negev',  false, 8, 'full', 1.0, { origin: 'gaza' }),     // hold fire
+  threat(3,  14, 'rocket', 'Sderot',          true,  7, 'full', 1.0, { origin: 'gaza' }),
+  threat(4,  17, 'rocket', 'Netivot',         true,  7, 'full', 1.0, { origin: 'gaza' }),
+  // === PAIRS — waves of 2 (8 threats, 21-34s) ===
+  threat(5,  21, 'rocket', "Re'im",           true,  7, 'full', 1.0, { origin: 'gaza' }),
+  threat(6,  21, 'rocket', 'Ashkelon',        true,  7, 'full', 1.0, { origin: 'gaza' }),     // simultaneous pair
+  threat(7,  26, 'rocket', 'Northern Negev',  false, 7, 'full', 1.0, { origin: 'gaza' }),     // hold fire
+  threat(8,  26, 'rocket', "Be'eri",          true,  7, 'full', 1.0, { origin: 'gaza' }),     // pair with hold fire
+  threat(9,  31, 'rocket', 'Sderot',          true,  7, 'full', 1.0, { origin: 'gaza' }),
+  threat(10, 31, 'rocket', 'Kfar Aza',        true,  7, 'full', 1.0, { origin: 'gaza' }),     // pair
+  threat(11, 34, 'rocket', 'Netivot',         true,  7, 'full', 1.0, { origin: 'gaza' }),
+  threat(12, 34, 'rocket', "Re'im",           true,  7, 'full', 1.0, { origin: 'gaza' }),     // pair
+  // === TRIPLES — waves of 3 with 6s breathing gaps (9 threats, 38-53s) ===
+  threat(13, 38, 'rocket', 'Ashkelon',        true,  7, 'full', 1.0, { origin: 'gaza' }),
+  threat(14, 38, 'rocket', "Be'eri",          true,  7, 'full', 1.0, { origin: 'gaza' }),
+  threat(15, 38, 'rocket', 'Northern Negev',  false, 7, 'full', 1.0, { origin: 'gaza' }),     // triple! (1 hold fire)
   //                                    === 6s BREATHING GAP ===
-  threat(16, 42, 'rocket', 'Sderot',          true,  6, 'full', 1.0, { origin: 'gaza' }),
-  threat(17, 42, 'rocket', 'Kfar Aza',        true,  6, 'full', 1.0, { origin: 'gaza' }),     // pair
-  //                                    === 11s RESPITE (resolve t=47 → next t=58) ===
-  // === FINAL SURGE — dense pair salvos (4 threats, 58-65s) ===
-  threat(22, 58, 'rocket', 'Sderot',          true,  5, 'full', 1.0, { origin: 'gaza' }),
-  threat(23, 58, 'rocket', "Be'eri",          true,  5, 'full', 1.0, { origin: 'gaza' }),     // pair
-  threat(25, 65, 'rocket', 'Kfar Aza',        true,  5, 'full', 1.0, { origin: 'gaza' }),
-  threat(26, 65, 'rocket', 'Netivot',         true,  5, 'full', 1.0, { origin: 'gaza' }),     // closing pair
+  threat(16, 47, 'rocket', 'Sderot',          true,  6, 'full', 1.0, { origin: 'gaza' }),
+  threat(17, 47, 'rocket', 'Kfar Aza',        true,  6, 'full', 1.0, { origin: 'gaza' }),     // pair
+  //                                    === 11s RESPITE (resolve t=52 → next t=63) ===
+  // === FINAL SURGE — dense pair salvos (4 threats, 63-70s) ===
+  threat(22, 63, 'rocket', 'Sderot',          true,  5, 'full', 1.0, { origin: 'gaza' }),
+  threat(23, 63, 'rocket', "Be'eri",          true,  5, 'full', 1.0, { origin: 'gaza' }),     // pair
+  threat(25, 70, 'rocket', 'Kfar Aza',        true,  5, 'full', 1.0, { origin: 'gaza' }),
+  threat(26, 70, 'rocket', 'Netivot',         true,  5, 'full', 1.0, { origin: 'gaza' }),     // closing pair
   // === HOLD-FIRE — unguided Qassams landing in open ground ===
   // Placed in low-density windows to avoid 5-6 simultaneous threats during barrages.
-  threat(29, 14, 'rocket', 'Negev Desert',             false, 5, 'full', 1.0, { origin: 'gaza' }),   // between singles & pairs, clears by t=19
-  threat(31, 23, 'rocket', 'Sinai Border Region',      false, 5, 'full', 1.0, { origin: 'gaza' }),   // between pair waves, clears by t=28
-  threat(32, 36, 'rocket', 'Judean Hills',             false, 5, 'full', 1.0, { origin: 'gaza' }),   // after triple starts, clears by t=41
-  threat(39, 61, 'rocket', 'Negev Desert',             false, 5, 'full', 1.0, { origin: 'gaza' }),
-  threat(40, 68, 'rocket', 'Dead Sea Region',          false, 5, 'full', 1.0, { origin: 'gaza' }),
+  threat(29, 19, 'rocket', 'Negev Desert',             false, 5, 'full', 1.0, { origin: 'gaza' }),   // between singles & pairs, clears by t=24
+  threat(31, 28, 'rocket', 'Sinai Border Region',      false, 5, 'full', 1.0, { origin: 'gaza' }),   // between pair waves, clears by t=33
+  threat(32, 41, 'rocket', 'Judean Hills',             false, 5, 'full', 1.0, { origin: 'gaza' }),   // after triple starts, clears by t=46
+  threat(39, 66, 'rocket', 'Negev Desert',             false, 5, 'full', 1.0, { origin: 'gaza' }),
+  threat(40, 73, 'rocket', 'Dead Sea Region',          false, 5, 'full', 1.0, { origin: 'gaza' }),
 ];
 
 // ============================================================
@@ -697,7 +699,7 @@ export const LEVELS = [
   // Level 1: Otef Aza — Rockets + Iron Dome (randomized variants)
   {
     id: 1,
-    duration: 80,
+    duration: 85,
     ammo: { iron_dome: 22 },
     available_systems: ['iron_dome'],
     auto_end_delay: 3000,

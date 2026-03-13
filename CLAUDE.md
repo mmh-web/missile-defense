@@ -104,6 +104,9 @@ Each level has designed breathing gaps (5-11s with no threats on screen) between
 ### L1 Variant System
 Level 1 has two threat arrays: `THREATS_L1` and `THREATS_L1_B`. One is randomly selected each playthrough via `pickThreatVariant()`. Same timing/countdowns/HF rockets, different city target assignments so repeat players can't memorize.
 
+### L1 Orientation Window
+All L1 threat appear times are shifted +5s from the level start. First threat appears at t=8 (not t=3), giving players ~8 seconds to read the HUD, understand the radar, and orient themselves before the first rocket. Duration is 85s (not 80) to accommodate. Both THREATS_L1 and THREATS_L1_B variants have the same shift.
+
 ## Coordinate System
 
 ### Map Coordinates (0-1 normalized)
@@ -189,10 +192,10 @@ PRE_GAME → SCORING_INTRO → BRIEFING (L1 only, has quiz)
 - **Normal mode**: `max-w-[1200px]` constrains layout to center of screen
 - **Fullscreen mode**: `max-w-none` + `px-8` padding — layout spreads across full width. `isFullscreen` state toggles this dynamically. Critical because fullscreen has different aspect ratio (wider) and the 1200px cap would leave too much dead space.
 - **Radar sizing**: `maxWidth: 900px, maxHeight: 100%, aspectRatio: 1` — height-constrained, fills available vertical space. Panels don't shrink radar since width is not the constraint.
-- **AmmoStack**: Shows all 4 interceptor types + hold fire vertically. Available systems bright, unavailable dimmed (opacity-20). Includes ammo counts, dots, streak indicator, and feedback messages. No letter-spacing on labels (was causing "DAVID'S SLING" truncation).
+- **AmmoStack**: Shows all 4 interceptor types + hold fire vertically. Available systems bright, unavailable dimmed (opacity-20). Includes ammo counts, dots, streak indicator, and feedback messages. No letter-spacing on labels (was causing "DAVID'S SLING" truncation). Includes "PAUSE & EXPLORE" CTA at bottom with cyan P badge and hint text.
 - **ControlPanel**: Hidden on desktop (`lg:hidden`), shown on mobile/tablet as bottom panel
 - **Fullscreen mode**: Toggle via ⛶ button (top-right) or `F` key. Uses browser Fullscreen API. Available from any game screen.
-- Top bar: Level name + Hebrew subtitle centered, music/score left, timer/settings right
+- Top bar: Level name + Hebrew subtitle centered, music/score left, timer/settings/fullscreen right. Fullscreen (⛶) and gear (⚙) are inline bordered square buttons (w-7 h-7) matching HUD aesthetic.
 
 ## Quiz System
 - 2 questions per level, randomly selected from pool of 12-14
@@ -391,6 +394,8 @@ At `lg:` breakpoint, 3-column flex layout with dynamic max-width:
 
 ## Workflow Rules
 - **Never ask for permission** — just do the work and show results. User will playtest and give feedback.
+- **Always hyperlink URLs** — format as clickable markdown links: `[label](url)`. Keep text copyable — don't bury URLs/commands/paths in non-selectable formatting.
+- **Verify dev server before sharing links** — don't just start the server and share the URL. Confirm the page actually renders content (not blank) before giving the user the link. Restart and retry if it fails.
 - Keep dev server running after changes so user can playtest immediately.
 - When making UI changes, test at all 3 breakpoints (phone 375×812, tablet 768×1024, desktop 1366×800).
 - Deploy fully when asked (commit main → build → push → gh-pages deploy cycle).
@@ -520,6 +525,15 @@ const basePath = import.meta.env.BASE_URL || '/missile-defense/';
 - ✅ Pause & Explore popup system — LocationPopup component, locationData.js, 41 Wikimedia photos
 - ✅ Pause banner hint — "HOVER LOCATIONS TO EXPLORE" visible at all breakpoints
 - ✅ Dark theme only for popups — removed light variant toggle
+- ✅ Battery popup cards — Hatzerim AFB, Hatzor AFB, Arrow Battery added to locationData.js with photos
+- ✅ Battery hover targets — hover handlers + explore glow on battery diamond markers in RadarDisplay
+- ✅ Battery diamond sizing — shrunk from r=1.8 to r=1.3 with thinner strokes for proper diamond shape
+- ✅ Hover persistence fix — dismiss timer 150→300ms, hover target radius 5→7 for easier card retention
+- ✅ Hebrew title brightness — popup card Hebrew text opacity bumped from 0.65 to 0.9
+- ✅ AmmoStack "Pause & Explore" CTA — cyan P badge + hint text below ammo stack, desktop only
+- ✅ Paused banner hint — upgraded to 13px green semibold with slow pulse animation
+- ✅ Top bar icons — fullscreen (⛶) and gear (⚙) moved inline into top bar as bordered square buttons
+- ✅ L1 orientation window — all threat appear times shifted +5s, first threat at t=8, duration 80→85s
 
 ### No Pending Work
 All previously tracked items have been completed and merged.

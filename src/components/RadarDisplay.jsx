@@ -835,7 +835,7 @@ export default function RadarDisplay({
     dismissTimer.current = setTimeout(() => {
       setHoveredLocation(null);
       setPopupPos(null);
-    }, 150);
+    }, 300);
   }, []);
 
   const handlePopupEnter = useCallback(() => {
@@ -1160,7 +1160,7 @@ export default function RadarDisplay({
                           className="explore-glow"
                         />
                         <circle
-                          cx={p.x} cy={p.y} r="5"
+                          cx={p.x} cy={p.y} r="7"
                           fill="transparent"
                           style={{ cursor: 'pointer' }}
                           onMouseEnter={() => handleMarkerEnter(name, city, p.x, p.y)}
@@ -1181,29 +1181,29 @@ export default function RadarDisplay({
               const batteries = Array.isArray(entry) ? entry : [entry];
               return batteries.map((battery, i) => {
                 const hq = mapToSVG(battery.x, battery.y, viewport);
-                const r = 1.8;
+                const r = 1.3;
                 return (
                   <g key={`bat-${i}`}>
                     {/* Outer green diamond */}
                     <rect
                       x={hq.x - r} y={hq.y - r}
                       width={r * 2} height={r * 2}
-                      fill="none" stroke="rgba(0, 255, 136, 0.7)" strokeWidth="0.5"
+                      fill="none" stroke="rgba(0, 255, 136, 0.7)" strokeWidth="0.4"
                       transform={`rotate(45, ${hq.x}, ${hq.y})`}
                     />
                     {/* Inner orange diamond */}
                     <rect
-                      x={hq.x - r * 0.6} y={hq.y - r * 0.6}
-                      width={r * 1.2} height={r * 1.2}
-                      fill="rgba(234, 179, 8, 0.5)" stroke="rgba(234, 179, 8, 0.9)" strokeWidth="0.3"
+                      x={hq.x - r * 0.55} y={hq.y - r * 0.55}
+                      width={r * 1.1} height={r * 1.1}
+                      fill="rgba(234, 179, 8, 0.5)" stroke="rgba(234, 179, 8, 0.9)" strokeWidth="0.25"
                       transform={`rotate(45, ${hq.x}, ${hq.y})`}
                     />
                     {/* AFB label — positioned by labelDir to avoid overlap */}
                     {/* Hide battery labels at L5+ where base/city labels already show the names */}
                     {currentLevel <= 4 && (() => {
                       const dir = battery.labelDir || 's';
-                      const lx = dir.includes('e') ? hq.x + 3.5 : dir.includes('w') ? hq.x - 3.5 : hq.x;
-                      const ly = dir.includes('s') ? hq.y + 3.5 : dir.includes('n') ? hq.y - 3.5 : hq.y + 0.7;
+                      const lx = dir.includes('e') ? hq.x + 3.0 : dir.includes('w') ? hq.x - 3.0 : hq.x;
+                      const ly = dir.includes('s') ? hq.y + 3.0 : dir.includes('n') ? hq.y - 3.0 : hq.y + 0.7;
                       const anchor = dir.includes('e') ? 'start' : dir.includes('w') ? 'end' : 'middle';
                       return (
                         <text
@@ -1216,6 +1216,26 @@ export default function RadarDisplay({
                         </text>
                       );
                     })()}
+                    {/* Pause & Explore: hover target for battery popup */}
+                    {paused && (
+                      <>
+                        <circle
+                          cx={hq.x} cy={hq.y} r={r + 1.2}
+                          fill="none"
+                          stroke="rgba(234,179,8,0.35)"
+                          strokeWidth="0.3"
+                          className="explore-glow"
+                        />
+                        <circle
+                          cx={hq.x} cy={hq.y} r="7"
+                          fill="transparent"
+                          style={{ cursor: 'pointer' }}
+                          onMouseEnter={() => handleMarkerEnter(battery.label, { isBase: true, he: '' }, hq.x, hq.y)}
+                          onMouseLeave={handleMarkerLeave}
+                          onClick={() => handleMarkerEnter(battery.label, { isBase: true, he: '' }, hq.x, hq.y)}
+                        />
+                      </>
+                    )}
                   </g>
                 );
               });

@@ -406,4 +406,36 @@ export const LOCATION_DATA = {
       '300+ km from Gaza, but in range of long-range rockets from Yemen.',
     ],
   },
+
+  // ═══════════════════════════════════════════════════════════
+  // BATTERY POSITIONS — Interceptor launch sites
+  // ═══════════════════════════════════════════════════════════
+
+  'Hatzerim AFB': {
+    photo: 'hatzerim.jpg',
+    category: 'base',
+    summary: 'Major IAF base in the Negev — home to flight school and F-16 squadrons.',
+    facts: [
+      'Israel\u2019s primary flight academy — nearly every IAF pilot trained here.',
+      'Hosts the Israeli Air Force Museum with 150+ historic aircraft.',
+    ],
+  },
+  'Hatzor AFB': {
+    photo: 'hatzor.jpg',
+    category: 'base',
+    summary: 'One of Israel\u2019s oldest and most active air bases, south of Tel Aviv.',
+    facts: [
+      'Home to David\u2019s Sling missile defense batteries.',
+      'Operational since 1948 — played key roles in every major conflict.',
+    ],
+  },
+  'Arrow Battery': {
+    photo: 'arrow-battery.jpg',
+    category: 'base',
+    summary: 'Arrow missile defense — Israel\u2019s shield against ballistic threats.',
+    facts: [
+      'Arrow 2 intercepts at 15-80 km altitude — inside the atmosphere.',
+      'Arrow 3 intercepts in space (100+ km) — "hit-to-kill" with no warhead.',
+    ],
+  },
 };

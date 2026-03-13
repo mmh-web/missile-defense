@@ -757,27 +757,12 @@ export default function App() {
   // ========================
   return (
     <div key={`screen-active-${currentLevel}`} className={`screen-fade-in h-screen bg-[#0a0e1a] flex flex-col overflow-hidden relative ${screenShake ? 'screen-shake border-flash-red' : ''}`}>
-      {/* Floating top-right: fullscreen + gear icon + escape room timer */}
-      <div className="absolute top-2 right-4 z-30 flex items-center gap-3">
-        <button
-          onClick={toggleFullscreen}
-          className="hidden lg:block text-gray-400 hover:text-gray-100 transition-colors cursor-pointer text-lg px-1.5 py-0.5"
-          title="Fullscreen (F)"
-        >
-          {isFullscreen ? '⊡' : '⛶'}
-        </button>
-        <button
-          onClick={() => {
-            if (gameState === GAME_STATES.ACTIVE && !paused) togglePause();
-            setShowFacilitator(true);
-          }}
-          className="text-gray-400 hover:text-gray-100 transition-colors cursor-pointer text-2xl px-1.5 py-0.5"
-          title="Settings (ESC)"
-        >
-          &#9881;
-        </button>
-        {escapeRoomMode && <EscapeRoomTimer escapeRoomTime={escapeRoomTime} />}
-      </div>
+      {/* Escape room timer — floats above top bar if active */}
+      {escapeRoomMode && (
+        <div className="absolute top-2 right-4 z-30">
+          <EscapeRoomTimer escapeRoomTime={escapeRoomTime} />
+        </div>
+      )}
 
       {/* Top bar — level name centered prominently, score/timer on sides */}
       <div className="flex items-center justify-between px-2 md:px-4 py-2 md:py-2.5 lg:py-3 relative min-h-[44px] md:min-h-[56px] lg:min-h-[68px]"
@@ -837,14 +822,32 @@ export default function App() {
           </div>
         </div>
 
-        {/* Right: timer (margin-right for fullscreen + gear icon + escape room pill) */}
-        <div className="flex items-center gap-2 md:gap-3 mr-10 md:mr-16 lg:mr-24">
+        {/* Right: timer + fullscreen + settings */}
+        <div className="flex items-center gap-2 md:gap-3">
           <div className="font-mono text-[10px] md:text-xs">
             <span className="text-green-400 text-xs md:text-sm font-bold tabular-nums">
               {formatCountdown(Math.max(0, (config?.duration || 0) - sessionTime))}
             </span>
           </div>
           <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse hidden sm:block" />
+          <span className="text-gray-700 font-mono text-xs hidden sm:inline">|</span>
+          <button
+            onClick={toggleFullscreen}
+            className="hidden lg:flex items-center justify-center w-7 h-7 rounded border border-gray-700/60 text-gray-500 hover:text-green-400 hover:border-green-500/40 transition-all cursor-pointer font-mono text-xs font-bold"
+            title="Fullscreen (F)"
+          >
+            {isFullscreen ? '⊡' : '⛶'}
+          </button>
+          <button
+            onClick={() => {
+              if (gameState === GAME_STATES.ACTIVE && !paused) togglePause();
+              setShowFacilitator(true);
+            }}
+            className="flex items-center justify-center w-7 h-7 rounded border border-gray-700/60 text-gray-500 hover:text-green-400 hover:border-green-500/40 transition-all cursor-pointer text-base"
+            title="Settings (ESC)"
+          >
+            &#9881;
+          </button>
         </div>
         {/* Glow line accent under HUD */}
         <div className="absolute bottom-0 left-[15%] right-[15%] h-px pointer-events-none" style={{ background: `linear-gradient(90deg, transparent, ${LEVEL_ACCENT_COLORS[currentLevel] || '#22c55e'}30, transparent)` }} />
@@ -907,12 +910,7 @@ export default function App() {
         />
       </div>
 
-      {/* HUD hint — Pause & Explore, desktop only */}
-      {!paused && (
-        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 hidden lg:block">
-          <span className="font-mono text-[10px] text-gray-500/50 tracking-wider">P — PAUSE & EXPLORE</span>
-        </div>
-      )}
+      {/* HUD hint — Pause & Explore — removed, now in AmmoStack */}
 
       {/* SALVO WARNING overlay — level-based intensity */}
       {finalSalvoWarning && (
@@ -1036,12 +1034,12 @@ export default function App() {
 
       {/* PAUSE indicator — minimal banner so full game screen stays visible */}
       {paused && (
-        <div className="absolute top-12 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center bg-black/80 border border-yellow-500/50 rounded-lg px-6 py-2">
+        <div className="absolute top-12 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center bg-black/90 border border-yellow-500/50 rounded-lg px-6 py-3">
           <div>
             <span className="font-bold font-mono text-yellow-500 tracking-[0.3em] text-lg animate-pulse">PAUSED</span>
             <span className="font-mono text-gray-500 text-xs ml-4">P or ESC to resume</span>
           </div>
-          <div className="font-mono text-green-400/80 text-[11px] tracking-wide mt-1">HOVER LOCATIONS TO EXPLORE</div>
+          <div className="font-mono text-green-400 text-[13px] tracking-wide mt-2 font-semibold animate-pulse" style={{ animationDuration: '2s' }}>HOVER OVER LOCATIONS TO EXPLORE</div>
         </div>
       )}
 

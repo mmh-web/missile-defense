@@ -8,9 +8,9 @@ import { LOCATION_DATA } from '../config/locationData.js';
 
 // Accent colors by category — dark variant
 const ACCENT_DARK = {
-  city:           { border: 'rgba(34,197,94,0.5)',  bg: 'rgba(34,197,94,0.55)', glow: 'rgba(34,197,94,0.2)', text: '#22c55e', hebrew: 'rgba(34,197,94,0.65)' },
-  infrastructure: { border: 'rgba(251,146,60,0.5)', bg: 'rgba(251,146,60,0.55)', glow: 'rgba(251,146,60,0.2)', text: '#fb923c', hebrew: 'rgba(251,146,60,0.65)' },
-  base:           { border: 'rgba(234,179,8,0.5)',  bg: 'rgba(234,179,8,0.55)', glow: 'rgba(234,179,8,0.2)', text: '#eab308', hebrew: 'rgba(234,179,8,0.65)' },
+  city:           { border: 'rgba(34,197,94,0.5)',  bg: 'rgba(34,197,94,0.55)', glow: 'rgba(34,197,94,0.2)', text: '#22c55e', hebrew: 'rgba(34,197,94,0.9)' },
+  infrastructure: { border: 'rgba(251,146,60,0.5)', bg: 'rgba(251,146,60,0.55)', glow: 'rgba(251,146,60,0.2)', text: '#fb923c', hebrew: 'rgba(251,146,60,0.9)' },
+  base:           { border: 'rgba(234,179,8,0.5)',  bg: 'rgba(234,179,8,0.55)', glow: 'rgba(234,179,8,0.2)', text: '#eab308', hebrew: 'rgba(234,179,8,0.9)' },
 };
 
 // Accent colors by category — light variant
@@ -104,7 +104,7 @@ export default function LocationPopup({ name, city, style, onMouseEnter, onMouse
               <div style={{
                 fontSize: 17, fontWeight: 700, marginTop: 1,
                 color: accent.hebrew || accent.text,
-                opacity: isLight ? 1 : 0.65,
+                opacity: 1,
                 ...(isLight ? { textShadow: '0 1px 0 rgba(255,255,255,0.2)' } : {}),
               }}>{city.he}</div>
             )}

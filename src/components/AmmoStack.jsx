@@ -124,6 +124,16 @@ export default function AmmoStack({
         </div>
       )}
 
+      {/* Pause & Explore CTA */}
+      <div className="mt-4 mx-2 text-center">
+        <div className="border-t border-cyan-500/20 mb-4" />
+        <div className="inline-flex items-center justify-center w-9 h-9 rounded-lg border-2 border-cyan-400/50 bg-cyan-900/30 mb-2" style={{ boxShadow: '0 0 10px rgba(6,182,212,0.15)' }}>
+          <span className="font-mono text-base text-cyan-400 font-black">P</span>
+        </div>
+        <div className="font-mono text-[13px] text-cyan-400 tracking-[0.2em] font-bold">PAUSE & EXPLORE</div>
+        <div className="font-mono text-[10px] text-cyan-300/40 mt-1.5 tracking-wide leading-relaxed">Press P to pause, then<br />hover any location for intel</div>
+      </div>
+
     </div>
   );
 }
