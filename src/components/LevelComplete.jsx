@@ -86,11 +86,13 @@ export default function LevelComplete({ levelStats, campaignStats, effectiveTota
 
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [nameError, setNameError] = useState('');
 
   const runningTotal = (campaignStats?.totalScore || 0) + levelStats.score;
   const canSave = teamName.length >= 1 && !saved && !saving;
 
   const doSave = async () => {
+    setNameError('');
     setSaving(true);
     try {
       await saveScore({
@@ -106,7 +108,11 @@ export default function LevelComplete({ levelStats, campaignStats, effectiveTota
       });
       setSaved(true);
     } catch (err) {
-      console.warn('Save failed:', err);
+      if (err.message === 'PROFANITY') {
+        setNameError('Choose a different team name');
+      } else {
+        console.warn('Save failed:', err);
+      }
     } finally {
       setSaving(false);
     }
@@ -337,29 +343,33 @@ export default function LevelComplete({ levelStats, campaignStats, effectiveTota
               ✓ {teamName} — SCORE SAVED
             </div>
           ) : (
-            <div className="flex items-center justify-center gap-3">
-              <input
-                type="text"
-                maxLength={10}
-                value={teamName}
-                onChange={(e) => onTeamNameChange(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
-                placeholder="TEAM NAME"
-                className="w-36 px-2 py-1.5 bg-gray-900 border border-green-800 rounded font-mono text-sm
-                  text-center text-green-400 tracking-widest uppercase
-                  focus:border-green-500 focus:outline-none
-                  placeholder:text-gray-700"
-              />
-              <button
-                onClick={handleSave}
-                disabled={!canSave}
-                className={`px-4 py-1.5 rounded font-mono text-xs font-bold tracking-wider border transition-all
-                  ${canSave
-                    ? 'border-green-500 bg-green-900/30 text-green-400 cursor-pointer hover:bg-green-900/50 active:scale-95'
-                    : 'border-gray-700 bg-gray-900 text-gray-600 cursor-not-allowed'
-                  }`}
-              >
-                {saving ? 'SAVING...' : 'SAVE SCORE'}
-              </button>
+            <div className="flex flex-col items-center gap-1">
+              <div className="flex items-center justify-center gap-3">
+                <input
+                  type="text"
+                  maxLength={10}
+                  value={teamName}
+                  onChange={(e) => { onTeamNameChange(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '')); setNameError(''); }}
+                  placeholder="TEAM NAME"
+                  className={`w-36 px-2 py-1.5 bg-gray-900 border rounded font-mono text-sm
+                    text-center text-green-400 tracking-widest uppercase
+                    focus:outline-none
+                    placeholder:text-gray-700
+                    ${nameError ? 'border-red-500 focus:border-red-400' : 'border-green-800 focus:border-green-500'}`}
+                />
+                <button
+                  onClick={handleSave}
+                  disabled={!canSave}
+                  className={`px-4 py-1.5 rounded font-mono text-xs font-bold tracking-wider border transition-all
+                    ${canSave
+                      ? 'border-green-500 bg-green-900/30 text-green-400 cursor-pointer hover:bg-green-900/50 active:scale-95'
+                      : 'border-gray-700 bg-gray-900 text-gray-600 cursor-not-allowed'
+                    }`}
+                >
+                  {saving ? 'SAVING...' : 'SAVE SCORE'}
+                </button>
+              </div>
+              {nameError && <div className="font-mono text-xs text-red-400">{nameError}</div>}
             </div>
           )}
         </div>

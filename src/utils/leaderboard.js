@@ -2,6 +2,7 @@
 // MISSILE DEFENSE — Shared Leaderboard (Firestore + localStorage fallback)
 // ============================================================
 import { db } from './firebase.js';
+import { containsProfanity } from './nameFilter.js';
 import {
   collection,
   addDoc,
@@ -61,9 +62,16 @@ function getLocalLeaderboard(gameMode = 'CAMPAIGN') {
  * Returns the entry object (with timestamp).
  */
 export async function saveScore(entry) {
+  const rawName = (entry.name || 'AAA').toUpperCase().slice(0, 10);
+
+  // Block inappropriate team names
+  if (containsProfanity(rawName)) {
+    throw new Error('PROFANITY');
+  }
+
   const mode = entry.gameMode || 'CAMPAIGN';
   const newEntry = {
-    name: (entry.name || 'AAA').toUpperCase().slice(0, 10),
+    name: rawName,
     score: entry.score || 0,
     stars: entry.stars || 0,
     rating: entry.rating || '',
