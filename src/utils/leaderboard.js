@@ -17,6 +17,19 @@ const STORAGE_KEY = 'missile-defense-leaderboard';
 const MAX_ENTRIES = 10;
 const COLLECTION = 'scores';
 
+/**
+ * Read ?event= param from URL. Returns uppercase string or '' (global).
+ */
+export function getEventCode() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('event');
+    return code ? code.toUpperCase().replace(/[^A-Z0-9-]/g, '').slice(0, 20) : '';
+  } catch {
+    return '';
+  }
+}
+
 // ── localStorage helpers (fallback) ──────────────────────────
 
 function getLocal() {
@@ -70,12 +83,14 @@ export async function saveScore(entry) {
   }
 
   const mode = entry.gameMode || 'CAMPAIGN';
+  const event = entry.event || getEventCode();
   const newEntry = {
     name: rawName,
     score: entry.score || 0,
     stars: entry.stars || 0,
     rating: entry.rating || '',
     gameMode: mode,
+    event, // '' = global, 'LINCOLN' = school-specific
     levelsCompleted: entry.levelsCompleted || 0,
     correctIntercepts: entry.correctIntercepts || 0,
     sirenCount: entry.sirenCount || 0,
@@ -101,7 +116,8 @@ export async function saveScore(entry) {
  * Falls back to localStorage if Firestore is unavailable.
  * @returns {Promise<Array>}
  */
-export async function getLeaderboard(gameMode = 'CAMPAIGN') {
+export async function getLeaderboard(gameMode = 'CAMPAIGN', eventFilter = null) {
+  const event = eventFilter !== null ? eventFilter : getEventCode();
   try {
     const q = query(
       collection(db, COLLECTION),
@@ -112,7 +128,7 @@ export async function getLeaderboard(gameMode = 'CAMPAIGN') {
     const entries = [];
     snapshot.forEach((doc) => {
       const data = doc.data();
-      if (data.gameMode === gameMode) entries.push(data);
+      if (data.gameMode === gameMode && (data.event || '') === event) entries.push(data);
     });
     return entries.slice(0, MAX_ENTRIES);
   } catch (err) {
@@ -126,7 +142,8 @@ export async function getLeaderboard(gameMode = 'CAMPAIGN') {
  * Calls `callback(entries)` whenever the leaderboard changes.
  * Returns an unsubscribe function.
  */
-export function subscribeLeaderboard(gameMode, callback) {
+export function subscribeLeaderboard(gameMode, callback, eventFilter = null) {
+  const event = eventFilter !== null ? eventFilter : getEventCode();
   try {
     const q = query(
       collection(db, COLLECTION),
@@ -137,7 +154,7 @@ export function subscribeLeaderboard(gameMode, callback) {
       const entries = [];
       snapshot.forEach((doc) => {
         const data = doc.data();
-        if (data.gameMode === gameMode) entries.push(data);
+        if (data.gameMode === gameMode && (data.event || '') === event) entries.push(data);
       });
       callback(entries.slice(0, MAX_ENTRIES));
     }, (err) => {

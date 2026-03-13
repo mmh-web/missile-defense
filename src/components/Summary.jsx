@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getLeaderboard, saveScore, isHighScore, subscribeLeaderboard } from '../utils/leaderboard.js';
+import { getLeaderboard, saveScore, isHighScore, subscribeLeaderboard, getEventCode } from '../utils/leaderboard.js';
 
 export default function Summary({ stats, onReset, teamName, onTeamNameChange }) {
   const {
@@ -260,11 +260,14 @@ function StatRow({ label, value, good, bad }) {
 }
 
 export function LeaderboardTable({ entries, gameMode = 'CAMPAIGN', highlightTimestamp = null }) {
+  const eventCode = getEventCode();
+  const title = eventCode ? `${eventCode} LEADERBOARD` : 'LEADERBOARD';
+
   if (!entries || entries.length === 0) {
     return (
       <div className="p-4 border border-gray-800 rounded-lg bg-gray-900/20 text-center">
         <div className="text-xs text-gray-500 font-mono tracking-widest mb-2">
-          LEADERBOARD
+          {title}
         </div>
         <div className="text-gray-600 font-mono text-sm py-4">
           NO SCORES RECORDED
@@ -276,7 +279,7 @@ export function LeaderboardTable({ entries, gameMode = 'CAMPAIGN', highlightTime
   return (
     <div className="p-4 border border-gray-800 rounded-lg bg-gray-900/20">
       <div className="text-xs text-gray-500 font-mono tracking-widest mb-3 text-center">
-        LEADERBOARD
+        {title}
       </div>
       <table className="w-full font-mono text-sm">
         <thead>

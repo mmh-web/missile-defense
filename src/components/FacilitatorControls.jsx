@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { getEventCode } from '../utils/leaderboard.js';
 
 const FACILITATOR_CODE = '1948';
 const TOTAL_LEVELS = 7;
@@ -198,6 +199,35 @@ export default function FacilitatorControls({
             <div className="text-[10px] text-gray-600 font-mono mt-1">
               {bonusLevelEnabled ? 'L7 ENABLED — ZERO-MARGIN FINAL CHALLENGE' : 'CAMPAIGN ENDS AFTER L6'}
             </div>
+          </div>
+        )}
+
+        {/* Event Code info — unlocked only */}
+        {unlocked && (
+          <div className="mb-6">
+            <div className="h-px bg-gray-800 mb-4" />
+            <label className="block text-xs text-gray-500 font-mono tracking-wider mb-2">
+              EVENT CODE
+            </label>
+            {getEventCode() ? (
+              <>
+                <div className="font-mono text-sm text-cyan-400 tracking-widest font-bold">
+                  {getEventCode()}
+                </div>
+                <div className="text-[10px] text-gray-600 font-mono mt-1">
+                  LEADERBOARD SCOPED TO THIS EVENT
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="font-mono text-sm text-gray-500">
+                  NONE (GLOBAL)
+                </div>
+                <div className="text-[10px] text-gray-600 font-mono mt-1">
+                  ADD ?event=CODE TO URL FOR SCHOOL-SPECIFIC BOARDS
+                </div>
+              </>
+            )}
           </div>
         )}
 
