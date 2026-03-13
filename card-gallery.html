@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Location Card Gallery</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0a0e17; color: #fff; font-family: 'JetBrains Mono', 'Courier New', monospace; padding: 24px; }
+  h1 { text-align: center; font-size: 20px; letter-spacing: 0.2em; color: #22c55e; margin-bottom: 8px; }
+  .subtitle { text-align: center; font-size: 12px; color: #888; margin-bottom: 32px; }
+  .section { margin-bottom: 32px; }
+  .section-title { font-size: 14px; letter-spacing: 0.15em; color: #888; border-bottom: 1px solid #333; padding-bottom: 6px; margin-bottom: 16px; }
+  .grid { display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; }
+  .card { width: 260px; border-radius: 12px; overflow: hidden; font-family: 'JetBrains Mono', 'Courier New', monospace; }
+  .card-dark { background: linear-gradient(170deg, rgba(30,40,65,0.97) 0%, rgba(14,20,36,0.98) 45%, rgba(6,10,20,0.99) 100%); border: 1px solid rgba(34,197,94,0.5); border-top: 3px solid rgba(34,197,94,0.5); box-shadow: 0 12px 48px rgba(0,0,0,0.7), 0 -2px 12px rgba(34,197,94,0.2); }
+  .card-dark.infra { border-color: rgba(251,146,60,0.5); border-top-color: rgba(251,146,60,0.5); box-shadow: 0 12px 48px rgba(0,0,0,0.7), 0 -2px 12px rgba(251,146,60,0.2); }
+  .card-dark.base { border-color: rgba(234,179,8,0.5); border-top-color: rgba(234,179,8,0.5); box-shadow: 0 12px 48px rgba(0,0,0,0.7), 0 -2px 12px rgba(234,179,8,0.2); }
+  .header { padding: 11px 13px 0; display: flex; align-items: flex-start; justify-content: space-between; }
+  .name { font-size: 16px; font-weight: 800; }
+  .hebrew { font-size: 17px; font-weight: 700; margin-top: 1px; opacity: 0.65; }
+  .badge { font-size: 8.5px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: #fff; padding: 3px 8px; border-radius: 4px; margin-top: 2px; white-space: nowrap; }
+  .badge-city { background: rgba(34,197,94,0.55); }
+  .badge-infra { background: rgba(251,146,60,0.55); }
+  .badge-base { background: rgba(234,179,8,0.55); }
+  .summary { padding: 6px 13px 8px; font-size: 12px; color: #c9cdd4; line-height: 1.45; }
+  .divider { margin: 0 13px; height: 1px; background: linear-gradient(to right, rgba(34,197,94,0.5), transparent); }
+  .divider-infra { background: linear-gradient(to right, rgba(251,146,60,0.5), transparent); }
+  .divider-base { background: linear-gradient(to right, rgba(234,179,8,0.5), transparent); }
+  .facts { padding: 6px 13px 10px; display: flex; flex-direction: column; gap: 5px; }
+  .fact { display: flex; align-items: flex-start; gap: 7px; }
+  .bullet { width: 4px; height: 4px; min-width: 4px; margin-top: 5px; border-radius: 50%; }
+  .bullet-city { background: #22c55e; box-shadow: 0 0 6px rgba(34,197,94,0.2); }
+  .bullet-infra { background: #fb923c; box-shadow: 0 0 6px rgba(251,146,60,0.2); }
+  .bullet-base { background: #eab308; box-shadow: 0 0 6px rgba(234,179,8,0.2); }
+  .fact-text { font-size: 11px; line-height: 1.55; color: #b0b8c4; }
+  .photo { width: 100%; height: 100px; overflow: hidden; position: relative; background: linear-gradient(135deg, #1a2332 0%, #0d1117 100%); }
+  .photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .photo .vignette { position: absolute; inset: 0; box-shadow: inset 0 3px 12px rgba(0,0,0,0.35); pointer-events: none; }
+  .hebrew-city { color: rgba(34,197,94,0.65); }
+  .hebrew-infra { color: rgba(251,146,60,0.65); }
+  .hebrew-base { color: rgba(234,179,8,0.65); }
+</style>
+</head>
+<body>
+
+<h1>LOCATION KNOWLEDGE CARDS</h1>
+<div class="subtitle">41 locations across all 6 levels</div>
+
+<div id="gallery"></div>
+
+<script>
+const LOCATIONS = {
+  'L1: OTEF AZA': [
+    { name: 'Sderot', he: 'שְׂדֵרוֹת', cat: 'city', pop: '27K', photo: 'sderot.jpg', summary: 'Border town <1 mile from Gaza — Israel\u2019s most rocket-targeted city.', facts: ['Bus stops double as bomb shelters. Most shelters per capita in Israel.', 'Sapir College\u2019s 8,000 students study between rocket sirens.'] },
+    { name: 'Ashkelon', he: 'אַשְׁקְלוֹן', cat: 'city', pop: '155K', photo: 'ashkelon.jpg', summary: 'Ancient coastal city with 5,000 years of continuous habitation.', facts: ['Home to a major desalination plant providing water for over a million people.', 'Ancient Philistine port — archaeologists found a 3,000-year-old cemetery here.'] },
+    { name: "Be'eri", he: 'בְּאֵרִי', cat: 'city', photo: 'beeri.jpg', summary: 'Kibbutz founded in 1946, named after Labor Zionist leader Berl Katznelson.', facts: ['Known for its printing press, one of the largest in Israel since the 1950s.', 'Located in the western Negev, close to the Gaza border.'] },
+    { name: 'Kfar Aza', he: 'כְּפַר עַזָּה', cat: 'city', photo: 'kfar-aza.jpg', summary: 'Small kibbutz just 2 km from the Gaza border fence.', facts: ['Founded in 1951 by immigrants from North Africa.', 'Later joined by volunteers from around the world.'] },
+    { name: "Re'im", he: 'רְעִים', cat: 'city', photo: 'reim.jpg', summary: 'Small western Negev kibbutz, ~5 km from the Gaza border.', facts: ['Site of the Nova music festival grounds.', 'Located in open fields characteristic of the Negev landscape.'] },
+    { name: 'Netivot', he: 'נְתִיבוֹת', cat: 'city', photo: 'netivot.jpg', summary: 'The "City of Torah" — a center for Sephardic Jewish spiritual life.', facts: ['Home to the tomb of the Baba Sali, visited by thousands of pilgrims annually.', 'Located in the northern Negev, within rocket range of Gaza.'] },
+  ],
+  'L2: GALIL & GOLAN': [
+    { name: 'Haifa', he: 'חֵיפָה', cat: 'city', pop: '285K', photo: 'haifa.jpg', summary: 'Israel\u2019s largest port city and northern high-tech hub.', facts: ['Home to the Bah\u00e1\u2019\u00ed World Centre\u2019s terraced gardens — a UNESCO World Heritage Site.', 'Known as a model of Jewish-Arab coexistence.'] },
+    { name: 'Nahariya', he: 'נַהֲרִיָּה', cat: 'city', pop: '60K', photo: 'nahariya.jpg', summary: 'Israel\u2019s northernmost coastal city, 6 miles from Lebanon.', facts: ['Founded in 1934 by Jewish refugees from Nazi Germany.', 'Over 900 rockets hit the city during the 2006 Lebanon War.'] },
+    { name: 'Kiryat Shmona', he: 'קִרְיַת שְׁמוֹנָה', cat: 'city', pop: '24K', photo: 'kiryat-shmona.jpg', summary: 'Israel\u2019s northernmost city, in the Hula Valley near Lebanon.', facts: ['Named after the "Eight Heroes" who died defending Tel Hai in 1920.', 'Frequent target of cross-border rocket attacks since the 1970s.'] },
+    { name: 'Teveriah', he: 'טְבֶרְיָה', cat: 'city', pop: '45K', photo: 'teveriah.jpg', summary: 'One of Judaism\u2019s four holy cities, on the Sea of Galilee.', facts: ['The Mishnah and Jerusalem Talmud were compiled here ~2,000 years ago.', 'Sits ~200 meters below sea level — one of Earth\u2019s lowest cities.'] },
+    { name: 'Akko', he: 'עַכּוֹ', cat: 'city', photo: 'akko.jpg', summary: 'UNESCO World Heritage Site — over 4,000 years of continuous habitation.', facts: ['Crusader ruins, Ottoman architecture, and ancient sea walls.', 'Famous for its hummus — locals say it\u2019s the best in Israel.'] },
+    { name: 'Tzfat', he: 'צְפַת', cat: 'city', photo: 'tzfat.jpg', summary: 'Birthplace of Kabbalah and one of Judaism\u2019s four holy cities.', facts: ['Highest city in Israel at 900m elevation with panoramic Galilee views.', 'Its Artists\u2019 Quarter draws visitors to galleries and cobblestone lanes.'] },
+    { name: 'Katzrin', he: 'קַצְרִין', cat: 'city', pop: '8K', photo: 'katzrin.jpg', summary: 'Unofficial "capital" of the Golan Heights, near ancient ruins.', facts: ['Surrounded by volcanic basalt from ancient eruptions.', 'Reconstructed village shows life in the Golan 1,500 years ago.'] },
+    { name: 'Majdal Shams', he: 'מַגְ׳דַל שַׁמְס', cat: 'city', photo: 'majdal-shams.jpg', summary: 'Largest Druze town in the Golan, at the foot of Mount Hermon.', facts: ['Residents can see into Syria — some have family on the other side.', 'Known for cherry and apple orchards and an annual cherry festival.'] },
+  ],
+  'L3: CENTRAL ISRAEL': [
+    { name: 'Tel Aviv', he: 'תֵּל אָבִיב', cat: 'city', pop: '470K', photo: 'tel-aviv.jpg', summary: '"The White City" — world\u2019s largest Bauhaus collection, a UNESCO site.', facts: ['Israel\u2019s economic and tech capital — more startups per capita than almost any city.', 'Founded in 1909 as a neighborhood of ancient Jaffa.'] },
+    { name: 'Jerusalem', he: 'יְרוּשָׁלַיִם', cat: 'city', pop: '980K', photo: 'jerusalem.jpg', summary: 'Sacred to Judaism, Christianity, and Islam — 5,000+ years of history.', facts: ['Home to the Western Wall, Church of the Holy Sepulchre, and Al-Aqsa Mosque.', 'Israel\u2019s capital and largest city — population nearly 1 million.'] },
+    { name: 'Netanya', he: 'נְתַנְיָה', cat: 'city', pop: '225K', photo: 'netanya.jpg', summary: 'Israel\u2019s diamond capital on the Mediterranean coast.', facts: ['Built around its diamond-cutting industry in the 1930s.', 'Named after Nathan Straus, co-owner of Macy\u2019s department store.'] },
+    { name: "Ra'anana", he: 'רַעֲנַנָּה', cat: 'city', photo: 'raanana.jpg', summary: 'Planned garden city in the Sharon plain, high quality of life.', facts: ['Hub for multinational tech — Oracle, SAP, and Microsoft offices here.', 'One of Israel\u2019s most desirable residential cities.'] },
+    { name: 'Petah Tikva', he: 'פֶּתַח תִּקְוָה', cat: 'city', pop: '265K', photo: 'petah-tikva.jpg', summary: '"Mother of the Colonies" — first modern Jewish settlement (1878).', facts: ['Now a major city of 265,000 residents.', 'Home to Schneider Children\u2019s Medical Center.'] },
+    { name: 'Rishon LeZion', he: 'רִאשׁוֹן לְצִיּוֹן', cat: 'city', pop: '260K', photo: 'rishon-lezion.jpg', summary: 'Israel\u2019s 4th-largest city, founded 1882 by Russian immigrants.', facts: ['Where "Hatikvah" (national anthem) was first sung publicly in 1888.', 'One of the original First Aliyah settlements.'] },
+    { name: 'Ashdod', he: 'אַשְׁדּוֹד', cat: 'city', pop: '225K', photo: 'ashdod.jpg', summary: 'Home to Israel\u2019s largest port — 60% of imported goods.', facts: ['Ancient Philistine city where the Ark of the Covenant was brought.', 'Major Mediterranean port city with ~225,000 residents.'] },
+    { name: "Modi'in", he: 'מוֹדִיעִין', cat: 'city', photo: 'modiin.jpg', summary: 'One of Israel\u2019s newest cities, planned in the 1990s.', facts: ['Located halfway between Tel Aviv and Jerusalem.', 'Ancient hometown of the Maccabees — the Hanukkah story.'] },
+    { name: 'Gush Etzion', he: 'גּוּשׁ עֶצְיוֹן', cat: 'city', photo: 'gush-etzion.jpg', summary: 'Community cluster in the Judean Hills, south of Jerusalem.', facts: ['Original kibbutzim fell in 1948, re-established after 1967.', 'Strategic position along the Jerusalem\u2013Hebron corridor.'] },
+    { name: 'Holon', he: 'חוֹלוֹן', cat: 'city', pop: '200K', photo: 'holon.jpg', summary: 'Israel\u2019s "City of Children" — culture and design hub.', facts: ['Home to the Design Museum Holon, designed by architect Ron Arad.', 'Hosts the Adloyada Purim parade, Israel\u2019s largest.'] },
+  ],
+  'L4: STRATEGIC INFRASTRUCTURE': [
+    { name: 'BAZAN Oil Refinery', he: 'בז"ן', cat: 'infra', photo: 'bazan.jpg', summary: 'Israel\u2019s largest refinery — processes nearly all crude oil.', facts: ['A strike in Haifa Bay could cause an environmental catastrophe.', 'Built by the British in 1938 as part of the Iraq-Haifa pipeline.'] },
+    { name: 'Orot Rabin Power Station', he: 'אוֹרוֹת רָבִּין', cat: 'infra', photo: 'orot-rabin.jpg', summary: 'Israel\u2019s largest power station — ~20% of national electricity.', facts: ['Named after PM Yitzhak Rabin — twin smokestacks visible across the coast.', 'Located on the Mediterranean coastal plain.'] },
+    { name: 'Sorek Desalination Plant', he: 'סוֹרֵק', cat: 'infra', photo: 'sorek.jpg', summary: 'One of the world\u2019s largest reverse-osmosis desalination plants.', facts: ['Produces 150M cubic meters of water/year — enough for 1.5 million people.', 'Israel gets 80%+ of drinking water from desalination — a global leader.'] },
+    { name: 'Rutenberg Power Station', he: 'רוּטֶנְבֶּרְג', cat: 'infra', photo: 'rutenberg.jpg', summary: 'Coal-fired power plant on the coast near Ashkelon.', facts: ['Named after Pinhas Rutenberg, who built Israel\u2019s first power grid in the 1920s.', 'One of several critical energy facilities along the southern coast.'] },
+    { name: 'Ashdod Port', he: 'נָמָל אַשְׁדּוֹד', cat: 'infra', photo: 'ashdod-port.jpg', summary: 'Israel\u2019s busiest cargo port — 60%+ of all imports.', facts: ['Disruption here would affect food, fuel, and construction nationwide.', 'A critical economic chokepoint for the entire country.'] },
+    { name: 'The Kirya (IDF HQ)', he: 'הַקִּרְיָה', cat: 'infra', photo: 'kirya.jpg', summary: 'IDF central command headquarters in central Tel Aviv.', facts: ['Houses the General Staff, Military Intelligence, and national command bunker.', 'Surrounded by some of Tel Aviv\u2019s most valuable real estate.'] },
+    { name: 'Dimona Nuclear Reactor', he: 'כּוֹר דִּימוֹנָה', cat: 'infra', photo: 'dimona.jpg', summary: 'Israel\u2019s nuclear research center in the Negev — operational since the 1960s.', facts: ['Built secretly with French assistance — denied for years.', 'One of the most heavily defended sites in Israel.'] },
+    { name: 'Ben Gurion Airport', he: 'נתב"ג', cat: 'infra', photo: 'ben-gurion.jpg', summary: 'Israel\u2019s main international airport — 25M+ passengers/year.', facts: ['Named after Israel\u2019s first Prime Minister.', 'Considered one of the most secure airports in the world.'] },
+    { name: 'Beersheba', he: 'בְּאֵר שֶׁבַע', cat: 'city', pop: '210K', photo: 'beersheba.jpg', summary: '"Capital of the South" — largest Negev city (210K residents).', facts: ['Home to Ben-Gurion University — a cybersecurity and desert research hub.', 'Ancient city from Genesis — Abraham dug a well here ~4,000 years ago.'] },
+  ],
+  'L5: MILITARY BASES': [
+    { name: 'Ramat David AFB', he: 'רָמַת דָּוִד', cat: 'base', photo: 'ramat-david.jpg', summary: 'Frontline fighter base in northern Israel — F-16 squadrons.', facts: ['Built by the British RAF during the Mandate era (1940s).', 'Targeted by Iraqi Scud missiles during the 1991 Gulf War.'] },
+    { name: 'Glilot (Unit 8200)', he: 'גְּלִילוֹת 8200', cat: 'base', photo: 'glilot.jpg', summary: 'HQ of Unit 8200 — Israel\u2019s signals intelligence (comparable to NSA).', facts: ['Alumni founded Waze, Check Point, and CyberArk.', 'Located in the Tel Aviv metro area.'] },
+    { name: 'Palmachim AFB', he: 'פַּלְמַחִים', cat: 'base', photo: 'palmachim.jpg', summary: 'Israel\u2019s space launch site — all satellites launched from here.', facts: ['Primary test site for Arrow missile defense interceptors.', 'On the Mediterranean coast south of Tel Aviv.'] },
+    { name: 'Nevatim AFB', he: 'נְבָטִים', cat: 'base', photo: 'nevatim.jpg', summary: 'Home to Israel\u2019s F-35 "Adir" stealth fighters.', facts: ['First operational F-35 base outside the US.', 'Top target for long-range missile strikes due to its strategic aircraft.'] },
+    { name: 'Tel Nof AFB', he: 'תֵּל נוֹף', cat: 'base', photo: 'tel-nof.jpg', summary: 'One of Israel\u2019s largest and oldest air bases (since 1948).', facts: ['Home to heavy transport aircraft and helicopter squadrons.', 'Key base for Operation Entebbe (1976) — the Uganda hostage rescue.'] },
+    { name: 'Ramon AFB', he: 'רָמוֹן', cat: 'base', photo: 'ramon.jpg', summary: 'Israel\u2019s southernmost air base, deep in the Negev.', facts: ['One of Israel\u2019s longest runways — used for advanced flight training.', 'Named after Ilan Ramon, Israel\u2019s first astronaut (Columbia disaster).'] },
+    { name: 'Sdot Micha', he: 'שְׂדוֹת מִיכָה', cat: 'base', photo: 'sdot-micha.jpg', summary: 'Secretive base believed to house strategic missile capabilities.', facts: ['Located in the Judean foothills.', 'One of the most secretive military installations in Israel.'] },
+  ],
+  'L6: FULL MAP': [
+    { name: 'Eilat', he: 'אֵילַת', cat: 'city', pop: '55K', photo: 'eilat.jpg', summary: 'Israel\u2019s southernmost city — Red Sea resort known for diving.', facts: ['Borders Egypt and Jordan — three countries visible from the beach.', '300+ km from Gaza, but in range of long-range rockets from Yemen.'] },
+  ],
+};
+
+const COLORS = {
+  city: { border: 'rgba(34,197,94,0.5)', text: '#22c55e', hebrew: 'hebrew-city', badge: 'badge-city', bullet: 'bullet-city', divider: '' },
+  infra: { border: 'rgba(251,146,60,0.5)', text: '#fb923c', hebrew: 'hebrew-infra', badge: 'badge-infra', bullet: 'bullet-infra', divider: 'divider-infra' },
+  base: { border: 'rgba(234,179,8,0.5)', text: '#eab308', hebrew: 'hebrew-base', badge: 'badge-base', bullet: 'bullet-base', divider: 'divider-base' },
+};
+
+const gallery = document.getElementById('gallery');
+
+for (const [section, locations] of Object.entries(LOCATIONS)) {
+  const sectionDiv = document.createElement('div');
+  sectionDiv.className = 'section';
+  sectionDiv.innerHTML = `<div class="section-title">${section} (${locations.length})</div>`;
+  const grid = document.createElement('div');
+  grid.className = 'grid';
+
+  for (const loc of locations) {
+    const c = COLORS[loc.cat];
+    const catLabel = loc.cat === 'infra' ? 'INFRASTRUCTURE' : loc.cat === 'base' ? 'MILITARY BASE' : 'CITY' + (loc.pop ? ` \u00b7 ${loc.pop}` : '');
+    grid.innerHTML += `
+      <div class="card card-dark ${loc.cat}">
+        <div class="header">
+          <div>
+            <div class="name">${loc.name}</div>
+            <div class="hebrew ${c.hebrew}">${loc.he}</div>
+          </div>
+          <div class="badge ${c.badge}">${catLabel}</div>
+        </div>
+        <div class="summary">${loc.summary}</div>
+        <div class="divider ${c.divider}"></div>
+        <div class="facts">
+          ${loc.facts.map(f => `<div class="fact"><div class="bullet ${c.bullet}"></div><div class="fact-text">${f}</div></div>`).join('')}
+        </div>
+        <div class="photo">
+          <img src="images/locations/${loc.photo}" alt="${loc.name}" onerror="this.style.display='none'">
+          <div class="vignette"></div>
+        </div>
+      </div>`;
+  }
+
+  sectionDiv.appendChild(grid);
+  gallery.appendChild(sectionDiv);
+}
+</script>
+</body>
+</html>
