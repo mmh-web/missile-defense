@@ -1413,7 +1413,7 @@ function IntelCheckPhase({ level, shownFactIds, onComplete, onSkip }) {
   const q = questions[currentQ];
   const isCorrect = selectedAnswer === q.correctIndex;
   const timedOut = showResult && selectedAnswer === null;
-  const pct = (timeLeft / quizConfig.timePerQuestion) * 100;
+  const elapsedPct = Math.min(100, ((quizConfig.timePerQuestion - timeLeft) / quizConfig.timePerQuestion) * 100);
 
   return (
     <div>
@@ -1428,14 +1428,14 @@ function IntelCheckPhase({ level, shownFactIds, onComplete, onSkip }) {
         </div>
       </div>
 
-      {/* Timer bar */}
+      {/* Timer bar — fills left→right like briefing CountdownBar */}
       <div className="mb-3">
         <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden">
           <div
             className={`h-full rounded-full transition-all duration-100 ease-linear ${
               timeLeft < 5 ? 'bg-red-500' : timeLeft < 10 ? 'bg-yellow-500' : 'bg-cyan-500'
             }`}
-            style={{ width: `${pct}%` }}
+            style={{ width: `${elapsedPct}%` }}
           />
         </div>
         <div className="text-right mt-1">
@@ -1545,6 +1545,21 @@ function IntelCheckPhase({ level, shownFactIds, onComplete, onSkip }) {
           <div className="font-mono text-[8px] text-gray-500 tracking-[0.15em] mt-0.5">ANSWERED</div>
         </div>
       </div>
+
+      {/* Skip button — matches threat/defense phase styling */}
+      {onSkip && (
+        <div className="flex items-center justify-center mt-4">
+          <button
+            onClick={onSkip}
+            className="px-5 py-2.5 bg-gray-800/60 border border-gray-600 text-gray-400
+              font-mono text-xs tracking-widest rounded-lg
+              hover:bg-gray-700/80 hover:border-gray-400 hover:text-gray-300
+              transition-all active:scale-95 cursor-pointer"
+          >
+            SKIP BRIEFING ▸
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -2178,8 +2193,8 @@ export default function EducationalBriefing({ level, onComplete }) {
         </div>
       </div>
 
-      {/* Phase content — scrollable if needed */}
-      <div className="flex-1 overflow-y-auto relative z-10">
+      {/* Phase content — vertically centered in remaining space */}
+      <div className="flex-1 overflow-y-auto relative z-10 flex items-center">
         <div className="max-w-2xl w-full mx-auto px-4 pb-2">
           {phase === 'threat' && contentRef.current.threat && (
             <ThreatBriefingPhase data={contentRef.current.threat} onComplete={handleThreatComplete} onSkip={handleSkipBriefing} />

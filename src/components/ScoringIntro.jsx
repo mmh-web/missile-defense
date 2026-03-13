@@ -4,93 +4,107 @@ export default function ScoringIntro({ onContinue }) {
   const rules = [
     { points: '+100', pointsClass: 'text-green-400', label: 'Correct intercept', desc: 'right system on a populated target' },
     { points: '+25×', pointsClass: 'text-yellow-400', label: 'Streak bonus', desc: 'consecutive correct decisions multiply your score' },
-    { points: 'FREE', pointsClass: 'text-green-400', label: 'Hold fire on open ground', desc: 'builds streak, saves interceptors' },
+    { points: '+50', pointsClass: 'text-cyan-400', label: 'Double intercept', desc: 'two correct intercepts within 2 seconds' },
+    { points: '+250', pointsClass: 'text-cyan-400', label: 'Quiz bonus', desc: 'per correct answer in readiness checks' },
+    { points: '+250', pointsClass: 'text-blue-400', label: 'Ammo bonus', desc: 'per unused interceptor at level end' },
     { points: '−100', pointsClass: 'text-red-400', label: 'City hit', desc: 'siren sounds, streak resets, points deducted' },
-    { points: 'RESET', pointsClass: 'text-red-400', label: 'Wasted interceptor', desc: 'firing at open ground resets your streak' },
   ];
 
+  const accentColor = '#f97316';
+
   return (
-    <div className="h-screen flex flex-col items-center relative overflow-hidden"
-      style={{ background: '#0a0e1a' }}>
-      {/* Background photo */}
-      <div className="absolute inset-0"
+    <div
+      className="h-screen flex flex-col items-center justify-center relative overflow-hidden"
+      style={{
+        background: `
+          radial-gradient(ellipse at 50% 100%, ${accentColor}18 0%, transparent 50%),
+          radial-gradient(ellipse at 0% 0%, ${accentColor}10 0%, transparent 40%),
+          radial-gradient(ellipse at 100% 50%, ${accentColor}08 0%, transparent 35%),
+          linear-gradient(180deg, #0a0e1a 0%, #080c17 100%)
+        `,
+      }}
+    >
+      {/* Background photo with heavy overlay — cinematic but not distracting */}
+      <div className="absolute inset-0 pointer-events-none"
         style={{ background: `url('${basePath}images/ID4.jpeg') center center / cover no-repeat` }} />
-      <div className="absolute inset-0"
+      <div className="absolute inset-0 pointer-events-none"
         style={{
           background: `linear-gradient(to bottom,
-            rgba(10,14,26,0.5) 0%,
-            rgba(10,14,26,0.65) 30%,
-            rgba(10,14,26,0.85) 60%,
+            rgba(10,14,26,0.45) 0%,
+            rgba(10,14,26,0.6) 25%,
+            rgba(10,14,26,0.85) 55%,
             #0a0e1a 100%
           )`,
         }} />
 
-      <div className="relative z-10 w-full max-w-[520px] h-screen flex flex-col px-6">
-        {/* Header */}
-        <div className="text-center pt-4 pb-2 flex-shrink-0">
-          <h1 className="font-mono text-lg font-black tracking-[0.2em]"
-            style={{ color: '#f97316', textShadow: '0 0 30px rgba(249,115,22,0.3)' }}>
+      {/* Accent glow bar at top — matches briefing */}
+      <div
+        className="absolute top-0 left-0 right-0 h-1 pointer-events-none"
+        style={{ background: `linear-gradient(90deg, transparent, ${accentColor}60, transparent)` }}
+      />
+
+      {/* Corner accent — matches briefing classification stamp */}
+      <div className="absolute bottom-4 left-4 pointer-events-none z-10">
+        <div
+          className="font-mono text-[9px] tracking-[0.4em] px-2 py-0.5 rounded border"
+          style={{
+            color: `${accentColor}70`,
+            borderColor: `${accentColor}35`,
+            background: `${accentColor}12`,
+          }}
+        >
+          SCORING RULES
+        </div>
+      </div>
+
+      {/* Centered content block */}
+      <div className="relative z-10 max-w-2xl w-full mx-auto px-4">
+        <div className="text-center mb-4">
+          <h1 className="text-xl lg:text-2xl font-bold font-mono tracking-wider"
+            style={{ color: accentColor }}>
             HOW SCORING WORKS
           </h1>
-          <div className="font-mono text-[10px] tracking-[0.15em]"
-            style={{ color: 'rgba(249,115,22,0.44)' }}>
-            MISSION BRIEFING · תדריך ניקוד
+          <div className="flex items-baseline justify-center gap-2 mt-0.5">
+            <span className="text-xs lg:text-sm font-mono tracking-widest"
+              style={{ color: `${accentColor}90` }}>
+              MISSION BRIEFING
+            </span>
+            <span className="text-xs lg:text-sm font-bold"
+              style={{ fontFamily: 'Arial, sans-serif', color: `${accentColor}70` }}>
+              תדריך ניקוד
+            </span>
           </div>
         </div>
-
-        {/* Score rule cards */}
-        <div className="flex flex-col gap-2 flex-1 min-h-0">
-          {rules.map((rule) => (
-            <div key={rule.label}
-              className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl"
-              style={{
-                background: 'rgba(17,24,39,0.55)',
-                border: '1px solid #1e2736',
-              }}>
-              <div className={`font-mono text-lg font-black min-w-[50px] text-right flex-shrink-0 ${rule.pointsClass}`}>
-                {rule.points}
+          {/* Score rule cards — matches briefing fact card styling */}
+          <div className="flex flex-col gap-1.5">
+            {rules.map((rule) => (
+              <div key={rule.label}
+                className="flex items-start gap-3 p-3 rounded-lg bg-gray-900/55 border border-gray-800/80">
+                <div className={`font-mono text-base font-black min-w-[48px] text-right flex-shrink-0 ${rule.pointsClass}`}>
+                  {rule.points}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="font-mono font-bold text-sm tracking-wide" style={{ color: rule.pointsClass.includes('green') ? '#4ade80' : rule.pointsClass.includes('yellow') ? '#eab308' : rule.pointsClass.includes('cyan') ? '#22d3ee' : rule.pointsClass.includes('blue') ? '#60a5fa' : '#ef4444' }}>
+                    {rule.label}
+                  </span>
+                  <span className="text-[13px] font-mono text-gray-400 ml-2">{rule.desc}</span>
+                </div>
               </div>
-              <div className="w-px h-7 flex-shrink-0" style={{ background: '#374151' }} />
-              <div className="font-mono text-xs text-gray-400 leading-snug">
-                <strong className="text-gray-200">{rule.label}</strong> — {rule.desc}
-              </div>
-            </div>
-          ))}
-
-          {/* Key insight callout */}
-          <div className="px-3.5 py-3 rounded-xl mt-0.5"
-            style={{
-              background: 'rgba(249,115,22,0.06)',
-              border: '1px solid rgba(249,115,22,0.12)',
-            }}>
-            <div className="font-mono text-[9px] tracking-[0.25em] mb-1"
-              style={{ color: 'rgba(249,115,22,0.44)' }}>
-              KEY INSIGHT
-            </div>
-            <div className="font-mono text-[13px] text-gray-300 leading-relaxed">
-              Real Iron Dome operators face this same dilemma — <strong style={{ color: '#f97316' }}>fire at everything</strong> and run out of interceptors, or <strong style={{ color: '#f97316' }}>hold fire</strong> on threats aimed at open ground and save ammo for what matters.
-            </div>
+            ))}
           </div>
-        </div>
 
-        {/* Continue button */}
-        <div className="py-3 flex-shrink-0">
-          <div className="flex justify-center">
+          {/* Continue button — flows after content, same as briefing CONTINUE */}
+          <div className="flex items-center justify-center gap-3 mt-4">
             <button
               onClick={onContinue}
-              className="px-7 py-2.5 font-mono text-xs font-bold tracking-[0.15em] rounded-lg
-                cursor-pointer transition-all active:scale-95
-                hover:shadow-[0_0_30px_rgba(0,255,136,0.2)]"
-              style={{
-                background: 'rgba(22,101,52,0.25)',
-                border: '1px solid #15803d',
-                color: '#4ade80',
-              }}
+              className="px-8 py-2.5 bg-green-900/30 border border-green-700 text-green-400
+                font-mono text-sm tracking-widest rounded-lg
+                hover:bg-green-900/50 hover:border-green-400
+                transition-all active:scale-95 cursor-pointer"
             >
               UNDERSTOOD ▸
             </button>
           </div>
-        </div>
       </div>
     </div>
   );

@@ -61,9 +61,9 @@ export default function LevelIntro({ level, onReady }) {
       <div className="absolute inset-0"
         style={{ background: 'radial-gradient(ellipse at center, transparent 40%, rgba(10,14,26,0.5) 100%)' }} />
 
-      <div className="relative z-10 w-full max-w-[520px] h-screen flex flex-col px-6 justify-end pb-6">
-        {/* Level badge + title — movie poster style at bottom */}
-        <div className="mb-4">
+      <div className="relative z-10 w-full max-w-2xl flex flex-col items-center justify-center h-screen px-4">
+        {/* Level badge + title */}
+        <div className="mb-4 w-full text-center">
           {/* Level badge */}
           <div className="mb-3">
             <span className="inline-block font-mono text-sm font-bold tracking-[0.3em] px-3 py-1.5 rounded border-2"
@@ -256,22 +256,19 @@ export default function LevelIntro({ level, onReady }) {
           </div>
         </div>
 
-        {/* Begin button */}
-        <div className="flex justify-center">
+        {/* Begin button — flows after content, same as briefing CONTINUE */}
+        <div className="flex justify-center mt-4">
           <button
             onClick={onReady}
-            className="px-7 py-2.5 font-mono text-xs font-bold tracking-[0.15em] rounded-lg
-              cursor-pointer transition-all active:scale-95
-              hover:shadow-[0_0_30px_rgba(0,255,136,0.2)]"
-            style={{
-              background: 'rgba(22,101,52,0.25)',
-              border: '1px solid #15803d',
-              color: '#4ade80',
-            }}
+            className="px-8 py-2.5 bg-green-900/30 border border-green-700 text-green-400
+              font-mono text-sm tracking-widest rounded-lg
+              hover:bg-green-900/50 hover:border-green-400
+              transition-all active:scale-95 cursor-pointer"
           >
             BEGIN LEVEL {config.id} ▸
           </button>
         </div>
+
       </div>
     </div>
   );

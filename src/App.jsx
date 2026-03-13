@@ -567,20 +567,15 @@ export default function App() {
             BEGIN MISSION ▸
           </button>
 
-          <div className="mt-3 text-[11px] font-mono text-gray-600 tracking-wider">
-            EDUCATIONAL SIMULATION
+          <div className="mt-6 text-[11px] font-mono tracking-[0.15em] text-gray-500"
+            style={{ textShadow: '0 1px 4px rgba(0,0,0,0.6)' }}>
+            © Hecht Studio 2026
           </div>
         </div>
 
         {/* Bottom bar */}
-        <div className="absolute bottom-4 left-5 z-10">
-          <div className="text-[10px] font-mono tracking-[0.2em] px-2 py-0.5 rounded"
-            style={{ color: '#f9731640', border: '1px solid #f9731625' }}>
-            EDUCATIONAL SIMULATION
-          </div>
-        </div>
-        <div className="absolute bottom-4 right-5 z-10 text-[10px] font-mono tracking-wider text-gray-700">
-          v2.0
+        <div className="absolute bottom-4 right-5 z-10 text-[9px] font-mono tracking-wider text-gray-700">
+          Built with Claude
         </div>
 
         {/* Leaderboard modal */}
