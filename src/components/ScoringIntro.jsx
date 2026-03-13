@@ -4,8 +4,8 @@ export default function ScoringIntro({ onContinue }) {
   const rules = [
     { points: '+100', pointsClass: 'text-green-400', label: 'Correct intercept', desc: 'right system on a populated target' },
     { points: '+25×', pointsClass: 'text-yellow-400', label: 'Streak bonus', desc: 'consecutive correct decisions multiply your score' },
-    { points: '+50', pointsClass: 'text-cyan-400', label: 'Double intercept', desc: 'two correct intercepts within 2 seconds' },
-    { points: '+250', pointsClass: 'text-cyan-400', label: 'Quiz bonus', desc: 'per correct answer in readiness checks' },
+    { points: '+50', pointsClass: 'text-blue-400', label: 'Double intercept', desc: 'two correct intercepts within 2 seconds' },
+    { points: '+250', pointsClass: 'text-blue-400', label: 'Quiz bonus', desc: 'per correct answer in readiness checks' },
     { points: '+250', pointsClass: 'text-blue-400', label: 'Ammo bonus', desc: 'per unused interceptor at level end' },
     { points: '−100', pointsClass: 'text-red-400', label: 'City hit', desc: 'siren sounds, streak resets, points deducted' },
   ];
