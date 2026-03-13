@@ -30,6 +30,8 @@ Built for classroom/escape-room use with facilitator controls and escape room ti
 | `src/components/FacilitatorControls.jsx` | Teacher/facilitator panel (ESC to toggle) |
 | `src/components/AmmoStack.jsx` | Vertical ammo display for desktop right-side overlay |
 | `src/components/VictoryAnimation.jsx` | Zero-siren level celebration (3 SVG animation variants) |
+| `src/components/LocationPopup.jsx` | Pause & Explore knowledge cards (hover city markers when paused) |
+| `src/config/locationData.js` | Educational content for all 41 locations (summary, facts, photos) |
 | `src/utils/firebase.js` | Firebase config + Firestore init |
 | `src/utils/leaderboard.js` | Shared leaderboard (Firestore + localStorage fallback) |
 
@@ -157,6 +159,18 @@ PRE_GAME → SCORING_INTRO → BRIEFING (L1 only, has quiz)
 - **Shareable results card**: Campaign summary has screenshot-friendly score box for classroom sharing
 - **Threat selection toggle**: Click a selected threat to deselect; click a different threat to switch selection
 - **Team name persistence**: `campaignTeamName` state lifted to App.jsx, persists across LevelComplete and Summary screens throughout the campaign. Cleared on game reset.
+
+## Pause & Explore System
+- Press **P** during gameplay to pause — banner shows "HOVER LOCATIONS TO EXPLORE"
+- Hover (desktop) or click (mobile) any city/infrastructure/base marker to see a **LocationPopup** knowledge card
+- Cards show: name, Hebrew name, category badge, summary, 2 educational facts, and a photo
+- **Dark theme only** — all cards use dark variant (green/orange/gold accents by category)
+- Photos in `public/images/locations/` — 41 images sourced from Wikimedia Commons (freely licensed)
+- `locationData.js` keys must match CITIES keys in `mapLayers.js` exactly
+- Smart positioning: popup appears in opposite quadrant from marker (avoids covering the marker)
+- 150ms dismiss delay allows mouse to travel from marker to popup card
+- Popup clears automatically when game unpauses
+- `card-gallery.html` in `public/` provides a standalone gallery view of all 41 cards (for review only)
 
 ## Victory Animation System
 - Triggered on zero-siren level completions (before showing LEVEL_COMPLETE screen)
@@ -461,10 +475,8 @@ const basePath = import.meta.env.BASE_URL || '/missile-defense/';
 - Gradient fades **upward** into dark background, so header text ("ALL CLEAR", stars) sits on clean dark space
 - Photo is atmospheric backdrop behind stats/buttons area at bottom
 
-### Screens NOT YET Redesigned (still pending)
-- **LevelComplete.jsx** — approved mockup exists (`mockup-level-complete.html`), but photo already moved to bottom
-- **LevelIntro.jsx** — approved mockup exists (`mockup-level-intro.html`)
-- **ScoringIntro.jsx** — approved mockup exists (`mockup-scoring-intro.html`)
+### All Screens Redesigned
+- LevelComplete, LevelIntro, and ScoringIntro all have cinematic treatment applied
 
 ## Pending Work (as of March 2026)
 
@@ -496,14 +508,18 @@ const basePath = import.meta.env.BASE_URL || '/missile-defense/';
 - ✅ Hypersonic quiz corrected — answer now includes the United States
 - ✅ AmmoStack truncation fix — removed letter-spacing, "DAVID'S SLING" fully visible everywhere
 - ✅ Music swap L6/L7 — L6 now has the intense track (campaign finale for most players), L7 gets the former L6 track. Files swapped in `public/sounds/`, no code changes needed.
+- ✅ LevelComplete redesign — cinematic treatment with bottom photo band
+- ✅ LevelIntro redesign — cinematic treatment applied
+- ✅ ScoringIntro redesign — cinematic treatment applied
+- ✅ SUFRIN portrait fix — SVG xlinkHref compatibility
+- ✅ Cheat codes verified — TZUR, SASHA, DVIR, SUFRIN, BH, BSD all working
+- ✅ Dead code cleanup — FieldExercisePhase and animation components removed
+- ✅ L6 difficulty bumped to 8.0 — intensified waves, more simultaneous threats
+- ✅ Leaderboard simplified — name + score only
+- ✅ Briefings trimmed to 2 facts — share card removed
+- ✅ Pause & Explore popup system — LocationPopup component, locationData.js, 41 Wikimedia photos
+- ✅ Pause banner hint — "HOVER LOCATIONS TO EXPLORE" visible at all breakpoints
+- ✅ Dark theme only for popups — removed light variant toggle
 
-### Still Pending
-- **LevelComplete redesign** — Approved mockup ready, not yet fully implemented (photo moved to bottom already)
-- **LevelIntro redesign** — Approved mockup ready, not yet implemented
-- **ScoringIntro redesign** — Approved mockup ready, not yet implemented
-- **SUFRIN portrait broken image** — Image path may have base URL issue in dev vs production
-- **Cheat codes untested** — TZUR, SASHA, DVIR, SUFRIN, BH, BSD, HACK overlay
-- **Difficulty progression** — L5 (6.0) slightly below target (6.5-7.0), L7 (8.0) below target (8.5-9.5)
-- **~720 lines dead code** — FieldExercisePhase and animation components in EducationalBriefing.jsx could be removed
-- **Peak simultaneous threats**: L4 peaks at ~7, L5 peaks at 6, L6 peaks at ~10. User noticed high counts during playtesting — monitor feedback on whether these feel overwhelming
-- **"150k rockets in Hezbollah arsenal" fact** — User flagged as out of date (severely degraded since Oct 2023). Searched codebase — fact does NOT currently exist in any briefing or quiz. May have been removed in a prior session or never added. If it surfaces, delete it.
+### No Pending Work
+All previously tracked items have been completed and merged.

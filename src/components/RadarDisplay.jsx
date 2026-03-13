@@ -1,6 +1,7 @@
-import { useMemo, useState, useEffect, useRef } from 'react';
+import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import { IMPACT_POSITIONS, THREAT_COLORS, LEVEL_ACCENT_COLORS } from '../config/threats.js';
 import VictoryAnimation from './VictoryAnimation.jsx';
+import LocationPopup from './LocationPopup.jsx';
 import {
   CITIES,
   getVisibleCities,
@@ -773,8 +774,79 @@ export default function RadarDisplay({
   victoryVariant = null,
   victoryKey = 0,
   onVictoryComplete,
+  paused = false,
 }) {
   const viewport = getViewportForLevel(currentLevel);
+  const svgRef = useRef(null);
+  const [hoveredLocation, setHoveredLocation] = useState(null);
+  const [popupPos, setPopupPos] = useState(null);
+
+  // Clear hover when unpaused
+  useEffect(() => {
+    if (!paused) {
+      setHoveredLocation(null);
+      setPopupPos(null);
+    }
+  }, [paused]);
+
+  // Convert SVG coordinates to pixel position relative to radar container
+  const svgToPixel = useCallback((svgX, svgY) => {
+    const svg = svgRef.current;
+    if (!svg) return null;
+    const rect = svg.getBoundingClientRect();
+    const px = (svgX / 100) * rect.width;
+    const py = (svgY / 100) * rect.height;
+    return { px, py, containerW: rect.width, containerH: rect.height };
+  }, []);
+
+  const handleMarkerEnter = useCallback((name, city, svgX, svgY) => {
+    if (!paused) return;
+    if (dismissTimer.current) clearTimeout(dismissTimer.current);
+    setHoveredLocation({ name, city });
+    const pos = svgToPixel(svgX, svgY);
+    if (!pos) return;
+    // Smart quadrant positioning — place popup away from marker
+    const popupW = 260;
+    const popupH = 360; // approximate
+    const margin = 12;
+    let left, top;
+    // Horizontal: if marker is in right half, popup goes left
+    if (pos.px > pos.containerW / 2) {
+      left = pos.px - popupW - margin;
+    } else {
+      left = pos.px + margin;
+    }
+    // Vertical: if marker is in bottom half, popup goes up
+    if (pos.py > pos.containerH / 2) {
+      top = pos.py - popupH;
+    } else {
+      top = pos.py;
+    }
+    // Clamp to container bounds
+    left = Math.max(4, Math.min(left, pos.containerW - popupW - 4));
+    top = Math.max(4, Math.min(top, pos.containerH - popupH - 4));
+    setPopupPos({ left, top });
+  }, [paused, svgToPixel]);
+
+  const dismissTimer = useRef(null);
+
+  const handleMarkerLeave = useCallback(() => {
+    // Small delay so mouse can travel from marker to popup card
+    dismissTimer.current = setTimeout(() => {
+      setHoveredLocation(null);
+      setPopupPos(null);
+    }, 150);
+  }, []);
+
+  const handlePopupEnter = useCallback(() => {
+    // Cancel dismiss if mouse enters popup
+    if (dismissTimer.current) clearTimeout(dismissTimer.current);
+  }, []);
+
+  const handlePopupLeave = useCallback(() => {
+    setHoveredLocation(null);
+    setPopupPos(null);
+  }, []);
   const accentColor = LEVEL_ACCENT_COLORS[currentLevel] || '#22c55e';
   const visibleCities = useMemo(() => getVisibleCities(currentLevel), [currentLevel]);
   const visibleRegions = useMemo(() => getVisibleRegions(currentLevel), [currentLevel]);
@@ -795,6 +867,7 @@ export default function RadarDisplay({
     <div className="relative w-full h-full flex items-center justify-center">
       <div className="relative radar-crt-glow w-full lg:w-auto lg:h-full" style={{ maxWidth: '900px', maxHeight: '100%', aspectRatio: '1' }}>
         <svg
+          ref={svgRef}
           viewBox="0 0 100 100"
           className="w-full h-full"
           style={{ filter: `drop-shadow(0 0 20px rgba(0, 255, 136, 0.15)) drop-shadow(0 0 25px ${accentColor}35)` }}
@@ -1075,6 +1148,26 @@ export default function RadarDisplay({
                       >
                         pop. {city.population}
                       </text>
+                    )}
+                    {/* Pause & Explore: hover target + glow when paused */}
+                    {paused && (
+                      <>
+                        <circle
+                          cx={p.x} cy={p.y} r={r + 1.5}
+                          fill="none"
+                          stroke={isInfra ? 'rgba(251,146,60,0.35)' : isBase ? 'rgba(234,179,8,0.35)' : 'rgba(34,197,94,0.35)'}
+                          strokeWidth="0.3"
+                          className="explore-glow"
+                        />
+                        <circle
+                          cx={p.x} cy={p.y} r="5"
+                          fill="transparent"
+                          style={{ cursor: 'pointer' }}
+                          onMouseEnter={() => handleMarkerEnter(name, city, p.x, p.y)}
+                          onMouseLeave={handleMarkerLeave}
+                          onClick={() => handleMarkerEnter(name, city, p.x, p.y)}
+                        />
+                      </>
                     )}
                   </g>
                 );
@@ -1547,6 +1640,18 @@ export default function RadarDisplay({
         {/* Sweep overlay */}
         {showSweep && (
           <div className="absolute inset-0 rounded-full radar-sweep-overlay pointer-events-none" />
+        )}
+
+        {/* Pause & Explore popup */}
+        {paused && hoveredLocation && popupPos && (
+          <LocationPopup
+            name={hoveredLocation.name}
+            city={hoveredLocation.city}
+            style={{ left: popupPos.left, top: popupPos.top }}
+            onMouseEnter={handlePopupEnter}
+            onMouseLeave={handlePopupLeave}
+            variant="dark"
+          />
         )}
       </div>
     </div>

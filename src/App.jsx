@@ -246,7 +246,7 @@ export default function App() {
         { keys: ['h', 'a', 'c', 'k'], trigger: showHackOverlay, blocked: false, hackOnly: true },
         { keys: ['b', 'h'], trigger: triggerHHMode, blocked: false },
         { keys: ['b', 's', 'd'], trigger: triggerRLMode, blocked: false },
-        { keys: ['p', 'p'], trigger: togglePause, blocked: false },
+        // 'p' pause handled separately below (single key, not cheat buffer)
       ];
       // "hack" works on more screens (level start, level end, active); combat cheats only during ACTIVE
       const hackScreens = [GAME_STATES.ACTIVE, GAME_STATES.LEVEL_INTRO, GAME_STATES.LEVEL_COMPLETE];
@@ -286,6 +286,17 @@ export default function App() {
             cheatBufferRef.current = [];
             setCheatHints(0);
           }
+        }
+      }
+
+      // P: toggle pause (single key, during ACTIVE gameplay only)
+      if ((e.key === 'p' || e.key === 'P') && gameState === GAME_STATES.ACTIVE) {
+        // Don't trigger if cheat buffer has content beyond just 'p'
+        if (cheatBufferRef.current.length <= 1) {
+          cheatBufferRef.current = [];
+          setCheatHints(0);
+          togglePause();
+          return;
         }
       }
 
@@ -868,6 +879,7 @@ export default function App() {
             victoryVariant={victoryVariant}
             victoryKey={victoryKey}
             onVictoryComplete={handleVictoryComplete}
+            paused={paused}
           />
         </div>
 
@@ -894,6 +906,13 @@ export default function App() {
           availableSystems={config?.available_systems}
         />
       </div>
+
+      {/* HUD hint — Pause & Explore, desktop only */}
+      {!paused && (
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 hidden lg:block">
+          <span className="font-mono text-[10px] text-gray-500/50 tracking-wider">P — PAUSE & EXPLORE</span>
+        </div>
+      )}
 
       {/* SALVO WARNING overlay — level-based intensity */}
       {finalSalvoWarning && (
@@ -1017,9 +1036,12 @@ export default function App() {
 
       {/* PAUSE indicator — minimal banner so full game screen stays visible */}
       {paused && (
-        <div className="absolute top-12 left-1/2 -translate-x-1/2 z-30 px-6 py-2 bg-black/80 border border-yellow-500/50 rounded-lg">
-          <span className="font-bold font-mono text-yellow-500 tracking-[0.3em] text-lg animate-pulse">PAUSED</span>
-          <span className="font-mono text-gray-500 text-xs ml-4">PP or ESC to resume</span>
+        <div className="absolute top-12 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center bg-black/80 border border-yellow-500/50 rounded-lg px-6 py-2">
+          <div>
+            <span className="font-bold font-mono text-yellow-500 tracking-[0.3em] text-lg animate-pulse">PAUSED</span>
+            <span className="font-mono text-gray-500 text-xs ml-4">P or ESC to resume</span>
+          </div>
+          <div className="font-mono text-green-400/80 text-[11px] tracking-wide mt-1">HOVER LOCATIONS TO EXPLORE</div>
         </div>
       )}
 
