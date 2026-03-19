@@ -257,6 +257,9 @@ export default function App() {
     } else if (tutorialStep === 'select' && sessionTime >= 16) {
       // Auto-advance past select when T2 (hold-fire) spawns
       setTutorialStep('holdfire');
+    } else if (tutorialStep === 'wait_holdfire' && sessionTime >= 16) {
+      // Player already intercepted T1 — now T2 has spawned, show holdfire tutorial
+      setTutorialStep('holdfire');
     } else if (tutorialStep === 'holdfire' && sessionTime >= 24) {
       // Auto-advance past holdfire when normal gameplay resumes (T3)
       setTutorialStep('pause');
@@ -270,7 +273,7 @@ export default function App() {
   const handleActionWithTutorial = useCallback((action) => {
     handleAction(action);
     if (tutorialStepRef.current === 'select' && action !== 'hold_fire') {
-      setTutorialStep('holdfire');
+      setTutorialStep('wait_holdfire');
     } else if (tutorialStepRef.current === 'holdfire' && action === 'hold_fire') {
       setTutorialStep('pause');
     }
@@ -279,9 +282,11 @@ export default function App() {
   // Auto-skip briefing if facilitator toggle is on, or if this level's briefing was already seen
   useEffect(() => {
     if (gameState === GAME_STATES.BRIEFING && (skipBriefings || seenBriefingsRef.current.has(currentLevel))) {
-      skipBriefing();
+      // Skip directly to gameplay (bypass LevelIntro)
+      seenBriefingsRef.current.add(currentLevel);
+      startLevel(currentLevel);
     }
-  }, [gameState, currentLevel, skipBriefing, skipBriefings, GAME_STATES]);
+  }, [gameState, currentLevel, startLevel, skipBriefings, GAME_STATES]);
 
   // Keyboard handling
   useEffect(() => {
@@ -397,7 +402,7 @@ export default function App() {
           e.preventDefault();
           handleAction(action);
           // Advance tutorial past 'select' step on first intercept
-          if (tutorialStepRef.current === 'select') setTutorialStep('holdfire');
+          if (tutorialStepRef.current === 'select') setTutorialStep('wait_holdfire');
         }
         return;
       }
@@ -452,8 +457,9 @@ export default function App() {
   const handleBriefingComplete = useCallback(({ quizPoints: pts }) => {
     seenBriefingsRef.current.add(currentLevel);
     if (pts > 0) addQuizPoints(pts);
-    skipBriefing();
-  }, [currentLevel, addQuizPoints, skipBriefing]);
+    // Skip LevelIntro — go straight to gameplay after quiz
+    startLevel(currentLevel);
+  }, [currentLevel, addQuizPoints, startLevel]);
 
   const handlePause = useCallback(() => {
     if (!paused) togglePause();

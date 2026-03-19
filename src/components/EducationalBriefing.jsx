@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { getRandomQuestions, QUIZ_DATA } from '../config/quizData.js';
+import { getLevelConfig, INTERCEPTOR_COLORS, THREAT_COLORS } from '../config/threats.js';
 
 // ============================================================
 // BRIEFING_CONTENT — All level-specific content for all 7 levels
 // ============================================================
 const BRIEFING_CONTENT = {
   1: {
-    phases: ['threat', 'defense', 'quiz'],
+    phases: ['briefing', 'quiz'],
     threat: {
       title: 'SOUTHERN ISRAEL',
       hebrewTitle: 'דְּרוֹם יִשְׂרָאֵל',
@@ -51,7 +52,7 @@ const BRIEFING_CONTENT = {
   },
 
   2: {
-    phases: ['threat', 'defense', 'quiz'],
+    phases: ['briefing', 'quiz'],
     threat: {
       title: 'NORTHERN ISRAEL',
       hebrewTitle: 'צְפוֹן יִשְׂרָאֵל',
@@ -100,7 +101,7 @@ const BRIEFING_CONTENT = {
   },
 
   3: {
-    phases: ['threat', 'defense', 'quiz'],
+    phases: ['briefing', 'quiz'],
     threat: {
       title: 'CENTRAL ISRAEL',
       hebrewTitle: 'מֶרְכַּז יִשְׂרָאֵל',
@@ -150,7 +151,7 @@ const BRIEFING_CONTENT = {
   },
 
   4: {
-    phases: ['threat', 'defense', 'quiz'],
+    phases: ['briefing', 'quiz'],
     threat: {
       title: 'STRATEGIC TARGETS',
       hebrewTitle: 'מַטָּרוֹת אִסְטְרָטֶגִיּוֹת',
@@ -200,7 +201,7 @@ const BRIEFING_CONTENT = {
   },
 
   5: {
-    phases: ['threat', 'defense', 'quiz'],
+    phases: ['briefing', 'quiz'],
     threat: {
       title: 'ARMY BASES',
       hebrewTitle: 'בְּסִיסֵי צָבָא',
@@ -250,7 +251,7 @@ const BRIEFING_CONTENT = {
   },
 
   6: {
-    phases: ['threat', 'defense', 'quiz'],
+    phases: ['briefing', 'quiz'],
     threat: {
       title: 'THE EXPANDING THREAT RING',
       hebrewTitle: 'טַבַּעַת הָאִיּוּמִים',
@@ -295,7 +296,7 @@ const BRIEFING_CONTENT = {
   },
 
   7: {
-    phases: ['threat', 'defense', 'quiz'],
+    phases: ['briefing', 'quiz'],
     threat: {
       title: 'APRIL 13, 2024',
       hebrewTitle: 'שְׁלוֹשָׁה עָשָׂר בְּאַפְּרִיל',
@@ -344,6 +345,7 @@ const BRIEFING_CONTENT = {
 // Phase label mapping
 // ============================================================
 const PHASE_LABELS = {
+  briefing: 'INTEL',
   threat: 'SITUATION',
   defense: 'RESPONSE',
   quiz: 'READINESS CHECK',
@@ -1328,92 +1330,344 @@ function DefenseBriefingPhase({ data, onComplete, onSkip, level }) {
 }
 
 // ============================================================
-// PHASE 3: Intel Check (Quiz) — UNCHANGED
+// COMBINED BRIEFING PHASE — Merges Situation + Response into one screen
+// Hero photo + big stat (from threat), profile bar, 3 facts from combined pools
+// ============================================================
+function CombinedBriefingPhase({ threatData, defenseData, onComplete, onSkip, level }) {
+  const basePath = import.meta.env.BASE_URL || '/missile-defense/';
+  const profile = THREAT_PROFILES[level];
+
+  // Merge threat + defense facts into one pool, pick 3 — stable across re-renders
+  const [bullets] = useState(() => {
+    const allFacts = [...(threatData.bullets || []), ...(defenseData.bullets || [])];
+    return allFacts.length > 3 ? selectRandom(allFacts, 3) : allFacts;
+  });
+
+  // Checkbox state — one per fact card
+  const [checked, setChecked] = useState(() => bullets.map(() => false));
+  const allChecked = checked.every(Boolean);
+  const onCompleteRef = useRef(onComplete);
+  useEffect(() => { onCompleteRef.current = onComplete; }, [onComplete]);
+
+  // Auto-advance when all facts are checked
+  useEffect(() => {
+    if (allChecked) {
+      briefingSounds.phasePing();
+      const timer = setTimeout(() => onCompleteRef.current(), 600);
+      return () => clearTimeout(timer);
+    }
+  }, [allChecked]);
+
+  // Use threat color as primary accent
+  const color = threatData.color;
+
+  useEffect(() => {
+    briefingSounds.docReveal();
+  }, []);
+
+  return (
+    <div className="flex flex-col gap-2">
+      {/* Hero image with big stat (from threat data) */}
+      {threatData.heroImage && (
+        <div className="relative rounded-xl overflow-hidden flex-shrink-0">
+          <div
+            className="w-full h-[200px]"
+            style={{ background: `url('${basePath}images/${threatData.heroImage}') center center / cover no-repeat` }}
+          />
+          <div
+            className="absolute inset-0 flex flex-col justify-end"
+            style={{ padding: '16px 22px', background: 'linear-gradient(to bottom, rgba(10,14,26,0.15) 0%, rgba(10,14,26,0.3) 40%, rgba(10,14,26,0.88) 100%)' }}
+          >
+            {threatData.heroCaption && (
+              <div className="absolute top-3 left-4 text-[15px] font-bold tracking-[0.25em] uppercase" style={{ color, textShadow: '0 1px 6px rgba(0,0,0,0.8)' }}>
+                {threatData.heroCaption}
+              </div>
+            )}
+            <div className="font-mono font-black text-[48px] leading-none tracking-tight" style={{ color, textShadow: `0 0 40px ${color}40` }}>
+              {threatData.heroStat}
+            </div>
+            <div className="font-mono text-[15px] text-white mt-1.5 leading-relaxed" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.6)' }}>
+              {threatData.heroLabel}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Threat Profile Bar */}
+      {profile && (
+        <div className="px-3.5 py-2 rounded-lg bg-gray-900/60 flex items-center justify-between gap-2 text-[10px] font-mono"
+          style={{ border: `1px solid ${color}25` }}>
+          <div className="flex items-center gap-2">
+            <span className="tracking-[0.18em] text-gray-500">SPEED</span>
+            <span className="font-bold" style={{ color }}>{profile.speed}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="tracking-[0.18em] text-gray-500">RANGE</span>
+            <span className="font-bold" style={{ color }}>{profile.range}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="tracking-[0.18em] text-gray-500">ALT</span>
+            <span className="font-bold" style={{ color }}>{profile.altitude}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="tracking-[0.18em] text-gray-500">COST</span>
+            <span className="font-bold" style={{ color }}>{profile.cost}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Instruction — prominent call to action */}
+      {!allChecked && (
+        <div className="text-center py-2.5 my-1 rounded-lg" style={{ background: `${color}10`, border: `1px solid ${color}30` }}>
+          <div className="font-mono text-sm font-bold tracking-[0.25em] animate-pulse" style={{ color, animationDuration: '2s' }}>
+            CLICK EACH FACT TO CONFIRM
+          </div>
+          <div className="font-mono text-[10px] tracking-widest mt-0.5 text-gray-500">
+            {checked.filter(Boolean).length} / {bullets.length} confirmed
+          </div>
+        </div>
+      )}
+
+      {/* 3 fact cards with checkboxes */}
+      <div className="flex flex-col gap-1.5">
+        {bullets.map((bullet, i) => (
+          <button
+            key={bullet.id || i}
+            onClick={() => setChecked(prev => { const next = [...prev]; next[i] = true; return next; })}
+            className={`w-full flex items-start gap-3 p-3 rounded-lg tutorial-enter text-left transition-all duration-300 ${
+              checked[i]
+                ? 'bg-green-950/30 border border-green-700/50'
+                : 'bg-gray-900/55 border-2 hover:bg-gray-800/60 cursor-pointer'
+            }`}
+            style={{
+              animationDelay: `${i * 0.15}s`,
+              ...(!checked[i] ? { borderColor: `${color}50` } : {}),
+            }}
+            disabled={checked[i]}
+          >
+            {/* Checkbox */}
+            <div className={`flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center mt-0.5 transition-all duration-300 ${
+              checked[i]
+                ? 'border-green-500 bg-green-500/20'
+                : 'border-current'
+            }`} style={!checked[i] ? { color } : undefined}>
+              {checked[i] ? (
+                <svg viewBox="0 0 12 12" className="w-3 h-3" fill="none" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M2 6l3 3 5-5" />
+                </svg>
+              ) : (
+                <span className="text-[8px] font-mono" style={{ color: `${color}80` }}>?</span>
+              )}
+            </div>
+            <BriefingIcon emoji={bullet.icon} color={checked[i] ? '#22c55e' : color} />
+            <div className="flex-1 min-w-0">
+              <span className="font-mono font-bold text-sm tracking-wide" style={{ color: checked[i] ? '#22c55e' : color }}>{bullet.stat}</span>
+              <span className={`text-[13px] font-mono ml-2 ${checked[i] ? 'text-gray-500' : 'text-gray-400'}`}>{bullet.detail}</span>
+            </div>
+          </button>
+        ))}
+      </div>
+
+      {/* Progress hint */}
+      {allChecked && (
+        <div className="text-center font-mono text-xs tracking-widest mt-1 text-green-400 font-bold">
+          ALL CONFIRMED — ADVANCING...
+        </div>
+      )}
+
+      <CountdownBar duration={15} onComplete={onComplete} paused={false} />
+
+      {/* Skip button — fallback if player doesn't want to read */}
+      {onSkip && !allChecked && (
+        <div className="flex items-center justify-center">
+          <button
+            onClick={onSkip}
+            className="px-5 py-2 bg-gray-800/60 border border-gray-600 text-gray-400
+              font-mono text-xs tracking-widest rounded-lg
+              hover:bg-gray-700/80 hover:border-gray-400 hover:text-gray-300
+              transition-all active:scale-95 cursor-pointer"
+          >
+            SKIP BRIEFING ▸
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================================
+// INTEL CHECK (Quiz) with tactical info header
 // ============================================================
 function IntelCheckPhase({ level, shownFactIds, onComplete, onSkip }) {
-  const [questions] = useState(() => getRandomQuestions(level, 2, shownFactIds));
-  const [currentQ, setCurrentQ] = useState(0);
-  const [selectedAnswer, setSelectedAnswer] = useState(null);
-  const [showResult, setShowResult] = useState(false);
-  const [totalPoints, setTotalPoints] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(15);
+  const config = getLevelConfig(level);
+  const [questions] = useState(() => {
+    // Get 2 questions, then trim each from 4 options to 3 (drop a random wrong answer)
+    const raw = getRandomQuestions(level, 2, shownFactIds);
+    return raw.map(q => {
+      if (q.options.length <= 3) return q;
+      // Collect indices of wrong answers, remove one randomly
+      const wrongIndices = q.options.map((_, i) => i).filter(i => i !== q.correctIndex);
+      const dropIdx = wrongIndices[Math.floor(Math.random() * wrongIndices.length)];
+      const newOptions = q.options.filter((_, i) => i !== dropIdx);
+      const newCorrectIndex = newOptions.indexOf(q.options[q.correctIndex]);
+      return { ...q, options: newOptions, correctIndex: newCorrectIndex };
+    });
+  });
+  // Per-question answer state: [{ selected: null|index, showResult: false }, ...]
+  const [answers, setAnswers] = useState(() => questions.map(() => ({ selected: null, showResult: false })));
+  const [timeLeft, setTimeLeft] = useState(20);
+  const [readyToStart, setReadyToStart] = useState(false);
   const timerRef = useRef(null);
-  const answeredRef = useRef(false);
-  // Use refs for values needed in setTimeout callbacks to avoid stale closures
-  const totalPointsRef = useRef(0);
-  const currentQRef = useRef(0);
+  const completedRef = useRef(false);
   const onCompleteRef = useRef(onComplete);
   useEffect(() => { onCompleteRef.current = onComplete; }, [onComplete]);
 
   const quizConfig = QUIZ_DATA[level] || { timePerQuestion: 15, pointsPerCorrect: 50 };
+  const totalTime = 20; // shared timer for both questions
 
-  // Advance to next question or complete quiz — uses refs only so it never changes identity
-  const doAdvance = useCallback((earnedPoints) => {
-    const newTotal = totalPointsRef.current + earnedPoints;
-    totalPointsRef.current = newTotal;
-    setTotalPoints(newTotal);
+  // Calculate total points from current answers
+  const getPoints = useCallback((ans) => {
+    return ans.reduce((sum, a, i) => {
+      if (a.selected !== null && a.selected === questions[i]?.correctIndex) {
+        return sum + quizConfig.pointsPerCorrect;
+      }
+      return sum;
+    }, 0);
+  }, [questions, quizConfig]);
 
-    if (currentQRef.current + 1 >= questions.length) {
-      onCompleteRef.current(newTotal);
-    } else {
-      const nextQ = currentQRef.current + 1;
-      currentQRef.current = nextQ;
-      setCurrentQ(nextQ);
-    }
-  }, [questions]);
+  // Finish quiz — show results and START LEVEL button
+  const finishQuiz = useCallback((finalAnswers) => {
+    if (completedRef.current) return;
+    completedRef.current = true;
+    if (timerRef.current) clearInterval(timerRef.current);
+    // Brief delay to show results, then reveal start button
+    setTimeout(() => setReadyToStart(true), 1500);
+  }, []);
 
-  // Per-question timer — only re-runs when currentQ changes (new question)
+  // Called when player clicks START LEVEL
+  const handleStartLevel = useCallback(() => {
+    const points = getPoints(answers);
+    onCompleteRef.current(points);
+  }, [getPoints, answers]);
+
+  // Shared timer
   useEffect(() => {
-    answeredRef.current = false;
-    setTimeLeft(quizConfig.timePerQuestion);
-    setSelectedAnswer(null);
-    setShowResult(false);
-
     const startTime = performance.now();
     timerRef.current = setInterval(() => {
       const elapsed = (performance.now() - startTime) / 1000;
-      const remaining = Math.max(0, quizConfig.timePerQuestion - elapsed);
+      const remaining = Math.max(0, totalTime - elapsed);
       setTimeLeft(remaining);
 
-      if (remaining <= 0 && !answeredRef.current) {
+      if (remaining <= 0 && !completedRef.current) {
         clearInterval(timerRef.current);
-        answeredRef.current = true;
         briefingSounds.quizWrong();
-        setShowResult(true);
-        // Auto-advance after showing timeout result (0 points earned)
-        setTimeout(() => doAdvance(0), 3500);
+        // Show results for all unanswered questions
+        setAnswers(prev => {
+          const updated = prev.map(a => ({ ...a, showResult: true }));
+          setTimeout(() => finishQuiz(updated), 0);
+          return updated;
+        });
       }
     }, 100);
-
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [currentQ, doAdvance, quizConfig]);
+  }, [finishQuiz]);
 
-  const handleAnswer = useCallback((index) => {
-    if (answeredRef.current) return;
-    answeredRef.current = true;
-    if (timerRef.current) clearInterval(timerRef.current);
+  const handleAnswer = useCallback((qIndex, optionIndex) => {
+    if (completedRef.current) return;
+    setAnswers(prev => {
+      if (prev[qIndex].selected !== null) return prev; // already answered
+      const updated = [...prev];
+      const correct = optionIndex === questions[qIndex].correctIndex;
+      updated[qIndex] = { selected: optionIndex, showResult: true };
+      if (correct) briefingSounds.quizCorrect();
+      else briefingSounds.quizWrong();
 
-    setSelectedAnswer(index);
-    const q = questions[currentQRef.current];
-    const correct = index === q.correctIndex;
-    const earned = correct ? quizConfig.pointsPerCorrect : 0;
+      // Check if all questions answered
+      const allAnswered = updated.every(a => a.selected !== null);
+      if (allAnswered) {
+        setTimeout(() => finishQuiz(updated), 2500);
+      }
+      return updated;
+    });
+  }, [questions, finishQuiz]);
 
-    if (correct) briefingSounds.quizCorrect();
-    else briefingSounds.quizWrong();
+  if (questions.length === 0) { onComplete(0); return null; }
 
-    setShowResult(true);
-    setTimeout(() => doAdvance(earned), 3500);
-  }, [questions, quizConfig, doAdvance]);
+  const elapsedPct = Math.min(100, ((totalTime - timeLeft) / totalTime) * 100);
+  const totalPoints = getPoints(answers);
+  const answeredCount = answers.filter(a => a.selected !== null).length;
 
-  if (questions.length === 0) {
-    onComplete(0);
-    return null;
-  }
+  // Render a single question card
+  const renderQuestion = (q, qIdx) => {
+    const ans = answers[qIdx];
+    return (
+      <div key={qIdx} className="flex-1 min-w-0 rounded-xl p-3 md:p-4"
+        style={{ background: 'rgba(17,24,39,0.5)', border: '1px solid rgba(6,182,212,0.15)' }}>
+        {/* Question text */}
+        <div className="text-sm font-mono text-gray-200 mb-3 leading-relaxed">
+          {q.question}
+        </div>
 
-  const q = questions[currentQ];
-  const isCorrect = selectedAnswer === q.correctIndex;
-  const timedOut = showResult && selectedAnswer === null;
-  const elapsedPct = Math.min(100, ((quizConfig.timePerQuestion - timeLeft) / quizConfig.timePerQuestion) * 100);
+        {/* Options */}
+        <div className="flex flex-col gap-1.5">
+          {q.options.map((option, i) => {
+            const letter = String.fromCharCode(65 + i);
+            let borderColor = '#1e2736';
+            let bgColor = 'rgba(17,24,39,0.55)';
+            let keyBg = 'rgba(6,182,212,0.15)';
+            let keyBorder = 'rgba(6,182,212,0.25)';
+            let keyColor = '#06b6d4';
+            let keyText = letter;
+            let textColor = '#d1d5db';
+
+            if (ans.showResult) {
+              if (i === q.correctIndex) {
+                borderColor = '#22c55e'; bgColor = 'rgba(34,197,94,0.1)';
+                keyBg = 'rgba(34,197,94,0.2)'; keyBorder = 'rgba(34,197,94,0.38)';
+                keyColor = '#22c55e'; keyText = '✓'; textColor = '#22c55e';
+              } else if (i === ans.selected && ans.selected !== q.correctIndex) {
+                borderColor = '#ef4444'; bgColor = 'rgba(239,68,68,0.1)';
+                keyBg = 'rgba(239,68,68,0.2)'; keyBorder = 'rgba(239,68,68,0.38)';
+                keyColor = '#ef4444'; keyText = '✗'; textColor = '#ef4444';
+              } else {
+                borderColor = '#1e2736'; bgColor = 'rgba(17,24,39,0.3)';
+                textColor = '#6b7280'; keyColor = '#4b5563';
+                keyBg = 'rgba(75,85,99,0.15)'; keyBorder = 'rgba(75,85,99,0.25)';
+              }
+            }
+
+            return (
+              <button key={i} onClick={() => handleAnswer(qIdx, i)}
+                disabled={ans.showResult}
+                className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg font-mono transition-all duration-200
+                  ${ans.showResult ? 'cursor-default' : 'cursor-pointer hover:opacity-80 active:scale-[0.98]'}`}
+                style={{ background: bgColor, border: `1px solid ${borderColor}` }}>
+                <div className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0 text-[10px] font-bold"
+                  style={{ background: keyBg, border: `1px solid ${keyBorder}`, color: keyColor }}>
+                  {keyText}
+                </div>
+                <span className="text-[12px] text-left" style={{ color: textColor }}>{option}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Result feedback */}
+        {ans.showResult && (
+          <div className="mt-2 px-3 py-2 rounded-lg text-xs" style={{
+            background: ans.selected === null ? 'rgba(234,179,8,0.06)' : ans.selected === q.correctIndex ? 'rgba(34,197,94,0.06)' : 'rgba(239,68,68,0.06)',
+            border: `1px solid ${ans.selected === null ? 'rgba(234,179,8,0.15)' : ans.selected === q.correctIndex ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)'}`,
+          }}>
+            <div className="font-mono text-[10px] font-bold tracking-[0.12em] mb-0.5"
+              style={{ color: ans.selected === null ? '#eab308' : ans.selected === q.correctIndex ? '#22c55e' : '#ef4444' }}>
+              {ans.selected === null ? "TIME'S UP" : ans.selected === q.correctIndex ? `✓ +${quizConfig.pointsPerCorrect}` : '✗ INCORRECT'}
+            </div>
+            <div className="font-mono text-[11px] text-gray-400 leading-relaxed">{q.explanation}</div>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div>
@@ -1424,115 +1678,62 @@ function IntelCheckPhase({ level, shownFactIds, onComplete, onSkip }) {
         </div>
         <div className="font-mono text-[10px] tracking-[0.15em] mt-0.5"
           style={{ color: 'rgba(6,182,212,0.44)' }}>
-          QUESTION {currentQ + 1} OF {questions.length} · +{quizConfig.pointsPerCorrect} PER CORRECT
+          {questions.length} QUESTIONS · +{quizConfig.pointsPerCorrect} PER CORRECT
         </div>
       </div>
 
-      {/* Timer bar — fills left→right like briefing CountdownBar */}
+      {/* Tactical info — new threat, new system, ammo */}
+      {config && (
+        <div className="mb-3 flex flex-wrap gap-2 justify-center">
+          {config.new_threat && (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded border text-xs font-mono"
+              style={{ background: `${THREAT_COLORS[config.new_threat.type] || '#ef4444'}10`, borderColor: `${THREAT_COLORS[config.new_threat.type] || '#ef4444'}40` }}>
+              <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: THREAT_COLORS[config.new_threat.type] }} />
+              <span className="text-gray-500 tracking-wider">NEW THREAT</span>
+              <span className="font-bold" style={{ color: THREAT_COLORS[config.new_threat.type] }}>{config.new_threat.name}</span>
+            </div>
+          )}
+          {config.new_system && (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded border text-xs font-mono"
+              style={{ background: `${config.new_system.color}10`, borderColor: `${config.new_system.color}40` }}>
+              <span className="w-5 h-5 rounded border flex items-center justify-center font-bold text-[10px]"
+                style={{ borderColor: config.new_system.color, color: config.new_system.color }}>
+                {config.new_system.shortcut}
+              </span>
+              <span className="font-bold" style={{ color: config.new_system.color }}>{config.new_system.name}</span>
+            </div>
+          )}
+          {config.available_systems.map((sys) => {
+            const labels = { iron_dome: 'ID', davids_sling: 'DS', arrow_2: 'A2', arrow_3: 'A3' };
+            return (
+              <div key={sys} className="flex items-center gap-1.5 px-2 py-1.5 rounded border text-[10px] font-mono"
+                style={{ background: 'rgba(17,24,39,0.5)', borderColor: '#1e2736' }}>
+                <span style={{ color: INTERCEPTOR_COLORS[sys] }}>{labels[sys]}</span>
+                <span className="font-bold" style={{ color: INTERCEPTOR_COLORS[sys] }}>{config.ammo[sys] || 0}</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Shared timer bar */}
       <div className="mb-3">
         <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden">
-          <div
-            className={`h-full rounded-full transition-all duration-100 ease-linear ${
-              timeLeft < 5 ? 'bg-red-500' : timeLeft < 10 ? 'bg-yellow-500' : 'bg-cyan-500'
-            }`}
-            style={{ width: `${elapsedPct}%` }}
-          />
+          <div className={`h-full rounded-full transition-all duration-100 ease-linear ${
+            timeLeft < 5 ? 'bg-red-500' : timeLeft < 10 ? 'bg-yellow-500' : 'bg-cyan-500'
+          }`} style={{ width: `${elapsedPct}%` }} />
         </div>
         <div className="text-right mt-1">
-          <span className={`font-mono text-xs tabular-nums ${
-            timeLeft < 5 ? 'text-red-400' : 'text-gray-500'
-          }`}>
+          <span className={`font-mono text-xs tabular-nums ${timeLeft < 5 ? 'text-red-400' : 'text-gray-500'}`}>
             {Math.ceil(timeLeft)}s
           </span>
         </div>
       </div>
 
-      {/* Question */}
-      <div className="text-base font-mono text-gray-200 mb-4 text-center leading-relaxed">
-        {q.question}
+      {/* Both questions side by side (desktop) / stacked (mobile) */}
+      <div className="flex flex-col md:flex-row gap-6 items-start">
+        {questions.map((q, i) => renderQuestion(q, i))}
       </div>
-
-      {/* Options */}
-      <div className="flex flex-col gap-1.5 max-w-lg mx-auto">
-        {q.options.map((option, i) => {
-          const letter = String.fromCharCode(65 + i);
-          let borderColor = '#1e2736';
-          let bgColor = 'rgba(17,24,39,0.55)';
-          let keyBg = 'rgba(6,182,212,0.15)';
-          let keyBorder = 'rgba(6,182,212,0.25)';
-          let keyColor = '#06b6d4';
-          let keyText = letter;
-          let textColor = '#d1d5db';
-
-          if (showResult) {
-            if (i === q.correctIndex) {
-              borderColor = '#22c55e';
-              bgColor = 'rgba(34,197,94,0.1)';
-              keyBg = 'rgba(34,197,94,0.2)';
-              keyBorder = 'rgba(34,197,94,0.38)';
-              keyColor = '#22c55e';
-              keyText = '✓';
-              textColor = '#22c55e';
-            } else if (i === selectedAnswer && !isCorrect) {
-              borderColor = '#ef4444';
-              bgColor = 'rgba(239,68,68,0.1)';
-              keyBg = 'rgba(239,68,68,0.2)';
-              keyBorder = 'rgba(239,68,68,0.38)';
-              keyColor = '#ef4444';
-              keyText = '✗';
-              textColor = '#ef4444';
-            } else {
-              borderColor = '#1e2736';
-              bgColor = 'rgba(17,24,39,0.3)';
-              textColor = '#6b7280';
-              keyColor = '#4b5563';
-              keyBg = 'rgba(75,85,99,0.15)';
-              keyBorder = 'rgba(75,85,99,0.25)';
-            }
-          }
-
-          return (
-            <button
-              key={i}
-              onClick={() => handleAnswer(i)}
-              disabled={showResult}
-              className={`w-full flex items-center gap-2.5 px-3.5 py-3 rounded-xl font-mono transition-all duration-200
-                ${showResult ? 'cursor-default' : 'cursor-pointer hover:opacity-80 active:scale-[0.98]'}
-              `}
-              style={{
-                background: bgColor,
-                border: `1px solid ${borderColor}`,
-              }}
-            >
-              <div className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 text-[11px] font-bold"
-                style={{
-                  background: keyBg,
-                  border: `1px solid ${keyBorder}`,
-                  color: keyColor,
-                }}>
-                {keyText}
-              </div>
-              <span className="text-[13px] text-left" style={{ color: textColor }}>
-                {option}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Result feedback */}
-      {showResult && (
-        <div className="mt-2.5 px-3.5 py-2.5 rounded-lg" style={{
-          background: timedOut ? 'rgba(234,179,8,0.06)' : isCorrect ? 'rgba(34,197,94,0.06)' : 'rgba(239,68,68,0.06)',
-          border: `1px solid ${timedOut ? 'rgba(234,179,8,0.15)' : isCorrect ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)'}`,
-        }}>
-          <div className="font-mono text-[11px] font-bold tracking-[0.15em] mb-1"
-            style={{ color: timedOut ? '#eab308' : isCorrect ? '#22c55e' : '#ef4444' }}>
-            {timedOut ? "TIME'S UP" : isCorrect ? `✓ CORRECT — +${quizConfig.pointsPerCorrect} POINTS` : '✗ INCORRECT'}
-          </div>
-          <div className="font-mono text-xs text-gray-400 leading-relaxed">{q.explanation}</div>
-        </div>
-      )}
 
       {/* Points tracker */}
       <div className="mt-3 flex justify-center gap-4">
@@ -1541,25 +1742,32 @@ function IntelCheckPhase({ level, shownFactIds, onComplete, onSkip }) {
           <div className="font-mono text-[8px] text-gray-500 tracking-[0.15em] mt-0.5">QUIZ POINTS</div>
         </div>
         <div className="text-center">
-          <div className="font-mono text-lg font-black text-green-400">{currentQ + (showResult ? 1 : 0)}/{questions.length}</div>
+          <div className="font-mono text-lg font-black text-green-400">{answeredCount}/{questions.length}</div>
           <div className="font-mono text-[8px] text-gray-500 tracking-[0.15em] mt-0.5">ANSWERED</div>
         </div>
       </div>
 
-      {/* Skip button — matches threat/defense phase styling */}
-      {onSkip && (
-        <div className="flex items-center justify-center mt-4">
-          <button
-            onClick={onSkip}
-            className="px-5 py-2.5 bg-gray-800/60 border border-gray-600 text-gray-400
+      {/* Start level button (after quiz complete) or Skip button (during quiz) */}
+      <div className="flex items-center justify-center mt-3">
+        {readyToStart ? (
+          <button onClick={handleStartLevel}
+            className="px-8 py-3 bg-green-900/40 border-2 border-green-500 text-green-400
+              font-mono text-sm tracking-widest rounded-lg
+              hover:bg-green-900/60 hover:border-green-300 hover:text-green-300
+              transition-all active:scale-95 cursor-pointer animate-pulse"
+            style={{ animationDuration: '2s' }}>
+            START LEVEL {level} ▸
+          </button>
+        ) : onSkip && (
+          <button onClick={onSkip}
+            className="px-5 py-2 bg-gray-800/60 border border-gray-600 text-gray-400
               font-mono text-xs tracking-widest rounded-lg
               hover:bg-gray-700/80 hover:border-gray-400 hover:text-gray-300
-              transition-all active:scale-95 cursor-pointer"
-          >
-            SKIP BRIEFING ▸
+              transition-all active:scale-95 cursor-pointer">
+            START LEVEL {level} ▸
           </button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
@@ -2079,6 +2287,10 @@ export default function EducationalBriefing({ level, onComplete }) {
     }
   }, [phases, onComplete]);
 
+  const handleBriefingPhaseComplete = useCallback(() => {
+    advancePhase('briefing');
+  }, [advancePhase]);
+
   const handleThreatComplete = useCallback(() => {
     advancePhase('threat');
   }, [advancePhase]);
@@ -2195,7 +2407,16 @@ export default function EducationalBriefing({ level, onComplete }) {
 
       {/* Phase content — vertically centered in remaining space */}
       <div className="flex-1 overflow-y-auto relative z-10 flex items-center">
-        <div className="max-w-2xl w-full mx-auto px-4 pb-2">
+        <div className={`w-full mx-auto px-4 pb-2 ${phase === 'quiz' ? 'max-w-4xl' : 'max-w-2xl'}`}>
+          {phase === 'briefing' && contentRef.current.threat && contentRef.current.defense && (
+            <CombinedBriefingPhase
+              threatData={contentRef.current.threat}
+              defenseData={contentRef.current.defense}
+              onComplete={handleBriefingPhaseComplete}
+              onSkip={handleSkipBriefing}
+              level={level}
+            />
+          )}
           {phase === 'threat' && contentRef.current.threat && (
             <ThreatBriefingPhase data={contentRef.current.threat} onComplete={handleThreatComplete} onSkip={handleSkipBriefing} />
           )}
