@@ -50,12 +50,23 @@ export function clearLeaderboard() {
   localStorage.removeItem(LB_KEY);
 }
 
-export default function useGameEngine({ bonusLevelEnabled = false } = {}) {
+// Round configs for tournament mode
+export const ROUND_CONFIGS = {
+  1: { startLevel: 1, endLevel: 3, label: 'QUALIFIER' },
+  2: { startLevel: 4, endLevel: 5, label: 'SEMIFINAL' },
+  3: { startLevel: 6, endLevel: 6, label: 'FINAL' },
+};
+
+export default function useGameEngine({ bonusLevelEnabled = false, roundConfig = null } = {}) {
   // When bonus is OFF, campaign ends after L6 (effectiveTotalLevels = 6)
   // When bonus is ON, L7 is included (effectiveTotalLevels = 7)
-  const effectiveTotalLevels = bonusLevelEnabled ? TOTAL_LEVELS : TOTAL_LEVELS - 1;
+  // In tournament mode, roundConfig overrides the end level
+  const effectiveTotalLevels = roundConfig
+    ? roundConfig.endLevel
+    : bonusLevelEnabled ? TOTAL_LEVELS : TOTAL_LEVELS - 1;
   const effectiveTotalLevelsRef = useRef(effectiveTotalLevels);
   effectiveTotalLevelsRef.current = effectiveTotalLevels;
+  const startingLevel = roundConfig ? roundConfig.startLevel : 1;
 
   const [currentLevel, setCurrentLevel] = useState(1);
   const [gameState, setGameState] = useState(GAME_STATES.PRE_GAME);
@@ -1150,10 +1161,10 @@ export default function useGameEngine({ bonusLevelEnabled = false } = {}) {
       quizPoints: 0,
       endedEarly: false,
     };
-    setCurrentLevel(1);
+    setCurrentLevel(startingLevel);
     setGameState(GAME_STATES.SCORING_INTRO);
     setSessionTime(0);
-    setAmmo({ ...getLevelConfig(1).ammo });
+    setAmmo({ ...getLevelConfig(startingLevel).ammo });
     setActiveThreats([]);
     setSelectedThreatId(null);
     setResultLog([]);

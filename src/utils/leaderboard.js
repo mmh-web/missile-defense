@@ -30,6 +30,42 @@ export function getEventCode() {
   }
 }
 
+/**
+ * Read ?round= param from URL. Returns number (1-3) or null.
+ */
+export function getRoundNumber() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const round = parseInt(params.get('round'), 10);
+    return round >= 1 && round <= 3 ? round : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Read ?spectate= param from URL. Returns event code string or null.
+ */
+export function getSpectateCode() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('spectate');
+    return code ? code.toUpperCase().replace(/[^A-Z0-9-]/g, '').slice(0, 20) : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Get the effective event code for scoring: {event}-R{round} in tournament mode.
+ */
+export function getTournamentEventCode() {
+  const event = getEventCode();
+  const round = getRoundNumber();
+  if (event && round) return `${event}-R${round}`;
+  return event;
+}
+
 // ── localStorage helpers (fallback) ──────────────────────────
 
 function getLocal() {
@@ -83,7 +119,7 @@ export async function saveScore(entry) {
   }
 
   const mode = entry.gameMode || 'CAMPAIGN';
-  const event = entry.event || getEventCode();
+  const event = entry.event || getTournamentEventCode();
   const newEntry = {
     name: rawName,
     score: entry.score || 0,

@@ -12,8 +12,10 @@ import LevelIntro from './components/LevelIntro.jsx';
 import LevelComplete from './components/LevelComplete.jsx';
 import ScoringIntro from './components/ScoringIntro.jsx';
 import FacilitatorControls from './components/FacilitatorControls.jsx';
+import SpectatorBoard from './components/SpectatorBoard.jsx';
 import { getLevelConfig, LEVEL_ACCENT_COLORS } from './config/threats.js';
-import { getLeaderboard } from './utils/leaderboard.js';
+import { ROUND_CONFIGS } from './hooks/useGameEngine.js';
+import { getLeaderboard, getEventCode, getRoundNumber, getSpectateCode, subscribeLeaderboard } from './utils/leaderboard.js';
 import {
   startMusic,
   stopMusic,
@@ -32,7 +34,10 @@ function formatCountdown(seconds) {
 
 export default function App() {
   const [bonusLevelEnabled, setBonusLevelEnabled] = useState(false);
-  const game = useGameEngine({ bonusLevelEnabled });
+  const roundNumber = getRoundNumber();
+  const roundConfig = roundNumber ? ROUND_CONFIGS[roundNumber] : null;
+  const spectateCode = getSpectateCode();
+  const game = useGameEngine({ bonusLevelEnabled, roundConfig });
   // TEMP DEBUG: expose game to console for visual testing
   window.__game = game;
   const [victoryVariant, setVictoryVariant] = useState(null);
@@ -148,6 +153,11 @@ export default function App() {
     addQuizPoints,
     GAME_STATES,
   } = game;
+
+  // Spectator mode — render full-screen leaderboard instead of game
+  if (spectateCode) {
+    return <SpectatorBoard eventCode={spectateCode} />;
+  }
 
   const config = getLevelConfig(currentLevel);
 
@@ -797,6 +807,82 @@ export default function App() {
         </div>
       );
     }
+    // Tournament mode — simplified round complete screen
+    if (roundConfig) {
+      const stats = getCampaignStats();
+      return (
+        <div key="screen-tournament-summary" className="screen-fade-in h-screen bg-[#0a0e1a] flex items-center justify-center relative">
+          <div className="text-center max-w-lg mx-auto px-6">
+            <div className="font-mono text-xs tracking-[0.4em] text-green-500/60 mb-2">
+              {roundConfig.label}
+            </div>
+            <div className="font-mono text-3xl font-black tracking-[0.2em] text-green-400 mb-2"
+              style={{ textShadow: '0 0 30px rgba(34,197,94,0.3)' }}>
+              ROUND COMPLETE
+            </div>
+            <div className="h-px w-32 mx-auto bg-green-500/30 mb-6" />
+
+            {/* Score display */}
+            <div className="mb-6">
+              <div className="font-mono text-6xl font-black text-green-400 tabular-nums mb-1"
+                style={{ textShadow: '0 0 40px rgba(34,197,94,0.3)' }}>
+                {stats.totalScore?.toLocaleString() || 0}
+              </div>
+              <div className="font-mono text-sm text-gray-500 tracking-widest">TOTAL SCORE</div>
+            </div>
+
+            {/* Team name input */}
+            <div className="mb-6">
+              <div className="font-mono text-[10px] text-gray-500 tracking-widest mb-2">TEAM NAME</div>
+              <input
+                type="text"
+                value={campaignTeamName}
+                onChange={(e) => setCampaignTeamName(e.target.value.toUpperCase().slice(0, 10))}
+                placeholder="ENTER NAME"
+                maxLength={10}
+                className="w-48 px-4 py-2 bg-gray-900/80 border border-gray-700 rounded-lg text-center
+                  font-mono text-lg text-green-400 tracking-widest
+                  focus:border-green-500 focus:outline-none placeholder-gray-700"
+              />
+            </div>
+
+            {/* Submit score */}
+            <button
+              onClick={() => {
+                // Save score then show confirmation
+                const name = campaignTeamName || 'ANON';
+                import('./utils/leaderboard.js').then(({ saveScore }) => {
+                  saveScore({
+                    name,
+                    score: stats.totalScore || 0,
+                    gameMode: 'CAMPAIGN',
+                    levelsCompleted: stats.levelScores?.length || 0,
+                    correctIntercepts: stats.totalCorrectIntercepts || 0,
+                    sirenCount: stats.totalSirens || 0,
+                    bestStreak: stats.overallBestStreak || 0,
+                  }).catch(() => {});
+                });
+              }}
+              className="px-8 py-3 bg-green-900/40 border-2 border-green-500 text-green-400
+                font-mono text-sm tracking-widest rounded-lg mb-8
+                hover:bg-green-900/60 hover:border-green-300
+                transition-all active:scale-95 cursor-pointer"
+            >
+              SUBMIT SCORE ▸
+            </button>
+
+            {/* Watch the screen message */}
+            <div className="py-4 px-6 rounded-xl bg-gray-900/50 border border-gray-800">
+              <div className="font-mono text-sm text-gray-400 tracking-wider animate-pulse" style={{ animationDuration: '2s' }}>
+                WATCH THE MAIN SCREEN FOR RESULTS
+              </div>
+            </div>
+          </div>
+          {facilitatorOverlay}
+        </div>
+      );
+    }
+
     return (
       <div key="screen-summary" className="screen-fade-in">
         <Summary stats={getCampaignStats()}
