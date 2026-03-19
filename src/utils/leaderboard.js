@@ -44,12 +44,13 @@ export function getRoundNumber() {
 }
 
 /**
- * Read ?spectate= param from URL. Returns event code string or null.
+ * Read ?score= param from URL. Returns event code string or null.
+ * Used for the spectator/scoreboard view.
  */
 export function getSpectateCode() {
   try {
     const params = new URLSearchParams(window.location.search);
-    const code = params.get('spectate');
+    const code = params.get('score');
     return code ? code.toUpperCase().replace(/[^A-Z0-9-]/g, '').slice(0, 20) : null;
   } catch {
     return null;
