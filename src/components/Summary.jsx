@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { getLeaderboard, saveScore, isHighScore, subscribeLeaderboard, getEventCode } from '../utils/leaderboard.js';
 
+const TEAM_EMOJIS = ['🦅','🐻','🦁','🐺','🦊','🐍','🦈','🦇','🐝','🦂','🐆','🦬','🦏','🐗','🦎','🦉','🎯','🛡️','⚔️','🔥'];
+
 export default function Summary({ stats, onReset, teamName, onTeamNameChange }) {
   const {
     totalScore,
@@ -22,6 +24,7 @@ export default function Summary({ stats, onReset, teamName, onTeamNameChange }) 
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
   const [nameError, setNameError] = useState('');
+  const [teamEmoji, setTeamEmoji] = useState('');
   const [leaderboard, setLeaderboard] = useState([]);
   const [savedEntryTimestamp, setSavedEntryTimestamp] = useState(null);
 
@@ -43,8 +46,9 @@ export default function Summary({ stats, onReset, teamName, onTeamNameChange }) 
     setNameError('');
     setSaving(true);
     try {
+      const displayName = teamEmoji ? `${teamEmoji} ${teamName}` : teamName;
       const entry = await saveScore({
-        name: teamName,
+        name: displayName,
         score: totalScore,
         gameMode: 'CAMPAIGN',
       });
@@ -186,6 +190,26 @@ export default function Summary({ stats, onReset, teamName, onTeamNameChange }) 
           <div className="text-xs text-gray-500 font-mono tracking-widest mb-3 text-center">
             {madeHighScore && !saved ? 'HIGH SCORE — ENTER NAME' : 'ENTER NAME'}
           </div>
+          {/* Emoji picker */}
+          {!saved && (
+            <div className="mb-3">
+              <div className="flex flex-wrap justify-center gap-1.5 max-w-[280px] mx-auto">
+                {TEAM_EMOJIS.map((emoji) => (
+                  <button
+                    key={emoji}
+                    onClick={() => setTeamEmoji(teamEmoji === emoji ? '' : emoji)}
+                    className={`w-8 h-8 rounded-lg text-base flex items-center justify-center transition-all cursor-pointer
+                      ${teamEmoji === emoji
+                        ? 'bg-green-900/60 border-2 border-green-400 scale-110'
+                        : 'bg-gray-800/60 border border-gray-700 hover:border-gray-500 hover:bg-gray-700/60'
+                      }`}
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           <div className="flex flex-col items-center gap-1">
             <div className="flex items-center justify-center gap-3">
               <input

@@ -32,6 +32,62 @@ function formatCountdown(seconds) {
   return `${m}:${String(s).padStart(2, '0')}`;
 }
 
+// Curated emoji icons for team avatars
+const TEAM_EMOJIS = ['🦅','🐻','🦁','🐺','🦊','🐍','🦈','🦇','🐝','🦂','🐆','🦬','🦏','🐗','🦎','🦉','🎯','🛡️','⚔️','🔥'];
+
+function TournamentSubmitButton({ teamName, teamEmoji, stats }) {
+  const [submitted, setSubmitted] = useState(false);
+  const handleSubmit = () => {
+    if (submitted) return;
+    const displayName = teamEmoji ? `${teamEmoji} ${teamName || 'ANON'}` : (teamName || 'ANON');
+    import('./utils/leaderboard.js').then(({ saveScore }) => {
+      saveScore({
+        name: displayName,
+        score: stats.totalScore || 0,
+        gameMode: 'CAMPAIGN',
+        levelsCompleted: stats.levelScores?.length || 0,
+        correctIntercepts: stats.totalCorrectIntercepts || 0,
+        sirenCount: stats.totalSirens || 0,
+        bestStreak: stats.overallBestStreak || 0,
+      }).catch(() => {});
+    });
+    setSubmitted(true);
+  };
+  return (
+    <button
+      onClick={handleSubmit}
+      disabled={submitted}
+      className={`px-8 py-3 font-mono text-sm tracking-widest rounded-lg mb-8 transition-all
+        ${submitted
+          ? 'bg-green-900/20 border-2 border-green-600 text-green-500 cursor-default'
+          : 'bg-green-900/40 border-2 border-green-500 text-green-400 hover:bg-green-900/60 hover:border-green-300 active:scale-95 cursor-pointer'
+        }`}
+    >
+      {submitted ? '✓ SCORE SUBMITTED' : 'SUBMIT SCORE ▸'}
+    </button>
+  );
+}
+
+function EmojiPicker({ selected, onSelect }) {
+  return (
+    <div className="flex flex-wrap justify-center gap-1.5 max-w-[280px] mx-auto">
+      {TEAM_EMOJIS.map((emoji) => (
+        <button
+          key={emoji}
+          onClick={() => onSelect(selected === emoji ? '' : emoji)}
+          className={`w-9 h-9 rounded-lg text-lg flex items-center justify-center transition-all cursor-pointer
+            ${selected === emoji
+              ? 'bg-green-900/60 border-2 border-green-400 scale-110'
+              : 'bg-gray-800/60 border border-gray-700 hover:border-gray-500 hover:bg-gray-700/60'
+            }`}
+        >
+          {emoji}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export default function App() {
   const [bonusLevelEnabled, setBonusLevelEnabled] = useState(false);
   const roundNumber = getRoundNumber();
@@ -75,6 +131,7 @@ export default function App() {
     getLeaderboard('CAMPAIGN').then(setLeaderboardEntries);
   }, []);
   const [campaignTeamName, setCampaignTeamName] = useState('');
+  const [teamEmoji, setTeamEmoji] = useState('');
   const [skipBriefings, setSkipBriefings] = useState(false);
   const seenBriefingsRef = useRef(new Set());
   const briefingMusicRef = useRef(null);
@@ -85,11 +142,14 @@ export default function App() {
   const [gameMusicOn, setGameMusicOn] = useState(true);
   const [hackOverlayVisible, setHackOverlayVisible] = useState(false);
 
-  // L1 Tutorial overlay — guides new players through first few threats
-  // Steps: 'ready' → 'select' → 'holdfire' → 'pause' → 'done'
+  // Tutorial overlay — guides new players through first few threats
+  // L1 steps: 'ready' → 'select' → 'holdfire' → 'pause' → 'done'
+  // L3-L5 steps: 'new_weapon' → 'done' (introduces new system/key)
   const [tutorialStep, setTutorialStep] = useState(null);
   const tutorialStepRef = useRef(null);
   useEffect(() => { tutorialStepRef.current = tutorialStep; }, [tutorialStep]);
+  // Track which levels have shown their new-weapon tutorial (don't repeat on replay)
+  const shownWeaponTutorialRef = useRef(new Set());
   const hackTimerRef = useRef(null);
 
   const showHackOverlay = useCallback(() => {
@@ -239,43 +299,67 @@ export default function App() {
     if (gameMusicOn) setMusicVolume(volume * 0.3);
   }, [volume, gameMusicOn]);
 
-  // L1 Tutorial — reset when entering L1 ACTIVE
+  // Tutorial — reset when entering ACTIVE for tutorial-enabled levels
   const prevLevelActiveRef = useRef(false);
+  const prevActiveLevelRef = useRef(null);
   useEffect(() => {
-    const isL1Active = currentLevel === 1 && gameState === GAME_STATES.ACTIVE;
-    if (isL1Active && !prevLevelActiveRef.current) {
-      // Just entered L1 ACTIVE — delay tutorial 2s so player can take in the screen first
-      setTimeout(() => setTutorialStep('ready'), 2000);
-    } else if (!isL1Active && prevLevelActiveRef.current) {
-      // Left L1 ACTIVE — clear tutorial
+    const isTutorialLevel = [1, 3, 4, 5].includes(currentLevel);
+    const isActive = isTutorialLevel && gameState === GAME_STATES.ACTIVE;
+    const wasActive = prevLevelActiveRef.current;
+    if (isActive && (!wasActive || prevActiveLevelRef.current !== currentLevel)) {
+      if (currentLevel === 1) {
+        // L1: full tutorial — delay 2s
+        setTimeout(() => setTutorialStep('ready'), 2000);
+      }
+      // L3-L5 new weapon tutorials trigger time-based (see below)
+    } else if (!isActive && wasActive) {
       setTutorialStep(null);
     }
-    prevLevelActiveRef.current = isL1Active;
+    prevLevelActiveRef.current = isActive;
+    prevActiveLevelRef.current = currentLevel;
   }, [currentLevel, gameState, GAME_STATES]);
 
-  // L1 Tutorial — time-based step progression
+  // Tutorial — time-based step progression
   useEffect(() => {
-    if (currentLevel !== 1 || gameState !== GAME_STATES.ACTIVE || !tutorialStep || tutorialStep === 'done') {
-      return;
+    if (gameState !== GAME_STATES.ACTIVE) return;
+
+    // L1 tutorial progression
+    if (currentLevel === 1 && tutorialStep && tutorialStep !== 'done') {
+      // T1 spawns at t=8 (solo on-target, countdown 6s, clears by t=14)
+      // T2 spawns at t=16 (solo hold-fire, countdown 7s, clears by t=23)
+      // T3 spawns at t=24 (normal gameplay resumes)
+      if (tutorialStep === 'ready' && sessionTime >= 8) {
+        setTutorialStep('select');
+      } else if (tutorialStep === 'select' && sessionTime >= 16) {
+        setTutorialStep('holdfire');
+      } else if (tutorialStep === 'wait_holdfire' && sessionTime >= 16) {
+        setTutorialStep('holdfire');
+      } else if (tutorialStep === 'holdfire' && sessionTime >= 24) {
+        setTutorialStep('pause');
+      } else if (tutorialStep === 'pause' && sessionTime >= 30) {
+        setTutorialStep('done');
+      }
     }
-    // Time-based transitions (auto-advance if player doesn't act)
-    // T1 spawns at t=8 (solo on-target, countdown 6s, clears by t=14)
-    // T2 spawns at t=16 (solo hold-fire, countdown 7s, clears by t=23)
-    // T3 spawns at t=24 (normal gameplay resumes)
-    if (tutorialStep === 'ready' && sessionTime >= 8) {
-      setTutorialStep('select');
-    } else if (tutorialStep === 'select' && sessionTime >= 16) {
-      // Auto-advance past select when T2 (hold-fire) spawns
-      setTutorialStep('holdfire');
-    } else if (tutorialStep === 'wait_holdfire' && sessionTime >= 16) {
-      // Player already intercepted T1 — now T2 has spawned, show holdfire tutorial
-      setTutorialStep('holdfire');
-    } else if (tutorialStep === 'holdfire' && sessionTime >= 24) {
-      // Auto-advance past holdfire when normal gameplay resumes (T3)
-      setTutorialStep('pause');
-    } else if (tutorialStep === 'pause' && sessionTime >= 30) {
-      // Auto-clear pause hint before pairs phase (t=31)
-      setTutorialStep('done');
+
+    // L3-L5 new weapon tutorials — trigger when first new threat type appears
+    // L3: first cruise at t=14 → "PRESS 2 (DAVID'S SLING)"
+    // L4: first ballistic at t=18 → "PRESS 3 (ARROW 2)"
+    // L5: first hypersonic at t=22 → "PRESS 4 (ARROW 3)"
+    const weaponTutorials = {
+      3: { triggerTime: 12, key: '2', system: "DAVID'S SLING", threat: 'CRUISE MISSILE', color: '#3b82f6' },
+      4: { triggerTime: 16, key: '3', system: 'ARROW 2', threat: 'BALLISTIC MISSILE', color: '#ef4444' },
+      5: { triggerTime: 20, key: '4', system: 'ARROW 3', threat: 'HYPERSONIC GLIDE VEHICLE', color: '#a855f7' },
+    };
+    const wt = weaponTutorials[currentLevel];
+    if (wt && !shownWeaponTutorialRef.current.has(currentLevel) && !tutorialStep) {
+      if (sessionTime >= wt.triggerTime) {
+        shownWeaponTutorialRef.current.add(currentLevel);
+        setTutorialStep('new_weapon');
+        // Auto-dismiss after 8 seconds
+        setTimeout(() => {
+          if (tutorialStepRef.current === 'new_weapon') setTutorialStep('done');
+        }, 8000);
+      }
     }
   }, [currentLevel, gameState, sessionTime, tutorialStep, GAME_STATES]);
 
@@ -286,8 +370,14 @@ export default function App() {
       setTutorialStep('wait_holdfire');
     } else if (tutorialStepRef.current === 'holdfire' && action === 'hold_fire') {
       setTutorialStep('pause');
+    } else if (tutorialStepRef.current === 'new_weapon') {
+      // Dismiss new weapon tutorial on any intercept action
+      const weaponActions = { 3: 'davids_sling', 4: 'arrow_2', 5: 'arrow_3' };
+      if (action === weaponActions[currentLevel]) {
+        setTutorialStep('done');
+      }
     }
-  }, [handleAction]);
+  }, [handleAction, currentLevel]);
 
   // Auto-skip briefing if facilitator toggle is on, or if this level's briefing was already seen
   useEffect(() => {
@@ -413,6 +503,11 @@ export default function App() {
           handleAction(action);
           // Advance tutorial past 'select' step on first intercept
           if (tutorialStepRef.current === 'select') setTutorialStep('wait_holdfire');
+          // Dismiss new weapon tutorial when correct key pressed
+          if (tutorialStepRef.current === 'new_weapon') {
+            const weaponKeys = { 3: '2', 4: '3', 5: '4' };
+            if (e.key === weaponKeys[currentLevel]) setTutorialStep('done');
+          }
         }
         return;
       }
@@ -831,6 +926,12 @@ export default function App() {
               <div className="font-mono text-sm text-gray-500 tracking-widest">TOTAL SCORE</div>
             </div>
 
+            {/* Emoji picker */}
+            <div className="mb-4">
+              <div className="font-mono text-[10px] text-gray-500 tracking-widest mb-2">CHOOSE YOUR ICON</div>
+              <EmojiPicker selected={teamEmoji} onSelect={setTeamEmoji} />
+            </div>
+
             {/* Team name input */}
             <div className="mb-6">
               <div className="font-mono text-[10px] text-gray-500 tracking-widest mb-2">TEAM NAME</div>
@@ -847,29 +948,11 @@ export default function App() {
             </div>
 
             {/* Submit score */}
-            <button
-              onClick={() => {
-                // Save score then show confirmation
-                const name = campaignTeamName || 'ANON';
-                import('./utils/leaderboard.js').then(({ saveScore }) => {
-                  saveScore({
-                    name,
-                    score: stats.totalScore || 0,
-                    gameMode: 'CAMPAIGN',
-                    levelsCompleted: stats.levelScores?.length || 0,
-                    correctIntercepts: stats.totalCorrectIntercepts || 0,
-                    sirenCount: stats.totalSirens || 0,
-                    bestStreak: stats.overallBestStreak || 0,
-                  }).catch(() => {});
-                });
-              }}
-              className="px-8 py-3 bg-green-900/40 border-2 border-green-500 text-green-400
-                font-mono text-sm tracking-widest rounded-lg mb-8
-                hover:bg-green-900/60 hover:border-green-300
-                transition-all active:scale-95 cursor-pointer"
-            >
-              SUBMIT SCORE ▸
-            </button>
+            <TournamentSubmitButton
+              teamName={campaignTeamName}
+              teamEmoji={teamEmoji}
+              stats={stats}
+            />
 
             {/* Watch the screen message */}
             <div className="py-4 px-6 rounded-xl bg-gray-900/50 border border-gray-800">
@@ -1058,58 +1141,81 @@ export default function App() {
 
       {/* HUD hint — Pause & Explore — removed, now in AmmoStack */}
 
-      {/* L1 TUTORIAL OVERLAY — step-by-step coaching for new players */}
-      {tutorialStep && tutorialStep !== 'done' && (
-        <div key={tutorialStep} className="absolute inset-x-0 top-16 md:top-20 z-20 flex justify-center pointer-events-none tutorial-enter">
-          <div className="bg-black/90 border border-green-500/50 rounded-lg px-6 py-3 text-center max-w-sm mx-4"
-            style={{ boxShadow: '0 0 20px rgba(34,197,94,0.15)' }}>
-            {tutorialStep === 'ready' && (
-              <>
-                <div className="text-green-400 font-mono text-xs tracking-[0.4em] mb-1 animate-pulse">TUTORIAL</div>
-                <div className="text-green-300 font-mono text-sm md:text-base font-bold tracking-wider">
-                  INCOMING THREAT APPROACHING
-                </div>
-                <div className="text-gray-400 font-mono text-xs md:text-sm mt-1 tracking-wide">
-                  Click the blip on the radar to select it
-                </div>
-              </>
-            )}
-            {tutorialStep === 'select' && (
-              <>
-                <div className="text-orange-400 font-mono text-xs tracking-[0.4em] mb-1 animate-pulse">ENGAGE</div>
-                <div className="text-orange-300 font-mono text-sm md:text-base font-bold tracking-wider">
-                  SELECT THE BLIP — PRESS <span className="text-yellow-300 text-lg">1</span> TO FIRE
-                </div>
-                <div className="text-gray-400 font-mono text-xs md:text-sm mt-1 tracking-wide">
-                  Iron Dome intercepts rockets heading for cities
-                </div>
-              </>
-            )}
-            {tutorialStep === 'holdfire' && (
-              <>
-                <div className="text-cyan-400 font-mono text-xs tracking-[0.4em] mb-1 animate-pulse">HOLD FIRE</div>
-                <div className="text-cyan-300 font-mono text-sm md:text-base font-bold tracking-wider">
-                  THIS ROCKET IS OFF TARGET
-                </div>
-                <div className="text-gray-400 font-mono text-xs md:text-sm mt-1 tracking-wide">
-                  Select the blip and press <span className="text-white font-bold">SPACE</span> to hold fire — save your ammo
-                </div>
-              </>
-            )}
-            {tutorialStep === 'pause' && (
-              <>
-                <div className="text-purple-400 font-mono text-xs tracking-[0.4em] mb-1 animate-pulse">EXPLORE</div>
-                <div className="text-purple-300 font-mono text-sm md:text-base font-bold tracking-wider">
-                  PRESS <span className="text-white text-lg">P</span> TO PAUSE
-                </div>
-                <div className="text-gray-400 font-mono text-xs md:text-sm mt-1 tracking-wide">
-                  Hover over locations on the map to learn about the region
-                </div>
-              </>
-            )}
+      {/* TUTORIAL OVERLAY — step-by-step coaching */}
+      {tutorialStep && tutorialStep !== 'done' && (() => {
+        // L3-L5 new weapon tutorial data
+        const weaponTutorials = {
+          3: { key: '2', system: "DAVID'S SLING", threat: 'CRUISE MISSILE', color: '#3b82f6' },
+          4: { key: '3', system: 'ARROW 2', threat: 'BALLISTIC MISSILE', color: '#ef4444' },
+          5: { key: '4', system: 'ARROW 3', threat: 'HYPERSONIC GLIDE VEHICLE', color: '#a855f7' },
+        };
+        const wt = weaponTutorials[currentLevel];
+        return (
+          <div key={`${tutorialStep}-${currentLevel}`} className="absolute inset-x-0 top-16 md:top-20 z-20 flex justify-center pointer-events-none tutorial-enter">
+            <div className="bg-black/90 border rounded-lg px-6 py-3 text-center max-w-sm mx-4"
+              style={{
+                borderColor: tutorialStep === 'new_weapon' && wt ? `${wt.color}80` : 'rgba(34,197,94,0.5)',
+                boxShadow: tutorialStep === 'new_weapon' && wt ? `0 0 20px ${wt.color}25` : '0 0 20px rgba(34,197,94,0.15)',
+              }}>
+              {tutorialStep === 'ready' && (
+                <>
+                  <div className="text-green-400 font-mono text-xs tracking-[0.4em] mb-1 animate-pulse">TUTORIAL</div>
+                  <div className="text-green-300 font-mono text-sm md:text-base font-bold tracking-wider">
+                    INCOMING THREAT APPROACHING
+                  </div>
+                  <div className="text-gray-400 font-mono text-xs md:text-sm mt-1 tracking-wide">
+                    Click the blip on the radar to select it
+                  </div>
+                </>
+              )}
+              {tutorialStep === 'select' && (
+                <>
+                  <div className="text-orange-400 font-mono text-xs tracking-[0.4em] mb-1 animate-pulse">ENGAGE</div>
+                  <div className="text-orange-300 font-mono text-sm md:text-base font-bold tracking-wider">
+                    SELECT THE BLIP — PRESS <span className="text-yellow-300 text-lg">1</span> TO FIRE
+                  </div>
+                  <div className="text-gray-400 font-mono text-xs md:text-sm mt-1 tracking-wide">
+                    Iron Dome intercepts rockets heading for cities
+                  </div>
+                </>
+              )}
+              {tutorialStep === 'holdfire' && (
+                <>
+                  <div className="text-cyan-400 font-mono text-xs tracking-[0.4em] mb-1 animate-pulse">HOLD FIRE</div>
+                  <div className="text-cyan-300 font-mono text-sm md:text-base font-bold tracking-wider">
+                    THIS ROCKET IS OFF TARGET
+                  </div>
+                  <div className="text-gray-400 font-mono text-xs md:text-sm mt-1 tracking-wide">
+                    Select the blip and press <span className="text-white font-bold">SPACE</span> to hold fire — save your ammo
+                  </div>
+                </>
+              )}
+              {tutorialStep === 'pause' && (
+                <>
+                  <div className="text-purple-400 font-mono text-xs tracking-[0.4em] mb-1 animate-pulse">EXPLORE</div>
+                  <div className="text-purple-300 font-mono text-sm md:text-base font-bold tracking-wider">
+                    PRESS <span className="text-white text-lg">P</span> TO PAUSE
+                  </div>
+                  <div className="text-gray-400 font-mono text-xs md:text-sm mt-1 tracking-wide">
+                    Hover over locations on the map to learn about the region
+                  </div>
+                </>
+              )}
+              {tutorialStep === 'new_weapon' && wt && (
+                <>
+                  <div className="font-mono text-xs tracking-[0.4em] mb-1 animate-pulse" style={{ color: wt.color }}>NEW SYSTEM ONLINE</div>
+                  <div className="font-mono text-sm md:text-base font-bold tracking-wider" style={{ color: wt.color }}>
+                    {wt.threat} DETECTED
+                  </div>
+                  <div className="text-gray-300 font-mono text-xs md:text-sm mt-2 tracking-wide">
+                    Select the blip — press <span className="font-bold text-lg" style={{ color: wt.color }}>{wt.key}</span> to fire <span className="font-bold" style={{ color: wt.color }}>{wt.system}</span>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* SALVO WARNING overlay — level-based intensity */}
       {finalSalvoWarning && (
