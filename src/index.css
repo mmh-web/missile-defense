@@ -1610,6 +1610,18 @@ button:focus-visible {
   animation: feedbackFlash 2.5s ease-out forwards;
 }
 
+/* ============================================
+   Tutorial overlay entrance
+   ============================================ */
+.tutorial-enter {
+  animation: tutorialEnter 0.5s ease-out forwards;
+}
+
+@keyframes tutorialEnter {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 @keyframes feedbackFlash {
   0%   { opacity: 0; transform: translateY(8px) scale(0.95); }
   10%  { opacity: 1; transform: translateY(0) scale(1); }

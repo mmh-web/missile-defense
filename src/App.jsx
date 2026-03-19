@@ -79,6 +79,12 @@ export default function App() {
   const [cheatMaxHints, setCheatMaxHints] = useState(4); // total letters in active code
   const [gameMusicOn, setGameMusicOn] = useState(true);
   const [hackOverlayVisible, setHackOverlayVisible] = useState(false);
+
+  // L1 Tutorial overlay — guides new players through first few threats
+  // Steps: 'ready' → 'select' → 'holdfire' → 'pause' → 'done'
+  const [tutorialStep, setTutorialStep] = useState(null);
+  const tutorialStepRef = useRef(null);
+  useEffect(() => { tutorialStepRef.current = tutorialStep; }, [tutorialStep]);
   const hackTimerRef = useRef(null);
 
   const showHackOverlay = useCallback(() => {
@@ -223,6 +229,53 @@ export default function App() {
     if (gameMusicOn) setMusicVolume(volume * 0.3);
   }, [volume, gameMusicOn]);
 
+  // L1 Tutorial — reset when entering L1 ACTIVE
+  const prevLevelActiveRef = useRef(false);
+  useEffect(() => {
+    const isL1Active = currentLevel === 1 && gameState === GAME_STATES.ACTIVE;
+    if (isL1Active && !prevLevelActiveRef.current) {
+      // Just entered L1 ACTIVE — delay tutorial 2s so player can take in the screen first
+      setTimeout(() => setTutorialStep('ready'), 2000);
+    } else if (!isL1Active && prevLevelActiveRef.current) {
+      // Left L1 ACTIVE — clear tutorial
+      setTutorialStep(null);
+    }
+    prevLevelActiveRef.current = isL1Active;
+  }, [currentLevel, gameState, GAME_STATES]);
+
+  // L1 Tutorial — time-based step progression
+  useEffect(() => {
+    if (currentLevel !== 1 || gameState !== GAME_STATES.ACTIVE || !tutorialStep || tutorialStep === 'done') {
+      return;
+    }
+    // Time-based transitions (auto-advance if player doesn't act)
+    // T1 spawns at t=8 (solo on-target, countdown 6s, clears by t=14)
+    // T2 spawns at t=16 (solo hold-fire, countdown 7s, clears by t=23)
+    // T3 spawns at t=24 (normal gameplay resumes)
+    if (tutorialStep === 'ready' && sessionTime >= 8) {
+      setTutorialStep('select');
+    } else if (tutorialStep === 'select' && sessionTime >= 16) {
+      // Auto-advance past select when T2 (hold-fire) spawns
+      setTutorialStep('holdfire');
+    } else if (tutorialStep === 'holdfire' && sessionTime >= 24) {
+      // Auto-advance past holdfire when normal gameplay resumes (T3)
+      setTutorialStep('pause');
+    } else if (tutorialStep === 'pause' && sessionTime >= 30) {
+      // Auto-clear pause hint before pairs phase (t=31)
+      setTutorialStep('done');
+    }
+  }, [currentLevel, gameState, sessionTime, tutorialStep, GAME_STATES]);
+
+  // Wrap handleAction to advance tutorial on mobile taps (not just keyboard)
+  const handleActionWithTutorial = useCallback((action) => {
+    handleAction(action);
+    if (tutorialStepRef.current === 'select' && action !== 'hold_fire') {
+      setTutorialStep('holdfire');
+    } else if (tutorialStepRef.current === 'holdfire' && action === 'hold_fire') {
+      setTutorialStep('pause');
+    }
+  }, [handleAction]);
+
   // Auto-skip briefing if facilitator toggle is on, or if this level's briefing was already seen
   useEffect(() => {
     if (gameState === GAME_STATES.BRIEFING && (skipBriefings || seenBriefingsRef.current.has(currentLevel))) {
@@ -296,6 +349,8 @@ export default function App() {
           cheatBufferRef.current = [];
           setCheatHints(0);
           togglePause();
+          // Advance tutorial past 'pause' step
+          if (tutorialStepRef.current === 'pause') setTutorialStep('done');
           return;
         }
       }
@@ -341,6 +396,8 @@ export default function App() {
         if (config?.available_systems?.includes(action)) {
           e.preventDefault();
           handleAction(action);
+          // Advance tutorial past 'select' step on first intercept
+          if (tutorialStepRef.current === 'select') setTutorialStep('holdfire');
         }
         return;
       }
@@ -349,6 +406,8 @@ export default function App() {
       if (e.key === '5' || e.key === ' ') {
         e.preventDefault();
         handleAction('hold_fire');
+        // Advance tutorial past 'holdfire' step on first hold-fire
+        if (tutorialStepRef.current === 'holdfire') setTutorialStep('pause');
         return;
       }
 
@@ -885,7 +944,7 @@ export default function App() {
         <div className="hidden lg:flex lg:flex-col lg:self-stretch order-3 lg:w-[230px] lg:flex-shrink-0 lg:border-l border-white/[0.03]">
           <AmmoStack
             ammo={ammo}
-            onAction={handleAction}
+            onAction={handleActionWithTutorial}
             selectedThreatId={selectedThreatId}
             streak={streak}
             availableSystems={config?.available_systems}
@@ -897,7 +956,7 @@ export default function App() {
       <div className="flex-shrink-0 px-2 md:px-4 py-2 md:py-3 border-t border-gray-800/50 bg-[#080c16] lg:hidden">
         <ControlPanel
           ammo={ammo}
-          onAction={handleAction}
+          onAction={handleActionWithTutorial}
           selectedThreatId={selectedThreatId}
           feedbackMessage={feedbackMessage}
           streak={streak}
@@ -906,6 +965,59 @@ export default function App() {
       </div>
 
       {/* HUD hint — Pause & Explore — removed, now in AmmoStack */}
+
+      {/* L1 TUTORIAL OVERLAY — step-by-step coaching for new players */}
+      {tutorialStep && tutorialStep !== 'done' && (
+        <div key={tutorialStep} className="absolute inset-x-0 top-16 md:top-20 z-20 flex justify-center pointer-events-none tutorial-enter">
+          <div className="bg-black/90 border border-green-500/50 rounded-lg px-6 py-3 text-center max-w-sm mx-4"
+            style={{ boxShadow: '0 0 20px rgba(34,197,94,0.15)' }}>
+            {tutorialStep === 'ready' && (
+              <>
+                <div className="text-green-400 font-mono text-xs tracking-[0.4em] mb-1 animate-pulse">TUTORIAL</div>
+                <div className="text-green-300 font-mono text-sm md:text-base font-bold tracking-wider">
+                  INCOMING THREAT APPROACHING
+                </div>
+                <div className="text-gray-400 font-mono text-xs md:text-sm mt-1 tracking-wide">
+                  Click the blip on the radar to select it
+                </div>
+              </>
+            )}
+            {tutorialStep === 'select' && (
+              <>
+                <div className="text-orange-400 font-mono text-xs tracking-[0.4em] mb-1 animate-pulse">ENGAGE</div>
+                <div className="text-orange-300 font-mono text-sm md:text-base font-bold tracking-wider">
+                  SELECT THE BLIP — PRESS <span className="text-yellow-300 text-lg">1</span> TO FIRE
+                </div>
+                <div className="text-gray-400 font-mono text-xs md:text-sm mt-1 tracking-wide">
+                  Iron Dome intercepts rockets heading for cities
+                </div>
+              </>
+            )}
+            {tutorialStep === 'holdfire' && (
+              <>
+                <div className="text-cyan-400 font-mono text-xs tracking-[0.4em] mb-1 animate-pulse">HOLD FIRE</div>
+                <div className="text-cyan-300 font-mono text-sm md:text-base font-bold tracking-wider">
+                  THIS ROCKET IS OFF TARGET
+                </div>
+                <div className="text-gray-400 font-mono text-xs md:text-sm mt-1 tracking-wide">
+                  Select the blip and press <span className="text-white font-bold">SPACE</span> to hold fire — save your ammo
+                </div>
+              </>
+            )}
+            {tutorialStep === 'pause' && (
+              <>
+                <div className="text-purple-400 font-mono text-xs tracking-[0.4em] mb-1 animate-pulse">EXPLORE</div>
+                <div className="text-purple-300 font-mono text-sm md:text-base font-bold tracking-wider">
+                  PRESS <span className="text-white text-lg">P</span> TO PAUSE
+                </div>
+                <div className="text-gray-400 font-mono text-xs md:text-sm mt-1 tracking-wide">
+                  Hover over locations on the map to learn about the region
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* SALVO WARNING overlay — level-based intensity */}
       {finalSalvoWarning && (
