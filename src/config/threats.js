@@ -368,11 +368,12 @@ const THREATS_L3 = [
   threat(1,  4,  'rocket', 'Ashdod',          true,  7,  'full', 1.0, { origin: 'gaza' }),         // Gaza
   threat(2,  8,  'rocket', 'Rishon LeZion',   true,  7,  'full', 1.0, { origin: 'gaza' }),         // Gaza
   threat(3,  11, 'drone',  'Netanya',         true,  11, 'full', 1.0, { origin: 'north' }),        // Lebanon
-  // === Phase 2: Introduce cruise missiles (6 threats, 14-30s) ===
-  threat(4,  14, 'cruise', 'Tel Aviv',        true,  11, 'full', 1.0, { origin: 'east' }),         // First cruise! Iran
-  threat(5,  18, 'rocket', 'Judean Hills',    false, 7,  'full', 1.0, { origin: 'gaza' }),         // hold fire
-  threat(6,  21, 'cruise', 'Jerusalem',       true,  10, 'full', 1.0, { origin: 'east' }),         // Iran
-  threat(7,  24, 'rocket', 'Holon',           true,  7,  'full', 1.0, { origin: 'gaza' }),         // Gaza
+  // === Phase 2: Introduce cruise missiles — solo tutorial at t=24 (6 threats, 24-33s) ===
+  // T1-T3 clear by t=22. Window t=22-24 gives clean screen for first cruise tutorial.
+  threat(4,  24, 'cruise', 'Tel Aviv',        true,  11, 'full', 1.0, { origin: 'east' }),         // ★ First cruise! SOLO for tutorial
+  threat(5,  28, 'rocket', 'Judean Hills',    false, 7,  'full', 1.0, { origin: 'gaza' }),         // hold fire (after tutorial)
+  threat(6,  30, 'cruise', 'Jerusalem',       true,  10, 'full', 1.0, { origin: 'east' }),         // Iran
+  threat(7,  33, 'rocket', 'Holon',           true,  7,  'full', 1.0, { origin: 'gaza' }),         // Gaza
   // T8 (HF drone) + T9 (cruise, Modi'in) removed — were bridging into Phase 3 respite
   //                                    === 6s BREATHING GAP (T7 ends t=31, HF46 ends t=32 → P3 at t=38) ===
   // === Phase 3: Pairs with breathing gaps (8 threats, 38-56s) ===
@@ -412,8 +413,8 @@ const THREATS_L3 = [
   // === HOLD-FIRE ROCKETS — unguided rockets missing populated areas ===
   // HF 47, 49, 51, 52 removed — they were filling designed respite gaps between phases
   threat(44, 6,  'rocket', 'Judean Hills',              false, 7,  'full', 1.0, { origin: 'gaza' }),
-  threat(45, 16, 'rocket', 'Mediterranean (off-coast)', false, 7,  'full', 1.0, { origin: 'gaza' }),
-  threat(46, 25, 'rocket', 'Northern Negev',            false, 7,  'full', 1.0, { origin: 'gaza' }),
+  threat(45, 42, 'rocket', 'Mediterranean (off-coast)', false, 7,  'full', 1.0, { origin: 'gaza' }),  // moved from t=16 to clear tutorial window
+  threat(46, 36, 'rocket', 'Northern Negev',            false, 7,  'full', 1.0, { origin: 'gaza' }),  // moved from t=25 to clear tutorial window
   threat(48, 46, 'rocket', 'Judean Hills',              false, 6,  'full', 1.0, { origin: 'gaza' }),
   threat(50, 73, 'rocket', 'Northern Negev',            false, 6,  'full', 1.0, { origin: 'gaza' }),
   threat(53, 109,'rocket', 'Northern Negev',            false, 6,  'full', 1.0, { origin: 'gaza' }),
@@ -432,8 +433,8 @@ const THREATS_L4 = [
   // === Phase 1: Teaching — drone, cruise, then first ballistic (3 threats, 4-18s) ===
   threat(1,  4,  'drone',     'BAZAN Oil Refinery',       true,  11, 'full', 1.0, { origin: 'north' }),        // Hezbollah → energy
   threat(2,  9,  'cruise',    'The Kirya (IDF HQ)',       true,  10, 'full', 1.0, { origin: 'east' }),         // Iran → command
-  threat(4,  18, 'ballistic', 'Dimona Nuclear Reactor',   true,  12, 'full', 0.40, { origin: 'east', priority: true }),  // ★ First ballistic! Iran → nuclear
-  //                                    === 8s RESPITE (ballistic resolves t=30, next at t=38) ===
+  threat(4,  21, 'ballistic', 'Dimona Nuclear Reactor',   true,  12, 'full', 0.40, { origin: 'east', priority: true }),  // ★ First ballistic! SOLO for tutorial (T1 clears t=15, T2 clears t=19, T30 clears t=18)
+  //                                    === 5s RESPITE (ballistic resolves t=33, next at t=38) ===
   // === Phase 2: Mixed pairs — building pressure (7 threats, 38-55s) ===
   threat(5,  38, 'cruise',    'Orot Rabin Power Station', true,  10, 'full', 1.0, { origin: 'east' }),         // Iran → energy
   threat(6,  41, 'ballistic', 'Ashdod Port',              true,  11, 'full', 0.40, { origin: 'east' }),        // Iran → transport
@@ -464,7 +465,7 @@ const THREATS_L4 = [
   threat(28, 108,'ballistic', 'Dimona Nuclear Reactor',   true,  10, 'full', 0.35, { origin: 'east', priority: true }),  // Iran → nuclear (pair!)
   threat(29, 112,'cruise',    'Ashdod Port',              true,  9,  'full', 1.0, { origin: 'east' }),         // Iran → transport
   // === HOLD-FIRE — duds/off-course during active phases (NOT in respite gaps) ===
-  threat(30, 14, 'drone',     'Negev Desert',             false, 11, 'full', 1.0, { origin: 'east' }),
+  threat(30, 7,  'drone',     'Negev Desert',             false, 11, 'full', 1.0, { origin: 'east' }),  // moved from t=14 to clear ballistic tutorial window
   threat(31, 55, 'ballistic', 'Dead Sea Region',          false, 10, 'full', 0.45, { origin: 'east' }),
   threat(32, 77, 'cruise',    'Northern Negev',           false, 9,  'full', 1.0, { origin: 'east' }),
   threat(33, 102,'ballistic', 'Jordan Valley',            false, 10, 'full', 0.45, { origin: 'east' }),
@@ -526,13 +527,18 @@ const THREATS_L5 = [
   threat(35, 119,'ballistic', 'Nevatim AFB',     true,  7,  'full', 0.40, { origin: 'east' }),       // Iran → base (shortened from 8s)
   threat(52, 122,'cruise',    'Haifa',           true,  6,  'full', 1.0, { origin: 'north' }),       // NEW: trailing pressure
   //                                    === 5s BREATHING GAP (T52 ends t=128 → P5 at t=134) ===
-  // === Phase 5: Closing barrage — relentless (6 threats, 134-152s) ===
-  threat(37, 134,'hypersonic', 'Dimona',          true,  5,  'full', 0.35, { origin: 'east', priority: true }),  // Iran → strategic (shortened from 6s)
-  threat(38, 137,'cruise',    'Tel Aviv',        true,  6,  'full', 1.0, { origin: 'east' }),        // Iran (shortened from 7s)
-  threat(39, 140,'drone',     'Beersheba',       true,  7,  'full', 1.0, { origin: 'southeast' }),   // Yemen (shortened from 8s)
-  threat(40, 143,'hypersonic', 'Haifa',           true,  5,  'full', 0.35, { origin: 'east' }),       // Iran (shortened from 6s)
-  threat(41, 147,'rocket',    'Ashdod',          true,  5,  'full', 1.0, { origin: 'gaza' }),        // Gaza
-  threat(42, 151,'cruise',    'Netanya',         true,  6,  'full', 1.0, { origin: 'north' }),       // Lebanon (shortened from 7s)
+  // === Phase 5: Final salvo — all 5 threat types converge simultaneously ===
+  // Buildup: t=134-137, then massive simultaneous burst at t=142-148
+  threat(37, 134,'hypersonic', 'Dimona',          true,  5,  'full', 0.35, { origin: 'east', priority: true }),  // Iran → strategic
+  threat(38, 137,'cruise',    'Tel Aviv',        true,  6,  'full', 1.0, { origin: 'east' }),        // Iran — building tension
+  // === FINAL SALVO — multi-type simultaneous wave (t=142-148) ===
+  threat(39, 142,'drone',     'Beersheba',       true,  7,  'full', 1.0, { origin: 'southeast', is_final_salvo: true }),   // Yemen
+  threat(40, 142,'hypersonic', 'Haifa',           true,  5,  'full', 0.35, { origin: 'east', is_final_salvo: true }),       // Iran
+  threat(55, 145,'ballistic', 'Nevatim AFB',     true,  7,  'full', 0.40, { origin: 'east', is_final_salvo: true }),       // Iran → base
+  threat(41, 145,'rocket',    'Ashdod',          true,  5,  'full', 1.0, { origin: 'gaza', is_final_salvo: true }),        // Gaza
+  threat(42, 145,'cruise',    'Netanya',         true,  6,  'full', 1.0, { origin: 'north', is_final_salvo: true }),       // Lebanon
+  threat(56, 148,'rocket',    'Sderot',          true,  5,  'full', 1.0, { origin: 'gaza', is_final_salvo: true }),        // Gaza — trailing
+  threat(57, 148,'drone',     'Eilat',           true,  7,  'full', 1.0, { origin: 'southeast', is_final_salvo: true }),   // Yemen — trailing
   // === HOLD-FIRE ROCKETS — unguided rockets missing populated areas (~40% miss rate) ===
   threat(43, 7,  'rocket', 'Northern Negev',            false, 5,  'full', 1.0, { origin: 'gaza' }),
   threat(44, 25, 'rocket', 'Mediterranean (off-coast)', false, 5,  'full', 1.0, { origin: 'gaza' }),
@@ -540,7 +546,7 @@ const THREATS_L5 = [
   threat(46, 75, 'rocket', 'Sinai Border Region',       false, 5,  'full', 1.0, { origin: 'gaza' }),
   threat(47, 105,'rocket', 'Northern Negev',            false, 5,  'full', 1.0, { origin: 'gaza' }),
   threat(53, 68, 'rocket', 'Western Negev',             false, 5,  'full', 1.0, { origin: 'gaza' }),
-  threat(54, 140,'rocket', 'Sinai Border Region',       false, 5,  'full', 1.0, { origin: 'gaza' }),
+  threat(54, 125,'rocket', 'Sinai Border Region',       false, 5,  'full', 1.0, { origin: 'gaza' }),  // moved from t=140 to clear final salvo
 ];
 
 // ============================================================
@@ -556,9 +562,9 @@ const THREATS_L6 = [
   threat(1,  4,  'drone',      'Nevatim AFB',       true,  13, 'full', 1.0, { origin: 'southeast' }),   // Yemen → south base
   threat(2,  8,  'rocket',     'Palmachim AFB',     true,  7,  'full', 1.0, { origin: 'gaza' }),        // Gaza → coastal base
   threat(3,  12, 'cruise',     'Glilot (Unit 8200)',true,  10, 'full', 1.0, { origin: 'east' }),        // Iran → intelligence HQ
-  // WAVE 2: First hypersonic! (single, clear teaching moment)
-  threat(4,  22, 'hypersonic', 'Sdot Micha',        true,  10, 'full', 0.40, { origin: 'east' }),       // ★ First hypersonic! Iran → strategic missile base
-  threat(5,  28, 'ballistic',  'Negev Desert',      false, 11, 'full', 0.45, { origin: 'east' }),       // hold fire
+  // WAVE 2: First hypersonic! (single, clear teaching moment — T3 cruise clears at t=22, T42 HF clears at t=22)
+  threat(4,  24, 'hypersonic', 'Sdot Micha',        true,  10, 'full', 0.40, { origin: 'east' }),       // ★ First hypersonic! SOLO for tutorial
+  threat(5,  34, 'ballistic',  'Negev Desert',      false, 11, 'full', 0.45, { origin: 'east' }),       // hold fire (moved from t=28 to not overlap tutorial)
   // WAVE 3: Second hypersonic + familiar mix
   threat(6,  34, 'cruise',     'Ramat David AFB',   true,  9,  'full', 1.0, { origin: 'north' }),       // Lebanon → northern air base
   threat(7,  36, 'hypersonic', 'Palmachim AFB',     true,  9,  'full', 0.40, { origin: 'east' }),       // Iran → missile test base
@@ -714,7 +720,7 @@ export const LEVELS = [
   // Level 2: Galil & Golan — Drones + Rockets (still Iron Dome only)
   {
     id: 2,
-    duration: 120,
+    duration: 130,
     ammo: { iron_dome: 34 },
     available_systems: ['iron_dome'],
     auto_end_delay: 3000,
@@ -727,7 +733,7 @@ export const LEVELS = [
   // Level 3: Central Israel — Cruise Missiles + David's Sling
   {
     id: 3,
-    duration: 120,
+    duration: 132,
     ammo: { iron_dome: 21, davids_sling: 14 },
     available_systems: ['iron_dome', 'davids_sling'],
     auto_end_delay: 5000,
@@ -740,7 +746,7 @@ export const LEVELS = [
   // Level 4: Strategic Threats — Ballistic Missiles + Arrow 2
   {
     id: 4,
-    duration: 120,
+    duration: 125,
     ammo: { iron_dome: 9, davids_sling: 10, arrow_2: 11 },
     available_systems: ['iron_dome', 'davids_sling', 'arrow_2'],
     auto_end_delay: 5000,
@@ -753,7 +759,7 @@ export const LEVELS = [
   // Level 5: Army Bases — Hypersonic Missiles + Arrow 3 (uses THREATS_L6 array)
   {
     id: 5,
-    duration: 150,
+    duration: 155,
     ammo: { iron_dome: 13, davids_sling: 7, arrow_2: 8, arrow_3: 9 },
     available_systems: ['iron_dome', 'davids_sling', 'arrow_2', 'arrow_3'],
     auto_end_delay: 6000,
@@ -764,16 +770,18 @@ export const LEVELS = [
     threats: THREATS_L6,
   },
   // Level 6: Wave Assault — all types from all fronts, full geography (uses THREATS_L5 array)
+  // Final salvo at t=142-148: all 5 threat types simultaneously
   {
     id: 6,
     duration: 160,
-    ammo: { iron_dome: 18, davids_sling: 12, arrow_2: 6, arrow_3: 6 },
+    ammo: { iron_dome: 22, davids_sling: 12, arrow_2: 7, arrow_3: 6 },
     available_systems: ['iron_dome', 'davids_sling', 'arrow_2', 'arrow_3'],
     auto_end_delay: 6000,
     new_system: null,
     new_threat: null,
-    final_salvo_warning_time: null,
-    final_salvo_start_time: null,
+    final_salvo_warning_time: 130,
+    final_salvo_start_time: 142,
+    salvo_warnings: [{ time: 130, end_time: 142 }],
     threats: THREATS_L5,
   },
   // Level 7: Final Stand — multi-front simultaneous salvos, tight ammo
@@ -787,6 +795,7 @@ export const LEVELS = [
     new_threat: null,
     final_salvo_warning_time: 105,
     final_salvo_start_time: 125,
+    salvo_warnings: [{ time: 105, end_time: 125 }],
     threats: THREATS_L7,
   },
 ];

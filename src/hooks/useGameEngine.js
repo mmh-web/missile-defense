@@ -256,14 +256,29 @@ export default function useGameEngine({ bonusLevelEnabled = false, roundConfig =
   }, []);
 
   // Compute where a threat blip currently IS on the radar
-  // Uses shared spawn origin system from config/spawnOrigins.js
+  // Matches RadarDisplay's getBlipPosition — uses frozenTimeLeft when intercepted,
+  // includes easing and spread offset for visual consistency with rendered blip.
   const getBlipPosition = useCallback((threat) => {
     const target = IMPACT_POSITIONS[threat.impact_zone] || { x: 0.5, y: 0.5 };
-    const linearProgress = 1 - threat.timeLeft / threat.countdown;
+    const timeLeft = threat.intercepted ? (threat.frozenTimeLeft ?? threat.timeLeft) : threat.timeLeft;
+    const linearProgress = 1 - timeLeft / threat.countdown;
     let progress = linearProgress;
     if (threat.type === 'ballistic') progress = linearProgress ** 3;
     else if (threat.type === 'hypersonic') progress = linearProgress ** 4;
-    const start = getSpawnOrigin(threat.type, threat.origin);
+    const baseStart = getSpawnOrigin(threat.type, threat.origin);
+    // Spread offset (matches RadarDisplay) — perpendicular to flight path
+    const dx = target.x - baseStart.x;
+    const dy = target.y - baseStart.y;
+    const len = Math.sqrt(dx * dx + dy * dy) || 1;
+    const perpX = -dy / len;
+    const perpY = dx / len;
+    const spreadAmount = 0.018;
+    const idOffset = ((threat.id * 7 + 3) % 5 - 2) * spreadAmount;
+    const fadeFactor = Math.max(0, 1 - progress / 0.4);
+    const start = {
+      x: baseStart.x + perpX * idOffset * fadeFactor,
+      y: baseStart.y + perpY * idOffset * fadeFactor,
+    };
     return { x: start.x + (target.x - start.x) * progress, y: start.y + (target.y - start.y) * progress };
   }, []);
 

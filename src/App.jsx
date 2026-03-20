@@ -150,6 +150,9 @@ export default function App() {
   useEffect(() => { tutorialStepRef.current = tutorialStep; }, [tutorialStep]);
   // Track which levels have shown their new-weapon tutorial (don't repeat on replay)
   const shownWeaponTutorialRef = useRef(new Set());
+  // Pause-to-explore reminder — brief overlay during respites, once per level
+  const [showPauseReminder, setShowPauseReminder] = useState(false);
+  const pauseReminderShownRef = useRef(new Set());
   const hackTimerRef = useRef(null);
 
   const showHackOverlay = useCallback(() => {
@@ -310,10 +313,19 @@ export default function App() {
       if (currentLevel === 1) {
         // L1: full tutorial — delay 2s
         setTimeout(() => setTutorialStep('ready'), 2000);
+      } else {
+        // L3-L5: reset tutorialStep so time-based trigger can fire
+        // (handles case where previous level left tutorialStep as 'done')
+        setTutorialStep(null);
       }
-      // L3-L5 new weapon tutorials trigger time-based (see below)
     } else if (!isActive && wasActive) {
       setTutorialStep(null);
+      setShowPauseReminder(false);
+    }
+    // Reset tutorial tracking on new campaign (PRE_GAME)
+    if (gameState === GAME_STATES.PRE_GAME) {
+      shownWeaponTutorialRef.current.clear();
+      pauseReminderShownRef.current.clear();
     }
     prevLevelActiveRef.current = isActive;
     prevActiveLevelRef.current = currentLevel;
@@ -341,14 +353,14 @@ export default function App() {
       }
     }
 
-    // L3-L5 new weapon tutorials — trigger when first new threat type appears
-    // L3: first cruise at t=14 → "PRESS 2 (DAVID'S SLING)"
-    // L4: first ballistic at t=18 → "PRESS 3 (ARROW 2)"
-    // L5: first hypersonic at t=22 → "PRESS 4 (ARROW 3)"
+    // L3-L5 new weapon tutorials — trigger when first new threat type appears (SOLO on screen)
+    // L3: first cruise at t=24 (solo after T1-T3 clear)
+    // L4: first ballistic at t=21 (solo after T1-T2 + T30 clear)
+    // L5: first hypersonic at t=24 (solo after T1-T3 + T42 clear)
     const weaponTutorials = {
-      3: { triggerTime: 12, key: '2', system: "DAVID'S SLING", threat: 'CRUISE MISSILE', color: '#3b82f6' },
-      4: { triggerTime: 16, key: '3', system: 'ARROW 2', threat: 'BALLISTIC MISSILE', color: '#ef4444' },
-      5: { triggerTime: 20, key: '4', system: 'ARROW 3', threat: 'HYPERSONIC GLIDE VEHICLE', color: '#a855f7' },
+      3: { triggerTime: 24, key: '2', system: "DAVID'S SLING", threat: 'CRUISE MISSILE', color: '#3b82f6' },
+      4: { triggerTime: 21, key: '3', system: 'ARROW 2', threat: 'BALLISTIC MISSILE', color: '#ef4444' },
+      5: { triggerTime: 24, key: '4', system: 'ARROW 3', threat: 'HYPERSONIC GLIDE VEHICLE', color: '#a855f7' },
     };
     const wt = weaponTutorials[currentLevel];
     if (wt && !shownWeaponTutorialRef.current.has(currentLevel) && !tutorialStep) {
@@ -361,7 +373,19 @@ export default function App() {
         }, 8000);
       }
     }
-  }, [currentLevel, gameState, sessionTime, tutorialStep, GAME_STATES]);
+
+    // Pause-to-explore reminder — brief overlay during designed respite gaps
+    // Shows once per level during a quiet moment to remind players about P key
+    const PAUSE_REMINDER_TIMES = { 2: 42, 3: 67, 4: 35, 5: 47, 6: 57 };
+    const prTime = PAUSE_REMINDER_TIMES[currentLevel];
+    if (prTime && !pauseReminderShownRef.current.has(currentLevel) && !tutorialStep && !showPauseReminder) {
+      if (sessionTime >= prTime) {
+        pauseReminderShownRef.current.add(currentLevel);
+        setShowPauseReminder(true);
+        setTimeout(() => setShowPauseReminder(false), 4000);
+      }
+    }
+  }, [currentLevel, gameState, sessionTime, tutorialStep, showPauseReminder, GAME_STATES]);
 
   // Wrap handleAction to advance tutorial on mobile taps (not just keyboard)
   const handleActionWithTutorial = useCallback((action) => {
@@ -1216,6 +1240,25 @@ export default function App() {
           </div>
         );
       })()}
+
+      {/* PAUSE-TO-EXPLORE REMINDER — brief overlay during respite, once per level */}
+      {showPauseReminder && !tutorialStep && (
+        <div className="absolute inset-x-0 top-16 md:top-20 z-20 flex justify-center pointer-events-none tutorial-enter">
+          <div className="bg-black/85 border rounded-lg px-6 py-3 text-center max-w-xs mx-4"
+            style={{
+              borderColor: 'rgba(6,182,212,0.5)',
+              boxShadow: '0 0 20px rgba(6,182,212,0.15)',
+            }}>
+            <div className="text-cyan-400 font-mono text-xs tracking-[0.4em] mb-1">TIP</div>
+            <div className="text-cyan-300 font-mono text-sm md:text-base font-bold tracking-wider">
+              PRESS <span className="text-white text-lg">P</span> TO PAUSE & EXPLORE
+            </div>
+            <div className="text-gray-400 font-mono text-xs mt-1 tracking-wide">
+              Hover locations on the map to learn about the region
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* SALVO WARNING overlay — level-based intensity */}
       {finalSalvoWarning && (

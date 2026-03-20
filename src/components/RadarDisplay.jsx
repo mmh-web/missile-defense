@@ -847,6 +847,40 @@ export default function RadarDisplay({
     setHoveredLocation(null);
     setPopupPos(null);
   }, []);
+  // Click handler: find closest active blip to click point (replaces per-blip hit targets)
+  const svgRef2 = useRef(null); // secondary ref for click math
+  const handleSvgClick = useCallback((e) => {
+    const svg = svgRef.current;
+    if (!svg) return;
+    // Convert screen coords to SVG viewBox coords (0-100)
+    const pt = svg.createSVGPoint();
+    pt.x = e.clientX;
+    pt.y = e.clientY;
+    const svgPt = pt.matrixTransform(svg.getScreenCTM().inverse());
+
+    // Find closest active (not intercepted/held) blip within reasonable radius
+    let closest = null;
+    let closestDist = Infinity;
+    const MAX_CLICK_DIST = 8; // SVG units — generous but not absurd (was r=10 per blip)
+
+    activeThreats.forEach((threat) => {
+      if (threat.intercepted || threat.held) return;
+      const pos = getBlipPosition(threat);
+      const blipSvg = mapToSVG(pos.x, pos.y, viewport);
+      const dx = blipSvg.x - svgPt.x;
+      const dy = blipSvg.y - svgPt.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < closestDist && dist <= MAX_CLICK_DIST) {
+        closest = threat;
+        closestDist = dist;
+      }
+    });
+
+    if (closest) {
+      onSelectThreat(closest.id);
+    }
+  }, [activeThreats, viewport, onSelectThreat]);
+
   const accentColor = LEVEL_ACCENT_COLORS[currentLevel] || '#22c55e';
   const visibleCities = useMemo(() => getVisibleCities(currentLevel), [currentLevel]);
   const visibleRegions = useMemo(() => getVisibleRegions(currentLevel), [currentLevel]);
@@ -870,6 +904,7 @@ export default function RadarDisplay({
           ref={svgRef}
           viewBox="0 0 100 100"
           className="w-full h-full"
+          onClick={handleSvgClick}
           style={{ filter: `drop-shadow(0 0 20px rgba(0, 255, 136, 0.15)) drop-shadow(0 0 25px ${accentColor}35)` }}
         >
           {/* Clip path for radar circle */}
@@ -1312,14 +1347,9 @@ export default function RadarDisplay({
               return (
                 <g
                   key={threat.id}
-                  onClick={() => !threat.intercepted && !threat.held && onSelectThreat(threat.id)}
                   style={{ cursor: (threat.intercepted || threat.held) ? 'default' : 'pointer' }}
                   className={`${threat.intercepted ? 'intercepted-blip-fade' : threat.held ? 'held-blip-fade' : 'blip-hover'}`}
                 >
-                  {/* Invisible hit target — large for easy clicking/tapping on touch devices */}
-                  {!threat.intercepted && !threat.held && (
-                    <circle cx={svgPos.x} cy={svgPos.y} r="10" fill="transparent" stroke="none" />
-                  )}
                   {/* Trajectory trail */}
                   <line
                     x1={svgOrigin.x} y1={svgOrigin.y}
