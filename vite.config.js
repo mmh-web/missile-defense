@@ -3,13 +3,13 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
-  base: '/missile-defense/',
+  base: '/',
   plugins: [react(), tailwindcss()],
   server: {
     host: '127.0.0.1',
     port: 5173,
     fs: {
-      allow: ['/Users/mhecht/Desktop/missile-defense'],
+      allow: ['/Users/mhecht/Desktop/Claude Projects/missile-defense'],
     },
   },
 });
