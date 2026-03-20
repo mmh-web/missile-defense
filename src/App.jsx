@@ -15,7 +15,8 @@ import FacilitatorControls from './components/FacilitatorControls.jsx';
 import SpectatorBoard from './components/SpectatorBoard.jsx';
 import { getLevelConfig, LEVEL_ACCENT_COLORS } from './config/threats.js';
 import { ROUND_CONFIGS } from './hooks/useGameEngine.js';
-import { getLeaderboard, getEventCode, getRoundNumber, getSpectateCode, subscribeLeaderboard } from './utils/leaderboard.js';
+import { getLeaderboard, getEventCode, getRoundNumber, getSpectateCode, getTournamentEventCode, subscribeLeaderboard, updateLiveScore, markScoreFinished } from './utils/leaderboard.js';
+import { containsProfanity } from './utils/nameFilter.js';
 import {
   startMusic,
   stopMusic,
@@ -34,39 +35,6 @@ function formatCountdown(seconds) {
 
 // Curated emoji icons for team avatars
 const TEAM_EMOJIS = ['🦅','🐻','🦁','🐺','🦊','🐍','🦈','🦇','🐝','🦂','🐆','🦬','🦏','🐗','🦎','🦉','🎯','🛡️','⚔️','🔥'];
-
-function TournamentSubmitButton({ teamName, teamEmoji, stats }) {
-  const [submitted, setSubmitted] = useState(false);
-  const handleSubmit = () => {
-    if (submitted) return;
-    const displayName = teamEmoji ? `${teamEmoji} ${teamName || 'ANON'}` : (teamName || 'ANON');
-    import('./utils/leaderboard.js').then(({ saveScore }) => {
-      saveScore({
-        name: displayName,
-        score: stats.totalScore || 0,
-        gameMode: 'CAMPAIGN',
-        levelsCompleted: stats.levelScores?.length || 0,
-        correctIntercepts: stats.totalCorrectIntercepts || 0,
-        sirenCount: stats.totalSirens || 0,
-        bestStreak: stats.overallBestStreak || 0,
-      }).catch(() => {});
-    });
-    setSubmitted(true);
-  };
-  return (
-    <button
-      onClick={handleSubmit}
-      disabled={submitted}
-      className={`px-8 py-3 font-mono text-sm tracking-widest rounded-lg mb-8 transition-all
-        ${submitted
-          ? 'bg-green-900/20 border-2 border-green-600 text-green-500 cursor-default'
-          : 'bg-green-900/40 border-2 border-green-500 text-green-400 hover:bg-green-900/60 hover:border-green-300 active:scale-95 cursor-pointer'
-        }`}
-    >
-      {submitted ? '✓ SCORE SUBMITTED' : 'SUBMIT SCORE ▸'}
-    </button>
-  );
-}
 
 function EmojiPicker({ selected, onSelect }) {
   return (
@@ -389,6 +357,47 @@ export default function App() {
     }
   }, [currentLevel, gameState, sessionTime, tutorialStep, showPauseReminder, GAME_STATES]);
 
+  // ── Live score push interval (tournament mode only) ──
+  // Pushes running score to Firestore every 5 seconds so spectator board updates live.
+  const liveScoreFinalizedRef = useRef(false);
+  useEffect(() => {
+    if (!roundConfig || !campaignTeamName.trim()) return;
+    if (gameState === GAME_STATES.PRE_GAME) return;
+
+    // Auto-finalize when reaching SUMMARY (once)
+    if (gameState === GAME_STATES.SUMMARY && !liveScoreFinalizedRef.current) {
+      liveScoreFinalizedRef.current = true;
+      const stats = getCampaignStats();
+      const displayName = teamEmoji ? `${teamEmoji} ${campaignTeamName.trim()}` : campaignTeamName.trim();
+      markScoreFinished({
+        name: displayName,
+        score: stats.totalScore || 0,
+        event: getTournamentEventCode(),
+        stats,
+      }).catch(() => {});
+      return;
+    }
+
+    // During gameplay: push live score every 5 seconds
+    const pushScore = () => {
+      const stats = getCampaignStats();
+      const currentRunning = getRunningScore();
+      const totalScore = (stats.totalScore || 0) + currentRunning;
+      const displayName = teamEmoji ? `${teamEmoji} ${campaignTeamName.trim()}` : campaignTeamName.trim();
+      updateLiveScore({
+        name: displayName,
+        score: totalScore,
+        event: getTournamentEventCode(),
+        currentLevel,
+        status: 'playing',
+      }).catch(() => {});
+    };
+
+    pushScore(); // Push immediately on state change
+    const interval = setInterval(pushScore, 5000);
+    return () => clearInterval(interval);
+  }, [roundConfig, campaignTeamName, teamEmoji, gameState, currentLevel, GAME_STATES]);
+
   // Wrap handleAction to advance tutorial on mobile taps (not just keyboard)
   const handleActionWithTutorial = useCallback((action) => {
     handleAction(action);
@@ -609,6 +618,7 @@ export default function App() {
       onResume={handleResume}
       onReset={() => {
         seenBriefingsRef.current.clear();
+        liveScoreFinalizedRef.current = false;
         resetGame();
       }}
       onJumpToLevel={(level) => {
@@ -744,14 +754,58 @@ export default function App() {
             ))}
           </div>
 
+          {/* Tournament mode: team name + emoji entry before start */}
+          {roundConfig && (
+            <div className="mb-6">
+              <div className="font-mono text-xs tracking-[0.3em] text-orange-400/70 mb-4">
+                {roundConfig.label} — {getEventCode()}
+              </div>
+              <div className="mb-3">
+                <div className="font-mono text-[10px] text-gray-500 tracking-widest mb-2">CHOOSE YOUR ICON</div>
+                <EmojiPicker selected={teamEmoji} onSelect={setTeamEmoji} />
+              </div>
+              <div className="mb-2">
+                <div className="font-mono text-[10px] text-gray-500 tracking-widest mb-2">TEAM NAME</div>
+                <input
+                  type="text"
+                  value={campaignTeamName}
+                  onChange={(e) => setCampaignTeamName(e.target.value.toUpperCase().slice(0, 10))}
+                  placeholder="ENTER NAME"
+                  maxLength={10}
+                  className="w-48 px-4 py-2 bg-gray-900/80 border border-gray-700 rounded-lg text-center
+                    font-mono text-lg text-orange-400 tracking-widest
+                    focus:border-orange-500 focus:outline-none placeholder-gray-700"
+                />
+                {campaignTeamName && containsProfanity(campaignTeamName) && (
+                  <div className="font-mono text-xs text-red-400 mt-1">CHOOSE A DIFFERENT NAME</div>
+                )}
+              </div>
+            </div>
+          )}
+
           <button
             onClick={() => {
               seenBriefingsRef.current.clear();
               startCampaign();
+              // Tournament mode: push initial score to spectator board immediately
+              if (roundConfig && campaignTeamName.trim()) {
+                const displayName = teamEmoji ? `${teamEmoji} ${campaignTeamName.trim()}` : campaignTeamName.trim();
+                updateLiveScore({
+                  name: displayName,
+                  score: 0,
+                  event: getTournamentEventCode(),
+                  currentLevel: roundConfig.startLevel,
+                  status: 'playing',
+                }).catch(() => {});
+              }
             }}
-            className="px-12 py-3.5 font-mono font-bold text-base tracking-[0.2em] rounded-lg
-              cursor-pointer transition-all active:scale-95
-              hover:shadow-[0_0_30px_rgba(249,115,22,0.15)]"
+            disabled={roundConfig && (!campaignTeamName.trim() || campaignTeamName.trim().length < 2 || containsProfanity(campaignTeamName))}
+            className={`px-12 py-3.5 font-mono font-bold text-base tracking-[0.2em] rounded-lg
+              transition-all active:scale-95
+              ${roundConfig && (!campaignTeamName.trim() || campaignTeamName.trim().length < 2 || containsProfanity(campaignTeamName))
+                ? 'opacity-30 cursor-not-allowed'
+                : 'cursor-pointer hover:shadow-[0_0_30px_rgba(249,115,22,0.15)]'
+              }`}
             style={{
               background: 'rgba(249,115,22,0.15)',
               border: '2px solid #f97316',
@@ -931,6 +985,7 @@ export default function App() {
     // Tournament mode — simplified round complete screen
     if (roundConfig) {
       const stats = getCampaignStats();
+      const displayName = teamEmoji ? `${teamEmoji} ${campaignTeamName.trim()}` : campaignTeamName.trim();
       return (
         <div key="screen-tournament-summary" className="screen-fade-in h-screen bg-[#0a0e1a] flex items-center justify-center relative">
           <div className="text-center max-w-lg mx-auto px-6">
@@ -952,33 +1007,18 @@ export default function App() {
               <div className="font-mono text-sm text-gray-500 tracking-widest">TOTAL SCORE</div>
             </div>
 
-            {/* Emoji picker */}
-            <div className="mb-4">
-              <div className="font-mono text-[10px] text-gray-500 tracking-widest mb-2">CHOOSE YOUR ICON</div>
-              <EmojiPicker selected={teamEmoji} onSelect={setTeamEmoji} />
-            </div>
-
-            {/* Team name input */}
+            {/* Team name (read-only — entered at start) */}
             <div className="mb-6">
-              <div className="font-mono text-[10px] text-gray-500 tracking-widest mb-2">TEAM NAME</div>
-              <input
-                type="text"
-                value={campaignTeamName}
-                onChange={(e) => setCampaignTeamName(e.target.value.toUpperCase().slice(0, 10))}
-                placeholder="ENTER NAME"
-                maxLength={10}
-                className="w-48 px-4 py-2 bg-gray-900/80 border border-gray-700 rounded-lg text-center
-                  font-mono text-lg text-green-400 tracking-widest
-                  focus:border-green-500 focus:outline-none placeholder-gray-700"
-              />
+              <div className="font-mono text-xl font-bold text-green-400 tracking-wider">
+                {displayName || 'TEAM'}
+              </div>
             </div>
 
-            {/* Submit score */}
-            <TournamentSubmitButton
-              teamName={campaignTeamName}
-              teamEmoji={teamEmoji}
-              stats={stats}
-            />
+            {/* Score submitted confirmation */}
+            <div className="mb-6 flex items-center justify-center gap-2">
+              <span className="text-green-400 text-lg">✓</span>
+              <span className="font-mono text-sm text-green-400/80 tracking-widest">SCORE SUBMITTED</span>
+            </div>
 
             {/* Watch the screen message */}
             <div className="py-4 px-6 rounded-xl bg-gray-900/50 border border-gray-800">
@@ -999,6 +1039,7 @@ export default function App() {
           onTeamNameChange={setCampaignTeamName}
           onReset={() => {
           seenBriefingsRef.current.clear();
+          liveScoreFinalizedRef.current = false;
           setCampaignTeamName('');
           resetGame();
         }} />

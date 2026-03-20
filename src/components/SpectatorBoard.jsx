@@ -144,7 +144,7 @@ export default function SpectatorBoard({ eventCode }) {
             <div className="text-center">
               <div className="font-mono text-2xl text-gray-600 tracking-widest mb-4">WAITING FOR SCORES</div>
               <div className="font-mono text-sm text-gray-700 tracking-wider">
-                Players join at: ?event={eventCode}&round={currentRound}
+                Players join at: kipat-barzel.org?event={eventCode}&round={currentRound}
               </div>
             </div>
           </div>
@@ -199,12 +199,31 @@ export default function SpectatorBoard({ eventCode }) {
                       {rank === 1 && !isClosed ? '#' : ''}{rank}
                     </div>
 
-                    {/* Name */}
-                    <div className="flex-1 font-mono text-xl font-bold tracking-wider" style={{ color: nameColor }}>
-                      {entry.name}
+                    {/* Name + live status */}
+                    <div className="flex-1 flex items-center gap-3">
+                      <div className="font-mono text-xl font-bold tracking-wider" style={{ color: nameColor }}>
+                        {entry.name}
+                      </div>
+                      {/* Live status indicator */}
+                      {!isClosed && entry.status === 'playing' && (
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+                          {entry.currentLevel && (
+                            <span className="font-mono text-[10px] tracking-widest text-green-400/60">
+                              L{entry.currentLevel}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      {!isClosed && entry.status === 'finished' && (
+                        <div className="flex items-center gap-1">
+                          <span className="text-green-400 text-sm">✓</span>
+                          <span className="font-mono text-[10px] tracking-widest text-green-400/60">DONE</span>
+                        </div>
+                      )}
                     </div>
 
-                    {/* Status badge */}
+                    {/* Status badge (round closed) */}
                     {isAdvancing && (
                       <div className="px-3 py-1 rounded-full bg-green-500/20 border border-green-500/40 font-mono text-xs tracking-widest text-green-400 font-bold animate-pulse">
                         ADVANCING
@@ -243,7 +262,7 @@ export default function SpectatorBoard({ eventCode }) {
           KEYS: 1-3 switch round | C close/open round | Up/Down adjust qualifier count ({qualifyCount})
         </div>
         <div className="font-mono text-[10px] text-gray-700 tracking-wider">
-          {entries.length} SCORES | {roundClosed ? 'ROUND CLOSED' : 'ROUND OPEN'}
+          {entries.length} TEAMS | {entries.filter(e => e.status === 'playing').length} PLAYING | {entries.filter(e => e.status === 'finished').length} FINISHED | {roundClosed ? 'ROUND CLOSED' : 'ROUND OPEN'}
         </div>
       </div>
     </div>

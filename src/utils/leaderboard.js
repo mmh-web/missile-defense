@@ -6,6 +6,8 @@ import { containsProfanity } from './nameFilter.js';
 import {
   collection,
   addDoc,
+  doc,
+  setDoc,
   query,
   orderBy,
   limit,
@@ -212,4 +214,78 @@ export function isHighScore(score, gameMode = 'CAMPAIGN') {
   const board = getLocalLeaderboard(gameMode);
   if (board.length < MAX_ENTRIES) return true;
   return score > board[board.length - 1].score;
+}
+
+// ── Live Score Updates (Tournament Mode) ─────────────────────
+
+/**
+ * Deterministic Firestore doc ID for a team in an event.
+ * One doc per team per event — updates overwrite, no duplicates.
+ */
+function getLiveDocId(eventCode, teamName) {
+  const sanitized = (teamName || 'anon').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 20);
+  return `live__${eventCode}__${sanitized}`;
+}
+
+/**
+ * Push a live score update to Firestore (tournament mode).
+ * Uses setDoc with merge — creates on first call, updates thereafter.
+ * Fire-and-forget: caller doesn't need to await.
+ */
+export async function updateLiveScore({ name, score, event, currentLevel, status = 'playing' }) {
+  if (!db || !event || !name) return;
+  try {
+    const docId = getLiveDocId(event, name);
+    const docRef = doc(db, COLLECTION, docId);
+    await setDoc(docRef, {
+      name: (name || 'ANON').slice(0, 20),
+      score: score || 0,
+      gameMode: 'CAMPAIGN',
+      event,
+      currentLevel: currentLevel || 1,
+      status,
+      timestamp: Date.now(),
+      lastUpdate: Date.now(),
+    }, { merge: true });
+  } catch (err) {
+    // Silent fail — game continues without live updates
+  }
+}
+
+/**
+ * Mark a live score as finished with final campaign stats.
+ * Also saves to localStorage as the definitive final score.
+ */
+export async function markScoreFinished({ name, score, event, stats = {} }) {
+  if (!db || !event || !name) return;
+  try {
+    const docId = getLiveDocId(event, name);
+    const docRef = doc(db, COLLECTION, docId);
+    const finalData = {
+      name: (name || 'ANON').slice(0, 20),
+      score: score || 0,
+      gameMode: 'CAMPAIGN',
+      event,
+      status: 'finished',
+      timestamp: Date.now(),
+      lastUpdate: Date.now(),
+      levelsCompleted: stats.levelsCompleted || 0,
+      correctIntercepts: stats.totalCorrectIntercepts || 0,
+      sirenCount: stats.totalSirens || 0,
+      bestStreak: stats.overallBestStreak || 0,
+    };
+    await setDoc(docRef, finalData, { merge: true });
+    // Also save locally as fallback
+    saveLocal(finalData);
+  } catch (err) {
+    console.warn('Live score finalize failed:', err.message);
+    // Still save locally
+    saveLocal({
+      name: (name || 'ANON').slice(0, 20),
+      score: score || 0,
+      gameMode: 'CAMPAIGN',
+      event,
+      timestamp: Date.now(),
+    });
+  }
 }
