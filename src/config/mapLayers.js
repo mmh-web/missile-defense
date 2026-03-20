@@ -54,7 +54,7 @@ export const CITIES = {
   // isInfra = infrastructure marker (rendered with ▲ triangle, distinct from city ● and base ◆)
   'BAZAN Oil Refinery':       { x: 0.34, y: 0.20, region: 'infra', tier: 1, revealLevel: 4, labelDir: 'n', isInfra: true, keyInfra: true, he: 'בז"ן', shortLabel: 'BAZAN Refinery' },
   'Orot Rabin Power Station': { x: 0.32, y: 0.27, region: 'infra', tier: 1, revealLevel: 4, labelDir: 'e', isInfra: true, he: 'אוֹרוֹת רָבִּין', shortLabel: 'Orot Rabin\nPower Stn' },
-  'Sorek Desalination Plant': { x: 0.23, y: 0.39, region: 'infra', tier: 1, revealLevel: 4, labelDir: 'w', isInfra: true, he: 'סוֹרֵק', shortLabel: 'Sorek\nDesalination' },
+  'Sorek Desalination Plant': { x: 0.23, y: 0.39, region: 'infra', tier: 1, revealLevel: 4, labelDir: 'w', labelAnchor: 'start', isInfra: true, he: 'סוֹרֵק', shortLabel: 'Sorek\nDesalination' },
   'Rutenberg Power Station':  { x: 0.20, y: 0.44, region: 'infra', tier: 1, revealLevel: 4, labelDir: 'w', isInfra: true, he: 'רוּטֶנְבֶּרְג', shortLabel: 'Rutenberg\nPower Stn' },
   'Ashdod Port':              { x: 0.23, y: 0.42, region: 'infra', tier: 1, revealLevel: 4, labelDir: 'se', isInfra: true, he: 'נָמָל אַשְׁדּוֹד', shortLabel: 'Ashdod Port' },
   'The Kirya (IDF HQ)':       { x: 0.29, y: 0.36, region: 'infra', tier: 1, revealLevel: 4, labelDir: 'w', isInfra: true, he: 'הַקִּרְיָה', shortLabel: 'The Kirya\nIDF HQ' },

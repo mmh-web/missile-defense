@@ -1150,13 +1150,14 @@ export default function RadarDisplay({
                       const labelX = p.x + offset.dx * offsetScale * baseBoost;
                       const labelY = p.y + offset.dy * offsetScale * baseBoost;
                       const lines = displayText.split('\n');
+                      const anchor = city.labelAnchor || offset.anchor; // per-city override for multi-line alignment
                       return (
                         <text
                           x={labelX} y={labelY}
                           fill={labelColor}
                           fontSize={fontSize}
                           fontFamily={currentLevel === 7 && city.he ? 'Arial, sans-serif' : 'monospace'}
-                          textAnchor={offset.anchor}
+                          textAnchor={anchor}
                           fontWeight={isBase || isLandmark || offsetScale > 1 ? 'bold' : 'normal'}
                           stroke={(offsetScale > 1 || isInfra) ? 'rgba(10, 14, 26, 0.85)' : 'none'}
                           strokeWidth={(offsetScale > 1 || isInfra) ? '0.5' : '0'}

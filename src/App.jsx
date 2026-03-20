@@ -353,24 +353,26 @@ export default function App() {
       }
     }
 
-    // L3-L5 new weapon tutorials — trigger when first new threat type appears (SOLO on screen)
-    // L3: first cruise at t=24 (solo after T1-T3 clear)
-    // L4: first ballistic at t=21 (solo after T1-T2 + T30 clear)
-    // L5: first hypersonic at t=24 (solo after T1-T3 + T42 clear)
+    // L3-L5 new weapon tutorials — trigger AFTER blip is visually on screen
+    // Blips spawn at radar edge and need time to travel inward (especially with easing):
+    //   Cruise (linear): visible ~2s after appear → trigger 3s after appear
+    //   Ballistic (cubic easing): barely moves first 5s → trigger 5s after appear
+    //   Hypersonic (quartic easing): barely moves first 4s → trigger 4s after appear
+    // Tutorial dismisses on player action (interceptor key press), with 20s safety timeout
     const weaponTutorials = {
-      3: { triggerTime: 24, key: '2', system: "DAVID'S SLING", threat: 'CRUISE MISSILE', color: '#3b82f6' },
-      4: { triggerTime: 21, key: '3', system: 'ARROW 2', threat: 'BALLISTIC MISSILE', color: '#ef4444' },
-      5: { triggerTime: 24, key: '4', system: 'ARROW 3', threat: 'HYPERSONIC GLIDE VEHICLE', color: '#a855f7' },
+      3: { triggerTime: 27, key: '2', system: "DAVID'S SLING", threat: 'CRUISE MISSILE', color: '#3b82f6' },       // appear t=24 + 3s
+      4: { triggerTime: 26, key: '3', system: 'ARROW 2', threat: 'BALLISTIC MISSILE', color: '#ef4444' },           // appear t=21 + 5s
+      5: { triggerTime: 28, key: '4', system: 'ARROW 3', threat: 'HYPERSONIC GLIDE VEHICLE', color: '#a855f7' },    // appear t=24 + 4s
     };
     const wt = weaponTutorials[currentLevel];
     if (wt && !shownWeaponTutorialRef.current.has(currentLevel) && !tutorialStep) {
       if (sessionTime >= wt.triggerTime) {
         shownWeaponTutorialRef.current.add(currentLevel);
         setTutorialStep('new_weapon');
-        // Auto-dismiss after 8 seconds
+        // Safety timeout — tutorial normally dismissed by player action (interceptor key press)
         setTimeout(() => {
           if (tutorialStepRef.current === 'new_weapon') setTutorialStep('done');
-        }, 8000);
+        }, 20000);
       }
     }
 
