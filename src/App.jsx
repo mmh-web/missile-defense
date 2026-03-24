@@ -15,7 +15,7 @@ import FacilitatorControls from './components/FacilitatorControls.jsx';
 import SpectatorBoard from './components/SpectatorBoard.jsx';
 import { getLevelConfig, LEVEL_ACCENT_COLORS } from './config/threats.js';
 import { ROUND_CONFIGS } from './hooks/useGameEngine.js';
-import { getLeaderboard, getEventCode, getRoundNumber, getSpectateCode, getTournamentEventCode, subscribeLeaderboard, updateLiveScore, markScoreFinished } from './utils/leaderboard.js';
+import { getLeaderboard, getEventCode, getRoundNumber, getSpectateCode, getTournamentEventCode, updateLiveScore, markScoreFinished } from './utils/leaderboard.js';
 import { containsProfanity } from './utils/nameFilter.js';
 import {
   startMusic,
@@ -91,6 +91,7 @@ export default function App() {
   const [showFacilitator, setShowFacilitator] = useState(false);
   const showFacilitatorRef = useRef(false);
   useEffect(() => { showFacilitatorRef.current = showFacilitator; }, [showFacilitator]);
+  const pausedByFacilitatorRef = useRef(false);
   const [facilitatorUnlocked, setFacilitatorUnlocked] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [leaderboardEntries, setLeaderboardEntries] = useState([]);
@@ -328,9 +329,9 @@ export default function App() {
     //   Hypersonic (quartic easing): barely moves first 4s → trigger 4s after appear
     // Tutorial dismisses on player action (interceptor key press), with 20s safety timeout
     const weaponTutorials = {
-      3: { triggerTime: 27, key: '2', system: "DAVID'S SLING", threat: 'CRUISE MISSILE', color: '#3b82f6' },       // appear t=24 + 3s
-      4: { triggerTime: 26, key: '3', system: 'ARROW 2', threat: 'BALLISTIC MISSILE', color: '#ef4444' },           // appear t=21 + 5s
-      5: { triggerTime: 28, key: '4', system: 'ARROW 3', threat: 'HYPERSONIC GLIDE VEHICLE', color: '#a855f7' },    // appear t=24 + 4s
+      3: { triggerTime: 27, key: '2', system: "DAVID'S SLING", threat: 'CRUISE MISSILE', threatType: 'cruise', color: '#3b82f6' },       // appear t=24 + 3s
+      4: { triggerTime: 26, key: '3', system: 'ARROW 2', threat: 'BALLISTIC MISSILE', threatType: 'ballistic', color: '#ef4444' },           // appear t=21 + 5s
+      5: { triggerTime: 28, key: '4', system: 'ARROW 3', threat: 'HYPERSONIC GLIDE VEHICLE', threatType: 'hypersonic', color: '#a855f7' },    // appear t=24 + 4s
     };
     const wt = weaponTutorials[currentLevel];
     if (wt && !shownWeaponTutorialRef.current.has(currentLevel) && !tutorialStep) {
@@ -342,6 +343,12 @@ export default function App() {
           if (tutorialStepRef.current === 'new_weapon') setTutorialStep('done');
         }, 20000);
       }
+    }
+    // Auto-dismiss new weapon tutorial when the teaching threat is no longer on screen
+    // (e.g., it hit the target, landed on open ground, or was intercepted with a different system)
+    if (wt && tutorialStep === 'new_weapon') {
+      const hasMatchingThreat = activeThreats.some(t => t.type === wt.threatType && !t.intercepted && !t.held);
+      if (!hasMatchingThreat) setTutorialStep('done');
     }
 
     // Pause-to-explore reminder — brief overlay during designed respite gaps
@@ -355,11 +362,18 @@ export default function App() {
         setTimeout(() => setShowPauseReminder(false), 4000);
       }
     }
-  }, [currentLevel, gameState, sessionTime, tutorialStep, showPauseReminder, GAME_STATES]);
+  }, [currentLevel, gameState, sessionTime, tutorialStep, showPauseReminder, activeThreats, GAME_STATES]);
 
   // ── Live score push interval (tournament mode only) ──
   // Pushes running score to Firestore every 5 seconds so spectator board updates live.
+  // Uses refs to avoid stale closures — getRunningScore depends on resultLog/sirenCount/etc.
+  // which change frequently during gameplay but aren't in the effect's dependency array.
   const liveScoreFinalizedRef = useRef(false);
+  const getRunningScoreRef = useRef(getRunningScore);
+  const getCampaignStatsRef = useRef(getCampaignStats);
+  getRunningScoreRef.current = getRunningScore;
+  getCampaignStatsRef.current = getCampaignStats;
+
   useEffect(() => {
     if (!roundConfig || !campaignTeamName.trim()) return;
     if (gameState === GAME_STATES.PRE_GAME) return;
@@ -367,7 +381,7 @@ export default function App() {
     // Auto-finalize when reaching SUMMARY (once)
     if (gameState === GAME_STATES.SUMMARY && !liveScoreFinalizedRef.current) {
       liveScoreFinalizedRef.current = true;
-      const stats = getCampaignStats();
+      const stats = getCampaignStatsRef.current();
       const displayName = teamEmoji ? `${teamEmoji} ${campaignTeamName.trim()}` : campaignTeamName.trim();
       markScoreFinished({
         name: displayName,
@@ -380,8 +394,8 @@ export default function App() {
 
     // During gameplay: push live score every 5 seconds
     const pushScore = () => {
-      const stats = getCampaignStats();
-      const currentRunning = getRunningScore();
+      const stats = getCampaignStatsRef.current();
+      const currentRunning = getRunningScoreRef.current();
       const totalScore = (stats.totalScore || 0) + currentRunning;
       const displayName = teamEmoji ? `${teamEmoji} ${campaignTeamName.trim()}` : campaignTeamName.trim();
       updateLiveScore({
@@ -505,15 +519,17 @@ export default function App() {
       }
 
       // ESC: toggle facilitator panel (available from any game state)
-      // Opens → auto-pause, Closes → auto-resume
+      // Opens → auto-pause, Closes → only auto-resume if panel caused the pause
       if (e.key === 'Escape') {
         const wasOpen = showFacilitatorRef.current;
         if (!wasOpen && gameState === GAME_STATES.ACTIVE && !paused) {
           // Opening panel — pause the game
           togglePause();
-        } else if (wasOpen && gameState === GAME_STATES.ACTIVE && paused) {
-          // Closing panel — resume the game
+          pausedByFacilitatorRef.current = true;
+        } else if (wasOpen && gameState === GAME_STATES.ACTIVE && paused && pausedByFacilitatorRef.current) {
+          // Closing panel — resume only if we caused the pause
           togglePause();
+          pausedByFacilitatorRef.current = false;
         }
         setShowFacilitator((prev) => !prev);
         return;
@@ -588,8 +604,11 @@ export default function App() {
 
   const handleCloseFacilitator = useCallback(() => {
     setShowFacilitator(false);
-    // Resume game if we auto-paused it
-    if (paused && gameState === GAME_STATES.ACTIVE) togglePause();
+    // Resume game only if the facilitator panel caused the pause
+    if (paused && gameState === GAME_STATES.ACTIVE && pausedByFacilitatorRef.current) {
+      togglePause();
+      pausedByFacilitatorRef.current = false;
+    }
   }, [paused, gameState, togglePause, GAME_STATES]);
 
   // Stable callback for EducationalBriefing — avoids re-creating on every render
@@ -619,6 +638,9 @@ export default function App() {
       onReset={() => {
         seenBriefingsRef.current.clear();
         liveScoreFinalizedRef.current = false;
+        setCampaignTeamName('');
+        setTeamEmoji('');
+        pausedByFacilitatorRef.current = false;
         resetGame();
       }}
       onJumpToLevel={(level) => {
@@ -936,6 +958,7 @@ export default function App() {
               victoryVariant={victoryVariant}
               victoryKey={victoryKey}
               onVictoryComplete={handleVictoryComplete}
+              musicMuted={musicMuted}
             />
           </div>
         </div>
@@ -977,6 +1000,7 @@ export default function App() {
               victoryVariant={victoryVariant}
               victoryKey={victoryKey}
               onVictoryComplete={handleVictoryComplete}
+              musicMuted={musicMuted}
             />
           </div>
         </div>
@@ -1178,6 +1202,7 @@ export default function App() {
             victoryVariant={victoryVariant}
             victoryKey={victoryKey}
             onVictoryComplete={handleVictoryComplete}
+            musicMuted={musicMuted}
             paused={paused}
           />
         </div>
