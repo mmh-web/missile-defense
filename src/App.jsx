@@ -706,6 +706,11 @@ export default function App() {
     </div>
   );
 
+  // Spectator mode — render full-screen leaderboard instead of game
+  if (spectateCode) {
+    return <SpectatorBoard eventCode={spectateCode} />;
+  }
+
   // ========================
   // PRE-GAME SCREEN
   // ========================
@@ -1065,11 +1070,6 @@ export default function App() {
         {facilitatorOverlay}
       </div>
     );
-  }
-
-  // Spectator mode — render full-screen leaderboard instead of game
-  if (spectateCode) {
-    return <SpectatorBoard eventCode={spectateCode} />;
   }
 
   // ========================
