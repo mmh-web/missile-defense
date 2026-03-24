@@ -235,8 +235,8 @@ export default function SpectatorBoard({ eventCode }) {
       if (e.key === 'c' || e.key === 'C') {
         setRoundClosed(prev => !prev);
       }
-      if (e.key === 'ArrowUp') setQualifyCount(prev => Math.min(prev + 1, 20));
-      if (e.key === 'ArrowDown') setQualifyCount(prev => Math.max(prev - 1, 1));
+      if (e.key === 'ArrowUp') { e.preventDefault(); setQualifyCount(prev => Math.min(prev + 1, 20)); }
+      if (e.key === 'ArrowDown') { e.preventDefault(); setQualifyCount(prev => Math.max(prev - 1, 1)); }
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
