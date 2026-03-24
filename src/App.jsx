@@ -27,6 +27,61 @@ import {
   isMusicEnabled,
 } from './utils/musicPlayer.js';
 
+// ── Access Gate ──────────────────────────────────────────────
+// Set to a string to require password, null to disable.
+// Change this value and redeploy to rotate/remove the password.
+const GATE_PASSWORD = 'IRON2026';
+
+function AccessGate({ onUnlock }) {
+  const [input, setInput] = useState('');
+  const [error, setError] = useState(false);
+
+  // Skip gate if already authenticated this session
+  useEffect(() => {
+    if (sessionStorage.getItem('gate_auth') === 'true') onUnlock();
+  }, [onUnlock]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (input.trim().toUpperCase() === GATE_PASSWORD.toUpperCase()) {
+      sessionStorage.setItem('gate_auth', 'true');
+      onUnlock();
+    } else {
+      setError(true);
+      setTimeout(() => setError(false), 1500);
+    }
+  };
+
+  return (
+    <div className="h-screen bg-[#0a0e1a] flex items-center justify-center">
+      <form onSubmit={handleSubmit} className="text-center">
+        <div className="font-mono text-2xl font-black tracking-[0.3em] text-green-400/60 mb-8">
+          IRON DOME COMMAND
+        </div>
+        <div className="font-mono text-sm text-gray-500 tracking-widest mb-6">
+          ENTER ACCESS CODE
+        </div>
+        <input
+          type="text"
+          value={input}
+          onChange={(e) => setInput(e.target.value.toUpperCase())}
+          autoFocus
+          className={`w-56 px-4 py-3 bg-gray-900/80 border rounded-lg text-center
+            font-mono text-lg tracking-[0.3em] focus:outline-none
+            ${error
+              ? 'border-red-500 text-red-400 animate-pulse'
+              : 'border-gray-700 text-green-400 focus:border-green-500'
+            }`}
+          placeholder="••••••••"
+        />
+        <div className={`font-mono text-xs mt-3 h-4 tracking-wider ${error ? 'text-red-400' : 'text-transparent'}`}>
+          ACCESS DENIED
+        </div>
+      </form>
+    </div>
+  );
+}
+
 function formatCountdown(seconds) {
   const m = Math.floor(seconds / 60);
   const s = Math.floor(seconds % 60);
@@ -56,7 +111,7 @@ function EmojiPicker({ selected, onSelect }) {
   );
 }
 
-export default function App() {
+function AppInner() {
   const [bonusLevelEnabled, setBonusLevelEnabled] = useState(false);
   const roundNumber = getRoundNumber();
   const roundConfig = roundNumber ? ROUND_CONFIGS[roundNumber] : null;
@@ -213,6 +268,16 @@ export default function App() {
     setVictoryVariant(null);
     setPendingLevelComplete(false);
   }, []);
+
+  // Safety: if victory animation gets stuck, force-dismiss after 8 seconds
+  useEffect(() => {
+    if (!pendingLevelComplete) return;
+    const safety = setTimeout(() => {
+      setPendingLevelComplete(false);
+      setVictoryVariant(null);
+    }, 8000);
+    return () => clearTimeout(safety);
+  }, [pendingLevelComplete]);
 
   // Briefing music — create once, play/pause based on game state
   useEffect(() => {
@@ -1466,4 +1531,13 @@ export default function App() {
       {facilitatorOverlay}
     </div>
   );
+}
+
+// Wrapper: access gate before game loads (skip if GATE_PASSWORD is null)
+export default function App() {
+  const [unlocked, setUnlocked] = useState(!GATE_PASSWORD);
+  const handleUnlock = useCallback(() => setUnlocked(true), []);
+
+  if (!unlocked) return <AccessGate onUnlock={handleUnlock} />;
+  return <AppInner />;
 }

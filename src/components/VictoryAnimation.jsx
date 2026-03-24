@@ -194,7 +194,7 @@ function applyJSTimeline(g) {
   return timers;
 }
 
-const VictoryAnimation = memo(function VictoryAnimation({ variant = 1, onComplete }) {
+const VictoryAnimation = memo(function VictoryAnimation({ variant = 1, onComplete, musicMuted = false }) {
   const gRef = useRef(null);
 
   // Store onComplete in a ref so the useEffect doesn't re-run when the callback changes
@@ -212,11 +212,14 @@ const VictoryAnimation = memo(function VictoryAnimation({ variant = 1, onComplet
     // Apply JS-driven timeline for reliable opacity control
     const timers = applyJSTimeline(gRef.current);
 
-    // Play victory fanfare (variant-matched)
-    const vIdx = ((variant - 1) % 3) + 1;
-    const audio = new Audio(`${import.meta.env.BASE_URL}sounds/victory-${vIdx}.mp3`);
-    audio.volume = 0.7;
-    audio.play().catch(() => {}); // ignore autoplay restrictions
+    // Play victory fanfare (variant-matched) — respect app mute setting
+    let audio = null;
+    if (!musicMuted) {
+      const vIdx = ((variant - 1) % 3) + 1;
+      audio = new Audio(`${import.meta.env.BASE_URL}sounds/victory-${vIdx}.mp3`);
+      audio.volume = 0.7;
+      audio.play().catch(() => {}); // ignore autoplay restrictions
+    }
 
     // Complete callback
     const completeTimer = setTimeout(() => onCompleteRef.current?.(), DURATION);
@@ -224,8 +227,7 @@ const VictoryAnimation = memo(function VictoryAnimation({ variant = 1, onComplet
 
     return () => {
       timers.forEach(t => clearTimeout(t));
-      audio.pause();
-      audio.src = '';
+      if (audio) { audio.pause(); audio.src = ''; }
     };
   }, [variant]); // only re-run if variant changes
 

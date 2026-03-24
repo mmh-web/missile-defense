@@ -141,8 +141,16 @@ export async function saveScore(entry) {
   saveLocal(newEntry);
 
   // Try to save to Firestore
+  // In tournament/event mode, use deterministic doc ID to avoid duplicates
+  // (updateLiveScore and markScoreFinished already use this same ID pattern)
   try {
-    await addDoc(collection(db, COLLECTION), newEntry);
+    if (event) {
+      const docId = getLiveDocId(event, rawName);
+      const docRef = doc(db, COLLECTION, docId);
+      await setDoc(docRef, { ...newEntry, status: 'finished', lastUpdate: Date.now() }, { merge: true });
+    } else {
+      await addDoc(collection(db, COLLECTION), newEntry);
+    }
   } catch (err) {
     console.warn('Firestore save failed, score saved locally only:', err.message);
   }
@@ -164,12 +172,20 @@ export async function getLeaderboard(gameMode = 'CAMPAIGN', eventFilter = null) 
       limit(50)
     );
     const snapshot = await getDocs(q);
-    const entries = [];
+    const raw = [];
     snapshot.forEach((doc) => {
       const data = doc.data();
-      if (data.gameMode === gameMode && (data.event || '') === event) entries.push(data);
+      if (data.gameMode === gameMode && (data.event || '') === event) raw.push(data);
     });
-    return entries.slice(0, MAX_ENTRIES);
+    // Deduplicate by team name — keep highest score per team
+    const dedupKey = (name) => (name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const byName = new Map();
+    raw.forEach((entry) => {
+      const key = dedupKey(entry.name);
+      const existing = byName.get(key);
+      if (!existing || (entry.score || 0) > (existing.score || 0)) byName.set(key, entry);
+    });
+    return [...byName.values()].sort((a, b) => (b.score || 0) - (a.score || 0)).slice(0, MAX_ENTRIES);
   } catch (err) {
     console.warn('Firestore read failed, using local leaderboard:', err.message);
     return getLocalLeaderboard(gameMode);
@@ -190,11 +206,21 @@ export function subscribeLeaderboard(gameMode, callback, eventFilter = null) {
       limit(50)
     );
     return onSnapshot(q, (snapshot) => {
-      const entries = [];
+      const raw = [];
       snapshot.forEach((doc) => {
         const data = doc.data();
-        if (data.gameMode === gameMode && (data.event || '') === event) entries.push(data);
+        if (data.gameMode === gameMode && (data.event || '') === event) raw.push(data);
       });
+      // Deduplicate by team name — keep highest score per team
+      // Use sanitized key (strip emoji, lowercase) so "🔥 MIKE" and "MIKE" merge
+      const dedupKey = (name) => (name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+      const byName = new Map();
+      raw.forEach((entry) => {
+        const key = dedupKey(entry.name);
+        const existing = byName.get(key);
+        if (!existing || (entry.score || 0) > (existing.score || 0)) byName.set(key, entry);
+      });
+      const entries = [...byName.values()].sort((a, b) => (b.score || 0) - (a.score || 0));
       callback(entries.slice(0, MAX_ENTRIES));
     }, (err) => {
       console.warn('Firestore subscription failed:', err.message);
