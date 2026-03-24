@@ -186,11 +186,6 @@ export default function App() {
     GAME_STATES,
   } = game;
 
-  // Spectator mode — render full-screen leaderboard instead of game
-  if (spectateCode) {
-    return <SpectatorBoard eventCode={spectateCode} />;
-  }
-
   const config = getLevelConfig(currentLevel);
 
   // Victory animation — trigger on zero-siren level completion
@@ -1070,6 +1065,11 @@ export default function App() {
         {facilitatorOverlay}
       </div>
     );
+  }
+
+  // Spectator mode — render full-screen leaderboard instead of game
+  if (spectateCode) {
+    return <SpectatorBoard eventCode={spectateCode} />;
   }
 
   // ========================
