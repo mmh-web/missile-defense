@@ -1034,8 +1034,12 @@ function AppInner({ tournamentConfig = null, isPracticeMode = false }) {
       <div key="screen-scoring-intro" className="screen-fade-in relative">
         <ScoringIntro onContinue={dismissScoringIntro} />
         {pauseCountdown !== null && (
-          <div className="absolute bottom-4 right-4 z-20 font-mono text-xs text-orange-400/70 tracking-wider">
-            AUTO-ADVANCING IN {pauseCountdown}s
+          <div className="absolute bottom-6 inset-x-0 z-20 flex justify-center pointer-events-none">
+            <div className="bg-black/80 border border-orange-500/40 rounded-lg px-5 py-2">
+              <span className="font-mono text-sm text-orange-400 tracking-wider font-bold">
+                STARTING IN {pauseCountdown}s
+              </span>
+            </div>
           </div>
         )}
         {facilitatorOverlay}
@@ -1132,8 +1136,12 @@ function AppInner({ tournamentConfig = null, isPracticeMode = false }) {
           onTeamNameChange={setCampaignTeamName}
         />
         {pauseCountdown !== null && (
-          <div className="absolute bottom-4 right-4 z-20 font-mono text-xs text-orange-400/70 tracking-wider">
-            NEXT LEVEL IN {pauseCountdown}s
+          <div className="absolute bottom-6 inset-x-0 z-20 flex justify-center pointer-events-none">
+            <div className="bg-black/80 border border-orange-500/40 rounded-lg px-5 py-2">
+              <span className="font-mono text-sm text-orange-400 tracking-wider font-bold">
+                NEXT LEVEL IN {pauseCountdown}s
+              </span>
+            </div>
           </div>
         )}
         {hackOverlay}
