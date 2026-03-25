@@ -155,6 +155,31 @@ export default function SpectatorBoard({ eventCode }) {
   const [revealedIndex, setRevealedIndex] = useState(-1);
   const [championReveal, setChampionReveal] = useState(null); // null | 'runner_up' | 'champion' | 'hold'
   const prevTeamCountRef = useRef(0);
+  const lobbyAudioRef = useRef(null);
+
+  // Lobby music — play during lobby phase, stop when round starts
+  useEffect(() => {
+    const isLobby = tournamentDoc?.roundStatus === 'lobby';
+    if (isLobby && !lobbyAudioRef.current) {
+      const basePath = import.meta.env.BASE_URL || '/missile-defense/';
+      const audio = new Audio(`${basePath}sounds/briefing-music.mp3`);
+      audio.loop = true;
+      audio.volume = 0.35;
+      audio.play().catch(() => {}); // Autoplay may be blocked until user interaction
+      lobbyAudioRef.current = audio;
+    } else if (!isLobby && lobbyAudioRef.current) {
+      lobbyAudioRef.current.pause();
+      lobbyAudioRef.current.src = '';
+      lobbyAudioRef.current = null;
+    }
+    return () => {
+      if (lobbyAudioRef.current) {
+        lobbyAudioRef.current.pause();
+        lobbyAudioRef.current.src = '';
+        lobbyAudioRef.current = null;
+      }
+    };
+  }, [tournamentDoc?.roundStatus]);
 
   // Subscribe to tournament doc (V2)
   useEffect(() => {
