@@ -351,9 +351,19 @@ export async function markScoreFinished({ name, score, event, stats = {} }) {
 
 const TOURNAMENTS = 'tournaments';
 
-/** Sanitize team name for use as map key / doc ID component */
+/** Sanitize team name for use as map key / doc ID component.
+ *  Preserves emoji identity by converting emoji to hex codepoints.
+ *  "🦅 MIKE" → "1f985_mike", "🐻 MIKE" → "1f43b_mike" */
 export function sanitizeTeamKey(name) {
-  return (name || 'anon').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 20);
+  if (!name) return 'anon';
+  // Extract leading emoji (if any) and convert to hex codepoint
+  const emojiMatch = name.match(/^([\p{Emoji}\u200d\ufe0f]+)\s*/u);
+  const emojiPrefix = emojiMatch
+    ? emojiMatch[1].codePointAt(0).toString(16) + '_'
+    : '';
+  const textPart = (emojiMatch ? name.slice(emojiMatch[0].length) : name)
+    .toLowerCase().replace(/[^a-z0-9]/g, '');
+  return (emojiPrefix + textPart).slice(0, 30) || 'anon';
 }
 
 /** Get tournament Firestore doc ID */
@@ -430,7 +440,8 @@ export function subscribeTournament(eventCode, callback) {
  */
 export async function registerTeam(eventCode, name, emoji = '') {
   if (!db || !eventCode || !name) return;
-  const key = sanitizeTeamKey(name);
+  const displayName = emoji ? `${emoji} ${name}` : name;
+  const key = sanitizeTeamKey(displayName);
   const docRef = doc(db, TOURNAMENTS, getTournamentDocId(eventCode));
   await setDoc(docRef, {
     teams: {

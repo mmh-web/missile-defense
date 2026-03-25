@@ -305,12 +305,13 @@ export default function useTournament(initialEventCode = null) {
     }
 
     const cleanName = name.trim().toUpperCase().slice(0, 10);
-    const key = sanitizeTeamKey(cleanName);
+    const displayNameForKey = emoji ? `${emoji} ${cleanName}` : cleanName;
+    const key = sanitizeTeamKey(displayNameForKey);
     teamKeyRef.current = key;
 
-    // Check for duplicate name (icon doesn't make a name unique)
+    // Check for duplicate name+icon combination
     if (tournamentDoc?.teams?.[key] && !joinedRef.current) {
-      setError('NAME ALREADY TAKEN — TRY A DIFFERENT NAME');
+      setError('NAME + ICON ALREADY TAKEN');
       return false;
     }
 

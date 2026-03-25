@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import useGameEngine from './hooks/useGameEngine.js';
 import useTournament, { TOURNAMENT_PHASES } from './hooks/useTournament.js';
 import RadarDisplay from './components/RadarDisplay.jsx';
@@ -285,11 +285,12 @@ function AppInner({ tournamentConfig = null, isPracticeMode = false }) {
   }, [pendingLevelComplete]);
 
   // Tournament V2: auto-start campaign (skip PRE_GAME screen — name already entered in lobby)
+  const isTournamentMode = !!tournamentConfig;
   useEffect(() => {
-    if (tournamentConfig && gameState === GAME_STATES.PRE_GAME) {
+    if (isTournamentMode && gameState === GAME_STATES.PRE_GAME) {
       startCampaign();
     }
-  }, [tournamentConfig, gameState, GAME_STATES]);
+  }, [isTournamentMode, gameState, GAME_STATES]);
 
   // Briefing music — create once, play/pause based on game state
   useEffect(() => {
@@ -2041,24 +2042,31 @@ function TournamentRouter({ initialGameCode }) {
     return <TournamentChampionScreen tournament={tournament} />;
   }
 
+  // Memoize tournament config to prevent AppInner re-renders from Firestore subscription churn.
+  // Without this, the inline object creates a new reference on every TournamentRouter render,
+  // causing excessive AppInner re-renders that starve requestAnimationFrame and cause threat flooding.
+  const currentRound = tournament.tournamentDoc?.currentRound || 1;
+  const memoizedTournamentConfig = useMemo(() => ({
+    roundConfig: tournament.currentRoundConfig,
+    eventCode: tournament.eventCode,
+    currentRound,
+    teamName: tournament.teamName,
+    teamEmoji: tournament.teamEmoji,
+    displayName: tournament.displayName,
+    cumulativeBase: tournament.cumulativeBase,
+    roundMultiplier: tournament.tournamentDoc?.roundMultipliers?.[currentRound] || 1,
+    currentRoundEventCode: tournament.currentRoundEventCode,
+    onRoundFinished: tournament.onRoundFinished,
+    isPaused: tournament.isPaused,
+  }), [currentRound, tournament.eventCode, tournament.teamName, tournament.teamEmoji,
+       tournament.cumulativeBase, tournament.currentRoundEventCode, tournament.isPaused]);
+
   // PLAYING phase — render the game with tournament config
   // key forces remount on round change so game engine starts fresh
   if (phase === TOURNAMENT_PHASES.PLAYING) {
     return <AppInner
-      key={`round-${tournament.tournamentDoc?.currentRound || 1}`}
-      tournamentConfig={{
-        roundConfig: tournament.currentRoundConfig,
-        eventCode: tournament.eventCode,
-        currentRound: tournament.tournamentDoc?.currentRound || 1,
-        teamName: tournament.teamName,
-        teamEmoji: tournament.teamEmoji,
-        displayName: tournament.displayName,
-        cumulativeBase: tournament.cumulativeBase,
-        roundMultiplier: tournament.tournamentDoc?.roundMultipliers?.[tournament.tournamentDoc?.currentRound] || 1,
-        currentRoundEventCode: tournament.currentRoundEventCode,
-        onRoundFinished: tournament.onRoundFinished,
-        isPaused: tournament.isPaused,
-      }}
+      key={`round-${currentRound}`}
+      tournamentConfig={memoizedTournamentConfig}
     />;
   }
 
