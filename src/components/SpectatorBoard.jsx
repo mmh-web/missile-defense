@@ -189,12 +189,19 @@ export default function SpectatorBoard({ eventCode }) {
         // Sync round from tournament doc
         setCurrentRound(doc.currentRound || 1);
 
-        // Extract lobby teams
+        // Extract lobby teams — for R2+, only show advancing teams
         const teams = doc.teams || {};
-        const teamList = Object.entries(teams)
+        const round = doc.currentRound || 1;
+        let teamList = Object.entries(teams)
           .filter(([_, t]) => !t.kicked)
           .map(([key, t]) => ({ key, name: t.name, emoji: t.emoji || '', joinedAt: t.joinedAt }))
           .sort((a, b) => a.joinedAt - b.joinedAt);
+        if (round > 1) {
+          const advancingTeams = doc.rounds?.[round - 1]?.advancingTeams || [];
+          if (advancingTeams.length > 0) {
+            teamList = teamList.filter(t => advancingTeams.includes(t.key));
+          }
+        }
 
         // Play sound for new team joins
         if (teamList.length > prevTeamCountRef.current && prevTeamCountRef.current > 0) {

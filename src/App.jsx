@@ -1892,6 +1892,7 @@ function TournamentRoundCompleteScreen({ tournament }) {
 
 function TournamentAdvancingScreen({ tournament }) {
   const currentRound = tournament.tournamentDoc?.currentRound || 1;
+  const isFinalRound = currentRound >= 3;
 
   return (
     <div className="h-screen bg-[#0a0e1a] flex items-center justify-center">
@@ -1901,7 +1902,7 @@ function TournamentAdvancingScreen({ tournament }) {
         </div>
         <div className="font-mono text-3xl font-black tracking-[0.2em] text-green-400 mb-4"
           style={{ textShadow: '0 0 40px rgba(34,197,94,0.4)' }}>
-          YOU ADVANCE!
+          {isFinalRound ? 'TOURNAMENT COMPLETE' : 'YOU ADVANCE!'}
         </div>
         <div className="text-4xl mb-4">{tournament.teamEmoji || '🎯'}</div>
         <div className="font-mono text-xl font-bold text-green-400 tracking-wider mb-6">
@@ -1911,7 +1912,7 @@ function TournamentAdvancingScreen({ tournament }) {
           Score: <span className="text-green-400 font-bold">{tournament.cumulativeBase.toLocaleString()}</span>
         </div>
         <div className="font-mono text-xs text-gray-500 tracking-wider mt-6 animate-pulse">
-          NEXT ROUND STARTING SOON
+          {isFinalRound ? 'RESULTS COMING SOON' : 'NEXT ROUND STARTING SOON'}
         </div>
       </div>
     </div>

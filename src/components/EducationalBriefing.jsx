@@ -1343,21 +1343,6 @@ function CombinedBriefingPhase({ threatData, defenseData, onComplete, onSkip, le
     return allFacts.length > 3 ? selectRandom(allFacts, 3) : allFacts;
   });
 
-  // Checkbox state — one per fact card
-  const [checked, setChecked] = useState(() => bullets.map(() => false));
-  const allChecked = checked.every(Boolean);
-  const onCompleteRef = useRef(onComplete);
-  useEffect(() => { onCompleteRef.current = onComplete; }, [onComplete]);
-
-  // Auto-advance when all facts are checked
-  useEffect(() => {
-    if (allChecked) {
-      briefingSounds.phasePing();
-      const timer = setTimeout(() => onCompleteRef.current(), 600);
-      return () => clearTimeout(timer);
-    }
-  }, [allChecked]);
-
   // Use threat color as primary accent
   const color = threatData.color;
 
@@ -1416,69 +1401,30 @@ function CombinedBriefingPhase({ threatData, defenseData, onComplete, onSkip, le
         </div>
       )}
 
-      {/* Instruction — prominent call to action */}
-      {!allChecked && (
-        <div className="text-center py-2.5 my-1 rounded-lg" style={{ background: `${color}10`, border: `1px solid ${color}30` }}>
-          <div className="font-mono text-sm font-bold tracking-[0.25em] animate-pulse" style={{ color, animationDuration: '2s' }}>
-            CLICK EACH FACT TO CONFIRM
-          </div>
-          <div className="font-mono text-[10px] tracking-widest mt-0.5 text-gray-500">
-            {checked.filter(Boolean).length} / {bullets.length} confirmed
-          </div>
-        </div>
-      )}
-
-      {/* 3 fact cards with checkboxes */}
+      {/* Fact cards — static, no interaction needed */}
       <div className="flex flex-col gap-1.5">
         {bullets.map((bullet, i) => (
-          <button
+          <div
             key={bullet.id || i}
-            onClick={() => setChecked(prev => { const next = [...prev]; next[i] = true; return next; })}
-            className={`w-full flex items-start gap-3 p-3 rounded-lg tutorial-enter text-left transition-all duration-300 ${
-              checked[i]
-                ? 'bg-green-950/30 border border-green-700/50'
-                : 'bg-gray-900/55 border-2 hover:bg-gray-800/60 cursor-pointer'
-            }`}
+            className="w-full flex items-start gap-3 p-3 rounded-lg tutorial-enter text-left bg-gray-900/55 border"
             style={{
               animationDelay: `${i * 0.15}s`,
-              ...(!checked[i] ? { borderColor: `${color}50` } : {}),
+              borderColor: `${color}30`,
             }}
-            disabled={checked[i]}
           >
-            {/* Checkbox */}
-            <div className={`flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center mt-0.5 transition-all duration-300 ${
-              checked[i]
-                ? 'border-green-500 bg-green-500/20'
-                : 'border-current'
-            }`} style={!checked[i] ? { color } : undefined}>
-              {checked[i] ? (
-                <svg viewBox="0 0 12 12" className="w-3 h-3" fill="none" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M2 6l3 3 5-5" />
-                </svg>
-              ) : (
-                <span className="text-[8px] font-mono" style={{ color: `${color}80` }}>?</span>
-              )}
-            </div>
-            <BriefingIcon emoji={bullet.icon} color={checked[i] ? '#22c55e' : color} />
+            <BriefingIcon emoji={bullet.icon} color={color} />
             <div className="flex-1 min-w-0">
-              <span className="font-mono font-bold text-sm tracking-wide" style={{ color: checked[i] ? '#22c55e' : color }}>{bullet.stat}</span>
-              <span className={`text-[13px] font-mono ml-2 ${checked[i] ? 'text-gray-500' : 'text-gray-400'}`}>{bullet.detail}</span>
+              <span className="font-mono font-bold text-sm tracking-wide" style={{ color }}>{bullet.stat}</span>
+              <span className="text-[13px] font-mono ml-2 text-gray-400">{bullet.detail}</span>
             </div>
-          </button>
+          </div>
         ))}
       </div>
 
-      {/* Progress hint */}
-      {allChecked && (
-        <div className="text-center font-mono text-xs tracking-widest mt-1 text-green-400 font-bold">
-          ALL CONFIRMED — ADVANCING...
-        </div>
-      )}
+      <CountdownBar duration={25} onComplete={onComplete} paused={false} />
 
-      <CountdownBar duration={15} onComplete={onComplete} paused={false} />
-
-      {/* Skip button — fallback if player doesn't want to read */}
-      {onSkip && !allChecked && (
+      {/* Skip button */}
+      {onSkip && (
         <div className="flex items-center justify-center">
           <button
             onClick={onSkip}

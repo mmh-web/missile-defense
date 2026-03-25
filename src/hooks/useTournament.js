@@ -227,6 +227,10 @@ export default function useTournament(initialEventCode = null) {
         setPhase(audioUnlocked ? TOURNAMENT_PHASES.COUNTDOWN : TOURNAMENT_PHASES.TAP_READY);
       }
     } else if (roundStatus === 'complete') {
+      // Don't interrupt active gameplay — player may still be between levels
+      if (phaseRef.current === TOURNAMENT_PHASES.PLAYING) {
+        return;
+      }
       // Round closed by admin — check if we advance
       const roundResult = rounds?.[currentRound];
       if (roundResult?.advancingTeams) {
