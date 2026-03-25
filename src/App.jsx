@@ -284,6 +284,13 @@ function AppInner({ tournamentConfig = null, isPracticeMode = false }) {
     return () => clearTimeout(safety);
   }, [pendingLevelComplete]);
 
+  // Tournament V2: auto-start campaign (skip PRE_GAME screen — name already entered in lobby)
+  useEffect(() => {
+    if (tournamentConfig && gameState === GAME_STATES.PRE_GAME) {
+      startCampaign();
+    }
+  }, [tournamentConfig, gameState, GAME_STATES]);
+
   // Briefing music — create once, play/pause based on game state
   useEffect(() => {
     const audio = new Audio(`${import.meta.env.BASE_URL}sounds/briefing-music.mp3`);
