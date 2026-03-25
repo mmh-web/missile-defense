@@ -142,6 +142,15 @@ export default function useTournament(initialEventCode = null) {
         return;
       }
       setError(null);
+
+      // Block late joiners: if tournament is past lobby and player hasn't joined,
+      // kick them back to title screen
+      if (!joinedRef.current && doc.roundStatus && doc.roundStatus !== 'lobby') {
+        setError('TOURNAMENT IN PROGRESS — TOO LATE TO JOIN');
+        setPhase(TOURNAMENT_PHASES.TITLE);
+        setEventCode('');
+        clearSessionState();
+      }
     });
 
     return unsub;
