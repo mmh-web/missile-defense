@@ -438,28 +438,57 @@ function AppInner({ tournamentConfig = null, isPracticeMode = false }) {
 
   // ── Tournament auto-timers: prevent stalling ──
   // Auto-unpause after 10s, auto-skip scoring intro after 15s, auto-advance level complete after 10s
+  const [pauseCountdown, setPauseCountdown] = useState(null);
   useEffect(() => {
     if (!roundConfig) return; // Solo mode — no auto-timers
 
-    // Auto-unpause after 10 seconds
+    // Auto-unpause after 10 seconds with visible countdown
     if (paused && gameState === GAME_STATES.ACTIVE) {
-      const timer = setTimeout(() => togglePause(), 10000);
-      return () => clearTimeout(timer);
+      let remaining = 10;
+      setPauseCountdown(remaining);
+      const interval = setInterval(() => {
+        remaining--;
+        setPauseCountdown(remaining);
+        if (remaining <= 0) {
+          clearInterval(interval);
+          setPauseCountdown(null);
+          togglePause();
+        }
+      }, 1000);
+      return () => { clearInterval(interval); setPauseCountdown(null); };
     }
 
-    // Auto-advance from SCORING_INTRO after 15s
+    // Auto-advance from SCORING_INTRO after 15s with visible countdown
     if (gameState === GAME_STATES.SCORING_INTRO) {
-      const timer = setTimeout(() => {
-        seenBriefingsRef.current.add(currentLevel);
-        startLevel(currentLevel);
-      }, 15000);
-      return () => clearTimeout(timer);
+      let remaining = 15;
+      setPauseCountdown(remaining); // Reuse countdown state
+      const interval = setInterval(() => {
+        remaining--;
+        setPauseCountdown(remaining);
+        if (remaining <= 0) {
+          clearInterval(interval);
+          setPauseCountdown(null);
+          seenBriefingsRef.current.add(currentLevel);
+          startLevel(currentLevel);
+        }
+      }, 1000);
+      return () => { clearInterval(interval); setPauseCountdown(null); };
     }
 
-    // Auto-advance from LEVEL_COMPLETE after 10s
+    // Auto-advance from LEVEL_COMPLETE after 10s with visible countdown
     if (gameState === GAME_STATES.LEVEL_COMPLETE) {
-      const timer = setTimeout(() => advanceLevel(), 10000);
-      return () => clearTimeout(timer);
+      let remaining = 10;
+      setPauseCountdown(remaining);
+      const interval = setInterval(() => {
+        remaining--;
+        setPauseCountdown(remaining);
+        if (remaining <= 0) {
+          clearInterval(interval);
+          setPauseCountdown(null);
+          advanceLevel();
+        }
+      }, 1000);
+      return () => { clearInterval(interval); setPauseCountdown(null); };
     }
   }, [roundConfig, paused, gameState, currentLevel, GAME_STATES]);
 
@@ -1003,6 +1032,11 @@ function AppInner({ tournamentConfig = null, isPracticeMode = false }) {
     return (
       <div key="screen-scoring-intro" className="screen-fade-in relative">
         <ScoringIntro onContinue={dismissScoringIntro} />
+        {pauseCountdown !== null && (
+          <div className="absolute bottom-4 right-4 z-20 font-mono text-xs text-orange-400/70 tracking-wider">
+            AUTO-ADVANCING IN {pauseCountdown}s
+          </div>
+        )}
         {facilitatorOverlay}
       </div>
     );
@@ -1096,6 +1130,11 @@ function AppInner({ tournamentConfig = null, isPracticeMode = false }) {
           teamName={campaignTeamName}
           onTeamNameChange={setCampaignTeamName}
         />
+        {pauseCountdown !== null && (
+          <div className="absolute bottom-4 right-4 z-20 font-mono text-xs text-orange-400/70 tracking-wider">
+            NEXT LEVEL IN {pauseCountdown}s
+          </div>
+        )}
         {hackOverlay}
         {facilitatorOverlay}
       </div>
@@ -1580,6 +1619,11 @@ function AppInner({ tournamentConfig = null, isPracticeMode = false }) {
             <span className="font-mono text-gray-500 text-xs ml-4">P or ESC to resume</span>
           </div>
           <div className="font-mono text-green-400 text-[13px] tracking-wide mt-2 font-semibold animate-pulse" style={{ animationDuration: '2s' }}>HOVER OVER LOCATIONS TO EXPLORE</div>
+          {pauseCountdown !== null && (
+            <div className="font-mono text-orange-400 text-xs tracking-wider mt-2">
+              RESUMING IN {pauseCountdown}s
+            </div>
+          )}
         </div>
       )}
 
