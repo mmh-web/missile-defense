@@ -308,9 +308,9 @@ export default function useTournament(initialEventCode = null) {
     const key = sanitizeTeamKey(cleanName);
     teamKeyRef.current = key;
 
-    // Check for duplicate name
+    // Check for duplicate name (icon doesn't make a name unique)
     if (tournamentDoc?.teams?.[key] && !joinedRef.current) {
-      setError('NAME ALREADY TAKEN');
+      setError('NAME ALREADY TAKEN — TRY A DIFFERENT NAME');
       return false;
     }
 
