@@ -143,10 +143,15 @@ export default function useTournament(initialEventCode = null) {
       }
       setError(null);
 
-      // Block late joiners: if tournament is past lobby and player hasn't joined,
-      // kick them back to title screen
+      // Block anyone who hasn't joined — only lobby phase allows new players
       if (!joinedRef.current && doc.roundStatus && doc.roundStatus !== 'lobby') {
-        setError('TOURNAMENT IN PROGRESS — TOO LATE TO JOIN');
+        const messages = {
+          active: 'TOURNAMENT IN PROGRESS — TOO LATE TO JOIN',
+          paused: 'TOURNAMENT IN PROGRESS — TOO LATE TO JOIN',
+          complete: 'ROUND CLOSED — TOO LATE TO JOIN',
+          finished: 'TOURNAMENT HAS ENDED',
+        };
+        setError(messages[doc.roundStatus] || 'TOURNAMENT UNAVAILABLE');
         setPhase(TOURNAMENT_PHASES.TITLE);
         setEventCode('');
         clearSessionState();
@@ -296,7 +301,13 @@ export default function useTournament(initialEventCode = null) {
 
     // Block if tournament is past lobby phase
     if (doc.roundStatus && doc.roundStatus !== 'lobby') {
-      setError('TOURNAMENT IN PROGRESS — TOO LATE TO JOIN');
+      const messages = {
+        active: 'TOURNAMENT IN PROGRESS — TOO LATE TO JOIN',
+        paused: 'TOURNAMENT IN PROGRESS — TOO LATE TO JOIN',
+        complete: 'ROUND CLOSED — TOO LATE TO JOIN',
+        finished: 'TOURNAMENT HAS ENDED',
+      };
+      setError(messages[doc.roundStatus] || 'TOURNAMENT UNAVAILABLE');
       return false;
     }
 
@@ -315,7 +326,13 @@ export default function useTournament(initialEventCode = null) {
     // Block joining if tournament is past lobby phase
     const status = tournamentDoc?.roundStatus;
     if (status && status !== 'lobby') {
-      setError('TOURNAMENT IN PROGRESS — TOO LATE TO JOIN');
+      const messages = {
+        active: 'TOURNAMENT IN PROGRESS — TOO LATE TO JOIN',
+        paused: 'TOURNAMENT IN PROGRESS — TOO LATE TO JOIN',
+        complete: 'ROUND CLOSED — TOO LATE TO JOIN',
+        finished: 'TOURNAMENT HAS ENDED',
+      };
+      setError(messages[status] || 'TOURNAMENT UNAVAILABLE');
       return false;
     }
 
