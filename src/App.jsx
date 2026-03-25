@@ -459,6 +459,39 @@ function AppInner({ tournamentConfig = null, isPracticeMode = false }) {
       return () => { clearInterval(interval); setPauseCountdown(null); };
     }
 
+    // Auto-advance from BRIEFING after 60s (prevents stalling on "Start Level" button)
+    if (gameState === GAME_STATES.BRIEFING) {
+      let remaining = 60;
+      setPauseCountdown(remaining);
+      const interval = setInterval(() => {
+        remaining--;
+        setPauseCountdown(remaining);
+        if (remaining <= 0) {
+          clearInterval(interval);
+          setPauseCountdown(null);
+          seenBriefingsRef.current.add(currentLevel);
+          startLevel(currentLevel);
+        }
+      }, 1000);
+      return () => { clearInterval(interval); setPauseCountdown(null); };
+    }
+
+    // Auto-advance from LEVEL_INTRO after 15s (L2+ intro screens)
+    if (gameState === GAME_STATES.LEVEL_INTRO) {
+      let remaining = 15;
+      setPauseCountdown(remaining);
+      const interval = setInterval(() => {
+        remaining--;
+        setPauseCountdown(remaining);
+        if (remaining <= 0) {
+          clearInterval(interval);
+          setPauseCountdown(null);
+          startLevel(currentLevel);
+        }
+      }, 1000);
+      return () => { clearInterval(interval); setPauseCountdown(null); };
+    }
+
     // Auto-advance from SCORING_INTRO after 15s with visible countdown
     if (gameState === GAME_STATES.SCORING_INTRO) {
       let remaining = 15;
@@ -1074,6 +1107,15 @@ function AppInner({ tournamentConfig = null, isPracticeMode = false }) {
           level={currentLevel}
           onComplete={handleBriefingComplete}
         />
+        {pauseCountdown !== null && (
+          <div className="absolute bottom-6 inset-x-0 z-20 flex justify-center pointer-events-none">
+            <div className="bg-black/80 border border-orange-500/40 rounded-lg px-5 py-2">
+              <span className="font-mono text-sm text-orange-400 tracking-wider font-bold">
+                AUTO-START IN {pauseCountdown}s
+              </span>
+            </div>
+          </div>
+        )}
         {facilitatorOverlay}
       </div>
     );
@@ -1092,6 +1134,15 @@ function AppInner({ tournamentConfig = null, isPracticeMode = false }) {
           level={currentLevel}
           onReady={() => startLevel(currentLevel)}
         />
+        {pauseCountdown !== null && (
+          <div className="absolute bottom-6 inset-x-0 z-20 flex justify-center pointer-events-none">
+            <div className="bg-black/80 border border-orange-500/40 rounded-lg px-5 py-2">
+              <span className="font-mono text-sm text-orange-400 tracking-wider font-bold">
+                AUTO-START IN {pauseCountdown}s
+              </span>
+            </div>
+          </div>
+        )}
         {hackOverlay}
         {facilitatorOverlay}
       </div>
