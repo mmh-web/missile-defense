@@ -2037,16 +2037,11 @@ function TournamentRouter({ initialGameCode }) {
     };
   }, [tournament.phase, soloMode]);
 
-  // If user chose solo mode, render the regular game
-  if (soloMode) {
-    return <AppInner />;
-  }
-
   // Tournament phase screens
   const { phase } = tournament;
 
   // Memoize tournament config BEFORE any conditional returns (React hooks rules).
-  // Prevents AppInner re-renders from Firestore subscription churn that starves rAF.
+  // All hooks must run on every render — early returns above this would break hook ordering.
   const currentRound = tournament.tournamentDoc?.currentRound || 1;
   const memoizedTournamentConfig = useMemo(() => ({
     roundConfig: tournament.currentRoundConfig,
@@ -2062,6 +2057,13 @@ function TournamentRouter({ initialGameCode }) {
     isPaused: tournament.isPaused,
   }), [currentRound, tournament.eventCode, tournament.teamName, tournament.teamEmoji,
        tournament.cumulativeBase, tournament.currentRoundEventCode, tournament.isPaused]);
+
+  // ── Conditional returns (after all hooks) ──────────────────
+
+  // Solo mode — render the regular game
+  if (soloMode) {
+    return <AppInner />;
+  }
 
   // Admin host mode — renders unified admin+spectator screen
   if (adminHostCode) {
