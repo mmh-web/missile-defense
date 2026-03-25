@@ -438,16 +438,20 @@ function AppInner({ tournamentConfig = null, isPracticeMode = false }) {
   const getCampaignStatsRef = useRef(getCampaignStats);
   getRunningScoreRef.current = getRunningScore;
   getCampaignStatsRef.current = getCampaignStats;
+  // Ref for tournament config to avoid unstable object reference in effect deps
+  const tournamentConfigRef = useRef(tournamentConfig);
+  tournamentConfigRef.current = tournamentConfig;
 
   useEffect(() => {
     if (!roundConfig || !campaignTeamName.trim()) return;
     if (gameState === GAME_STATES.PRE_GAME) return;
 
     // Tournament V2 event code takes priority over URL-based V1
-    const eventCode = tournamentConfig?.currentRoundEventCode || getTournamentEventCode();
-    const cumulBase = tournamentConfig?.cumulativeBase || 0;
-    const multiplier = tournamentConfig?.roundMultiplier || 1;
-    const pushInterval = tournamentConfig ? 10000 : 5000; // 10s for V2, 5s for V1
+    const tc = tournamentConfigRef.current;
+    const eventCode = tc?.currentRoundEventCode || getTournamentEventCode();
+    const cumulBase = tc?.cumulativeBase || 0;
+    const multiplier = tc?.roundMultiplier || 1;
+    const pushInterval = tc ? 10000 : 5000; // 10s for V2, 5s for V1
 
     // Auto-finalize when reaching SUMMARY (once)
     if (gameState === GAME_STATES.SUMMARY && !liveScoreFinalizedRef.current) {
@@ -464,8 +468,8 @@ function AppInner({ tournamentConfig = null, isPracticeMode = false }) {
         stats,
       }).catch(() => {});
       // Notify tournament hook of round completion
-      if (tournamentConfig?.onRoundFinished) {
-        tournamentConfig.onRoundFinished(rawScore);
+      if (tournamentConfigRef.current?.onRoundFinished) {
+        tournamentConfigRef.current.onRoundFinished(rawScore);
       }
       return;
     }
@@ -490,7 +494,7 @@ function AppInner({ tournamentConfig = null, isPracticeMode = false }) {
     pushScore(); // Push immediately on state change
     const interval = setInterval(pushScore, pushInterval);
     return () => clearInterval(interval);
-  }, [roundConfig, campaignTeamName, teamEmoji, gameState, currentLevel, GAME_STATES, tournamentConfig]);
+  }, [roundConfig, campaignTeamName, teamEmoji, gameState, currentLevel, GAME_STATES]);
 
   // Wrap handleAction to advance tutorial on mobile taps (not just keyboard)
   const handleActionWithTutorial = useCallback((action) => {
