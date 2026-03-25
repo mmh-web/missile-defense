@@ -156,7 +156,13 @@ export default function useTournament(initialEventCode = null) {
       // GATE: if player hasn't joined this tournament, check if they're allowed in
       // Only the R1 (qualifier) lobby allows new players. Inter-round lobbies (R2+) do NOT.
       if (!joinedRef.current) {
-        const isInitialLobby = (!doc.roundStatus || doc.roundStatus === 'lobby') && (doc.currentRound || 1) === 1;
+        // A tournament is in initial lobby ONLY if: roundStatus is lobby, currentRound is 1,
+        // AND no round results exist yet (rounds object empty). The rounds check catches
+        // stale Firestore cache that might show R1 lobby after a reset.
+        const hasRoundResults = Object.keys(doc.rounds || {}).length > 0;
+        const isInitialLobby = (!doc.roundStatus || doc.roundStatus === 'lobby')
+          && (doc.currentRound || 1) === 1
+          && !hasRoundResults;
         if (isInitialLobby) {
           // R1 lobby — allow entry, show lobby screen
           if (phaseRef.current !== TOURNAMENT_PHASES.LOBBY) {
