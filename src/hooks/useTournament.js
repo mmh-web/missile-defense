@@ -297,6 +297,13 @@ export default function useTournament(initialEventCode = null) {
   const submitTeamName = useCallback(async (name, emoji = '') => {
     if (!eventCode || !name?.trim()) return false;
 
+    // Block joining if tournament is past lobby phase
+    const status = tournamentDoc?.roundStatus;
+    if (status && status !== 'lobby') {
+      setError('TOURNAMENT IN PROGRESS — TOO LATE TO JOIN');
+      return false;
+    }
+
     const cleanName = name.trim().toUpperCase().slice(0, 10);
     const key = sanitizeTeamKey(cleanName);
     teamKeyRef.current = key;
@@ -314,13 +321,7 @@ export default function useTournament(initialEventCode = null) {
     try {
       await registerTeam(eventCode, cleanName, emoji);
       setJoined(true);
-
-      // Determine phase based on current round status
-      if (tournamentDoc?.roundStatus === 'active') {
-        setPhase(TOURNAMENT_PHASES.TAP_READY);
-      } else {
-        setPhase(TOURNAMENT_PHASES.WAITING);
-      }
+      setPhase(TOURNAMENT_PHASES.WAITING);
 
       return true;
     } catch (err) {
