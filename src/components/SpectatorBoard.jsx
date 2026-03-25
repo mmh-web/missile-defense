@@ -358,7 +358,7 @@ export default function SpectatorBoard({ eventCode }) {
             style={{ textShadow: '0 0 40px rgba(34,197,94,0.3)' }}>
             IRON DOME COMMAND
           </div>
-          <div className="font-mono text-lg tracking-[0.2em] text-green-400/60 mt-1">
+          <div className="font-mono text-lg tracking-[0.2em] text-gray-400 mt-1">
             {eventCode} TOURNAMENT
           </div>
         </div>
@@ -498,15 +498,15 @@ export default function SpectatorBoard({ eventCode }) {
               let bgColor = 'rgba(17,24,39,0.6)';
               let borderColor = '#1e2736';
               let nameColor = '#e5e7eb';
-              let scoreColor = '#22c55e';
+              let scoreColor = '#94a3b8';  // slate-400 — clean, not green
               let rankColor = '#6b7280';
               let rowGlow = 'none';
 
               if (isAdvancing) {
-                bgColor = 'rgba(34,197,94,0.08)';
-                borderColor = '#22c55e50';
-                nameColor = '#22c55e';
-                scoreColor = '#22c55e';
+                bgColor = 'rgba(34,197,94,0.06)';
+                borderColor = '#22c55e40';
+                nameColor = '#e5e7eb';       // keep names white for readability
+                scoreColor = '#67e8f9';      // cyan — distinct from green badges
                 rankColor = '#22c55e';
               } else if (isEliminated) {
                 bgColor = 'rgba(17,24,39,0.3)';
@@ -523,6 +523,7 @@ export default function SpectatorBoard({ eventCode }) {
                 rowGlow = '0 0 30px rgba(234,179,8,0.1)';
               } else if (rank <= 3) {
                 rankColor = '#9ca3af';
+                scoreColor = '#cbd5e1';  // slightly brighter for top 3
               }
 
               // Flash border on score change

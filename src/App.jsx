@@ -2069,50 +2069,60 @@ function TitleScreen({ tournament, onSoloMission, gatePassword, gateUnlocked, on
           ))}
         </div>
 
-        {/* Game code input */}
-        <div className="mb-4">
+        {/* Game code input — primary action */}
+        <div className="mb-3">
           <form onSubmit={(e) => {
             e.preventDefault();
             if (codeInput.trim()) tournament.joinTournament(codeInput.trim());
           }}>
-            <input
-              type="text"
-              value={codeInput}
-              onChange={(e) => {
-                setCodeInput(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10));
-                tournament.setError(null);
-              }}
-              placeholder="ENTER GAME CODE"
-              maxLength={10}
-              className="w-full px-4 py-3 bg-gray-900/60 border border-orange-500/40 rounded-lg text-center
-                font-mono text-lg text-orange-400 tracking-[0.2em]
-                focus:border-orange-500 focus:outline-none placeholder-gray-600
-                backdrop-blur-sm"
-            />
+            <div className="relative">
+              <input
+                type="text"
+                value={codeInput}
+                onChange={(e) => {
+                  setCodeInput(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10));
+                  tournament.setError(null);
+                }}
+                placeholder="ENTER GAME CODE"
+                maxLength={10}
+                className="w-full px-4 py-4 bg-gray-900/70 border-2 border-orange-500/50 rounded-xl text-center
+                  font-mono text-xl text-orange-400 tracking-[0.25em]
+                  focus:border-orange-400 focus:outline-none placeholder-gray-600
+                  backdrop-blur-sm"
+                style={{ boxShadow: '0 0 20px rgba(249,115,22,0.1), inset 0 0 20px rgba(0,0,0,0.3)' }}
+              />
+            </div>
           </form>
-          {tournament.error && (
-            <div className="font-mono text-xs text-red-400 tracking-wider mt-1">{tournament.error}</div>
+          {tournament.error ? (
+            <div className="font-mono text-xs text-red-400 tracking-wider mt-1.5">{tournament.error}</div>
+          ) : (
+            <div className="font-mono text-[10px] text-gray-600 tracking-wider mt-1.5">
+              Ask your instructor for the game code
+            </div>
           )}
         </div>
 
         {/* Divider */}
-        <div className="flex items-center gap-3 mb-4">
-          <div className="flex-1 h-px bg-gray-700/50" />
+        <div className="flex items-center gap-3 my-5">
+          <div className="flex-1 h-px bg-gray-700/40" />
           <span className="font-mono text-[10px] text-gray-600 tracking-widest">OR</span>
-          <div className="flex-1 h-px bg-gray-700/50" />
+          <div className="flex-1 h-px bg-gray-700/40" />
         </div>
 
-        {/* Solo mission */}
+        {/* Solo mission — secondary action */}
         <button onClick={handleSoloClick}
-          className="w-full py-3 bg-gray-900/40 border border-gray-600/40 rounded-lg
-            font-mono text-sm tracking-widest text-gray-400
-            hover:bg-gray-800/60 hover:border-gray-500/50 hover:text-gray-300
-            transition-all cursor-pointer backdrop-blur-sm">
+          className="w-full py-2.5 bg-transparent border border-gray-700/50 rounded-lg
+            font-mono text-xs tracking-[0.2em] text-gray-500
+            hover:bg-gray-900/40 hover:border-gray-600/60 hover:text-gray-400
+            transition-all cursor-pointer">
           SOLO MISSION ▸
         </button>
 
         {/* Footer */}
-        <div className="font-mono text-[10px] text-gray-600 mt-8">© Hecht Studio 2026</div>
+        <div className="mt-8 space-y-1">
+          <div className="font-mono text-[10px] text-gray-700">© Hecht Studio 2026</div>
+          <div className="font-mono text-[9px] text-gray-800">Built with Claude</div>
+        </div>
       </div>
     </div>
   );

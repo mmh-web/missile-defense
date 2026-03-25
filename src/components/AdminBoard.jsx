@@ -96,6 +96,90 @@ export default function AdminBoard({ eventCode }) {
     }
   }, [tournamentDoc?.currentRound, tournamentDoc?.advanceConfig]);
 
+  // ── Auto-advance: close round automatically when all players finish ──
+  const [autoCloseCountdown, setAutoCloseCountdown] = useState(null); // seconds remaining
+  const [autoAdvanceCountdown, setAutoAdvanceCountdown] = useState(null);
+  const autoCloseRef = useRef(null);
+  const autoAdvanceRef = useRef(null);
+
+  // Detect when all players finish → start 30s auto-close countdown
+  useEffect(() => {
+    if (!tournamentDoc || tournamentDoc.roundStatus !== 'active') {
+      if (autoCloseRef.current) { clearInterval(autoCloseRef.current); autoCloseRef.current = null; }
+      setAutoCloseCountdown(null);
+      return;
+    }
+    if (entries.length === 0) return; // No scores yet
+
+    const allFinished = entries.length > 0 && entries.every(e => e.status === 'finished');
+    if (allFinished && !autoCloseRef.current) {
+      // Start 30s countdown to auto-close
+      let remaining = 30;
+      setAutoCloseCountdown(remaining);
+      autoCloseRef.current = setInterval(() => {
+        remaining--;
+        setAutoCloseCountdown(remaining);
+        if (remaining <= 0) {
+          clearInterval(autoCloseRef.current);
+          autoCloseRef.current = null;
+          // Auto-close the round
+          const sorted = [...entries].sort((a, b) => (b.score || 0) - (a.score || 0));
+          let cutoffIndex;
+          if (advanceType === 'percentage') {
+            cutoffIndex = Math.max(1, Math.ceil(sorted.length * (advanceValue / 100)));
+          } else {
+            cutoffIndex = Math.min(advanceValue, sorted.length);
+          }
+          const advancing = sorted.slice(0, cutoffIndex).map(e => sanitizeTeamKey(e.name));
+          const cutoffScore = sorted[cutoffIndex - 1]?.score || 0;
+          closeRound(eventCode, tournamentDoc.currentRound, advancing, cutoffScore).catch(() => {});
+        }
+      }, 1000);
+    } else if (!allFinished && autoCloseRef.current) {
+      // Players rejoined or status changed — cancel auto-close
+      clearInterval(autoCloseRef.current);
+      autoCloseRef.current = null;
+      setAutoCloseCountdown(null);
+    }
+
+    return () => {
+      if (autoCloseRef.current) { clearInterval(autoCloseRef.current); autoCloseRef.current = null; }
+    };
+  }, [entries, tournamentDoc?.roundStatus, advanceType, advanceValue, eventCode, tournamentDoc?.currentRound]);
+
+  // After round closes → start 15s auto-advance countdown
+  useEffect(() => {
+    if (!tournamentDoc || tournamentDoc.roundStatus !== 'complete') {
+      if (autoAdvanceRef.current) { clearInterval(autoAdvanceRef.current); autoAdvanceRef.current = null; }
+      setAutoAdvanceCountdown(null);
+      return;
+    }
+
+    if (!autoAdvanceRef.current) {
+      let remaining = 15;
+      setAutoAdvanceCountdown(remaining);
+      autoAdvanceRef.current = setInterval(() => {
+        remaining--;
+        setAutoAdvanceCountdown(remaining);
+        if (remaining <= 0) {
+          clearInterval(autoAdvanceRef.current);
+          autoAdvanceRef.current = null;
+          // Auto-advance
+          const currentRound = tournamentDoc.currentRound || 1;
+          if (currentRound >= 3) {
+            finishTournament(eventCode).catch(() => {});
+          } else {
+            advanceToNextRound(eventCode, currentRound + 1).catch(() => {});
+          }
+        }
+      }, 1000);
+    }
+
+    return () => {
+      if (autoAdvanceRef.current) { clearInterval(autoAdvanceRef.current); autoAdvanceRef.current = null; }
+    };
+  }, [tournamentDoc?.roundStatus, eventCode, tournamentDoc?.currentRound]);
+
   // ── PIN Screen ──────────────────────────────────────────────
   if (!unlocked) {
     return (
@@ -400,6 +484,11 @@ export default function AdminBoard({ eventCode }) {
               <div className="font-mono text-xs text-gray-500 tracking-widest">
                 FINISHED {playingCount > 0 && `• ${playingCount} PLAYING`}
               </div>
+              {autoCloseCountdown !== null && (
+                <div className="font-mono text-xs text-orange-400 tracking-wider mt-2">
+                  AUTO-CLOSING IN {autoCloseCountdown}s
+                </div>
+              )}
             </div>
 
             {/* Leaderboard */}
@@ -479,8 +568,22 @@ export default function AdminBoard({ eventCode }) {
               EXPORT CSV
             </button>
 
+            {/* Auto-advance countdown */}
+            {autoAdvanceCountdown !== null && (
+              <div className="text-center mb-3">
+                <div className="font-mono text-xs text-orange-400 tracking-wider">
+                  AUTO-ADVANCING IN {autoAdvanceCountdown}s
+                </div>
+              </div>
+            )}
+
             {/* Advance / Finish button */}
-            <button onClick={() => setConfirmAction('advance')}
+            <button onClick={() => {
+              // Cancel auto-advance timer and advance immediately
+              if (autoAdvanceRef.current) { clearInterval(autoAdvanceRef.current); autoAdvanceRef.current = null; }
+              setAutoAdvanceCountdown(null);
+              setConfirmAction('advance');
+            }}
               className="w-full py-4 rounded-xl font-mono text-lg tracking-widest
                 bg-green-900/40 border-2 border-green-500/60 text-green-400
                 hover:bg-green-900/60 transition-all cursor-pointer"
