@@ -551,5 +551,25 @@ const basePath = import.meta.env.BASE_URL || '/missile-defense/';
 - ✅ Event code system — `?event=CODE` URL param scopes leaderboard per school/event
 - ✅ Hover popup misalignment fix — shrunk hover targets from r=7 to proportional r={markerSize+2}
 
-### No Pending Work
+### Tournament V2 (March 24, 2026) — Deployed
+- ✅ Kahoot-style lobby system with game code entry
+- ✅ Side-by-side TOURNAMENT + SOLO MISSION title screen
+- ✅ `?admin=CODE` admin dashboard (PIN: 1881, wizard flow, CSV export)
+- ✅ `?score=CODE` spectator board with lobby name pop-in, reveal ceremony, champion screen
+- ✅ Auto-advance: 30s auto-close + 15s auto-advance (admin can override)
+- ✅ Auto-timers: pause 10s, scoring intro 15s, level complete 10s (tournament only)
+- ✅ Cumulative scoring with round multipliers (R1=1x, R2=1.5x, R3=2x)
+- ✅ Practice mode for eliminated players
+- ✅ Cheat codes: 1 use/round in tournament (3 in solo)
+- ✅ Tournament HUD indicator during gameplay
+- ✅ Soft elimination language (dimmed rows, no "ELIMINATED" text)
+- ✅ Wake lock, offline detection, quiz data in Firestore
+- ✅ Critical bug fix: tournamentConfig ref stability (prevented threat flooding)
+- ✅ Critical bug fix: AppInner key prop for round remount
+- ✅ Spectator board reveal animation sequencing
+- ✅ Admin auto-advance race condition guard
+- ✅ Legacy V1 (`?event=CODE&round=N`) backward compatible
+- ⬜ V2.1: QR code on spectator lobby, lobby music, full pause-all wiring
+
+### No Other Pending Work
 All previously tracked items have been completed and merged.
