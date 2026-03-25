@@ -1978,16 +1978,15 @@ function TournamentRouter({ initialGameCode }) {
 
 // ── Title Screen (game code + solo mission) ──────────────────
 function TitleScreen({ tournament, onSoloMission, gatePassword, gateUnlocked, onGateUnlock }) {
+  const [screen, setScreen] = useState('main'); // 'main' | 'code' | 'gate'
   const [codeInput, setCodeInput] = useState('');
-  const [showGate, setShowGate] = useState(false);
   const [gateInput, setGateInput] = useState('');
   const [gateError, setGateError] = useState(false);
   const basePath = import.meta.env.BASE_URL || '/missile-defense/';
 
-  // Solo mission with gate
   const handleSoloClick = () => {
     if (gatePassword && !gateUnlocked) {
-      setShowGate(true);
+      setScreen('gate');
     } else {
       onSoloMission();
     }
@@ -2004,7 +2003,7 @@ function TitleScreen({ tournament, onSoloMission, gatePassword, gateUnlocked, on
   };
 
   // Gate screen for solo mode
-  if (showGate) {
+  if (screen === 'gate') {
     return (
       <div className="h-screen bg-[#0a0e1a] flex items-center justify-center">
         <form onSubmit={handleGateSubmit} className="text-center">
@@ -2024,8 +2023,8 @@ function TitleScreen({ tournament, onSoloMission, gatePassword, gateUnlocked, on
           <div className={`font-mono text-xs mt-2 h-4 tracking-wider ${gateError ? 'text-red-400' : 'text-transparent'}`}>
             ACCESS DENIED
           </div>
-          <button type="button" onClick={() => setShowGate(false)}
-            className="font-mono text-xs text-gray-600 tracking-wider mt-4 hover:text-gray-400 cursor-pointer">
+          <button type="button" onClick={() => setScreen('main')}
+            className="font-mono text-xs text-gray-500 tracking-wider mt-4 hover:text-gray-300 cursor-pointer">
             ← BACK
           </button>
         </form>
@@ -2033,6 +2032,58 @@ function TitleScreen({ tournament, onSoloMission, gatePassword, gateUnlocked, on
     );
   }
 
+  // Tournament code entry screen
+  if (screen === 'code') {
+    return (
+      <div className="h-screen bg-[#0a0e1a] flex items-center justify-center relative overflow-hidden">
+        <div className="absolute inset-0" style={{ background: `url('${basePath}images/ID3.jpg') center 40% / cover no-repeat` }} />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(10,14,26,0.7) 0%, rgba(10,14,26,0.85) 40%, rgba(10,14,26,0.95) 100%)' }} />
+
+        <div className="relative z-10 text-center w-full max-w-sm mx-auto px-6">
+          <div className="font-mono text-xs tracking-[0.4em] text-orange-400/70 mb-3">TOURNAMENT</div>
+          <div className="font-mono text-2xl font-black tracking-[0.2em] text-white mb-8"
+            style={{ textShadow: '0 2px 15px rgba(0,0,0,0.6)' }}>
+            ENTER GAME CODE
+          </div>
+
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            if (codeInput.trim()) tournament.joinTournament(codeInput.trim());
+          }}>
+            <input
+              type="text"
+              value={codeInput}
+              onChange={(e) => {
+                setCodeInput(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10));
+                tournament.setError(null);
+              }}
+              placeholder="GAME CODE"
+              maxLength={10}
+              autoFocus
+              className="w-full px-4 py-4 bg-gray-900/70 border-2 border-orange-500/50 rounded-xl text-center
+                font-mono text-2xl text-orange-400 tracking-[0.3em]
+                focus:border-orange-400 focus:outline-none placeholder-gray-700
+                backdrop-blur-sm"
+              style={{ boxShadow: '0 0 25px rgba(249,115,22,0.12), inset 0 0 20px rgba(0,0,0,0.3)' }}
+            />
+          </form>
+          {tournament.error && (
+            <div className="font-mono text-xs text-red-400 tracking-wider mt-2">{tournament.error}</div>
+          )}
+          <div className="font-mono text-[11px] text-gray-500 tracking-wider mt-3">
+            Ask your instructor for the code
+          </div>
+
+          <button type="button" onClick={() => { setScreen('main'); tournament.setError(null); }}
+            className="font-mono text-xs text-gray-500 tracking-wider mt-8 hover:text-gray-300 cursor-pointer">
+            ← BACK
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Main title screen — two side-by-side options
   return (
     <div className="h-screen bg-[#0a0e1a] flex items-center justify-center relative overflow-hidden">
       {/* Hero background */}
@@ -2055,7 +2106,7 @@ function TitleScreen({ tournament, onSoloMission, gatePassword, gateUnlocked, on
         </div>
 
         {/* System badges */}
-        <div className="flex justify-center gap-5 mt-4 mb-8">
+        <div className="flex justify-center gap-5 mt-4 mb-10">
           {[
             { name: 'IRON DOME', color: '#eab308' },
             { name: "DAVID'S SLING", color: '#3b82f6' },
@@ -2069,59 +2120,34 @@ function TitleScreen({ tournament, onSoloMission, gatePassword, gateUnlocked, on
           ))}
         </div>
 
-        {/* Game code input — primary action */}
-        <div className="mb-3">
-          <form onSubmit={(e) => {
-            e.preventDefault();
-            if (codeInput.trim()) tournament.joinTournament(codeInput.trim());
-          }}>
-            <div className="relative">
-              <input
-                type="text"
-                value={codeInput}
-                onChange={(e) => {
-                  setCodeInput(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10));
-                  tournament.setError(null);
-                }}
-                placeholder="ENTER GAME CODE"
-                maxLength={10}
-                className="w-full px-4 py-4 bg-gray-900/70 border-2 border-orange-500/50 rounded-xl text-center
-                  font-mono text-xl text-orange-400 tracking-[0.25em]
-                  focus:border-orange-400 focus:outline-none placeholder-gray-600
-                  backdrop-blur-sm"
-                style={{ boxShadow: '0 0 20px rgba(249,115,22,0.1), inset 0 0 20px rgba(0,0,0,0.3)' }}
-              />
-            </div>
-          </form>
-          {tournament.error ? (
-            <div className="font-mono text-xs text-red-400 tracking-wider mt-1.5">{tournament.error}</div>
-          ) : (
-            <div className="font-mono text-[10px] text-gray-600 tracking-wider mt-1.5">
-              Ask your instructor for the game code
-            </div>
-          )}
-        </div>
+        {/* Two side-by-side buttons */}
+        <div className="flex gap-4">
+          {/* Tournament */}
+          <button onClick={() => setScreen('code')}
+            className="flex-1 py-4 bg-orange-950/40 border-2 border-orange-500/50 rounded-xl
+              font-mono tracking-widest text-orange-400
+              hover:bg-orange-950/60 hover:border-orange-400/70
+              transition-all cursor-pointer backdrop-blur-sm"
+            style={{ boxShadow: '0 0 20px rgba(249,115,22,0.08)' }}>
+            <div className="text-base font-bold">TOURNAMENT</div>
+            <div className="text-[10px] text-orange-400/60 mt-0.5">MULTIPLAYER</div>
+          </button>
 
-        {/* Divider */}
-        <div className="flex items-center gap-3 my-5">
-          <div className="flex-1 h-px bg-gray-700/40" />
-          <span className="font-mono text-[10px] text-gray-600 tracking-widest">OR</span>
-          <div className="flex-1 h-px bg-gray-700/40" />
+          {/* Solo Mission */}
+          <button onClick={handleSoloClick}
+            className="flex-1 py-4 bg-cyan-950/30 border-2 border-cyan-500/40 rounded-xl
+              font-mono tracking-widest text-cyan-400
+              hover:bg-cyan-950/50 hover:border-cyan-400/60
+              transition-all cursor-pointer backdrop-blur-sm"
+            style={{ boxShadow: '0 0 20px rgba(6,182,212,0.06)' }}>
+            <div className="text-base font-bold">SOLO MISSION</div>
+            <div className="text-[10px] text-cyan-400/50 mt-0.5">SINGLE PLAYER</div>
+          </button>
         </div>
-
-        {/* Solo mission — secondary action */}
-        <button onClick={handleSoloClick}
-          className="w-full py-2.5 bg-transparent border border-gray-700/50 rounded-lg
-            font-mono text-xs tracking-[0.2em] text-gray-500
-            hover:bg-gray-900/40 hover:border-gray-600/60 hover:text-gray-400
-            transition-all cursor-pointer">
-          SOLO MISSION ▸
-        </button>
 
         {/* Footer */}
-        <div className="mt-8 space-y-1">
-          <div className="font-mono text-[10px] text-gray-700">© Hecht Studio 2026</div>
-          <div className="font-mono text-[9px] text-gray-800">Built with Claude</div>
+        <div className="mt-10">
+          <div className="font-mono text-[10px] text-gray-500">© Hecht Studio 2026</div>
         </div>
       </div>
     </div>
