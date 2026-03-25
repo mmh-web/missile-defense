@@ -147,25 +147,34 @@ export default function useTournament(initialEventCode = null) {
       // but our team isn't in this tournament's teams map, we have stale session data.
       if (joinedRef.current && teamKeyRef.current && doc.teams) {
         if (!doc.teams[teamKeyRef.current]) {
-          // Stale session — team not in this tournament (probably reset)
           setJoined(false);
           joinedRef.current = false;
           clearSessionState();
         }
       }
 
-      // Block anyone who hasn't joined — only lobby phase allows new players
-      if (!joinedRef.current && doc.roundStatus && doc.roundStatus !== 'lobby') {
-        const messages = {
-          active: 'TOURNAMENT IN PROGRESS — TOO LATE TO JOIN',
-          paused: 'TOURNAMENT IN PROGRESS — TOO LATE TO JOIN',
-          complete: 'ROUND CLOSED — TOO LATE TO JOIN',
-          finished: 'TOURNAMENT HAS ENDED',
-        };
-        setError(messages[doc.roundStatus] || 'TOURNAMENT UNAVAILABLE');
-        setPhase(TOURNAMENT_PHASES.TITLE);
-        setEventCode('');
-        clearSessionState();
+      // GATE: if player hasn't joined this tournament, check if they're allowed in
+      if (!joinedRef.current) {
+        if (!doc.roundStatus || doc.roundStatus === 'lobby') {
+          // Tournament is in lobby — allow entry, show lobby screen
+          if (phaseRef.current !== TOURNAMENT_PHASES.LOBBY) {
+            setPhase(TOURNAMENT_PHASES.LOBBY);
+          }
+        } else {
+          // Tournament is NOT in lobby — block entry completely
+          // Stay on LOBBY phase (which shows the code entry/join screen) with error
+          // so the user sees the message instead of being silently kicked to title
+          const messages = {
+            active: 'TOURNAMENT IN PROGRESS — TOO LATE TO JOIN',
+            paused: 'TOURNAMENT IN PROGRESS — TOO LATE TO JOIN',
+            complete: 'ROUND CLOSED — TOO LATE TO JOIN',
+            finished: 'TOURNAMENT HAS ENDED',
+          };
+          setError(messages[doc.roundStatus] || 'TOURNAMENT UNAVAILABLE');
+          // Don't clear eventCode or change phase — keep showing the error
+          // on whatever screen they're on (code entry or lobby)
+          return; // Don't process any further
+        }
       }
     });
 
@@ -304,27 +313,13 @@ export default function useTournament(initialEventCode = null) {
     }
 
     setError(null);
-    const doc = await getTournament(cleanCode);
-    if (!doc) {
-      setError('TOURNAMENT NOT FOUND');
-      return false;
-    }
 
-    // Block if tournament is past lobby phase
-    if (doc.roundStatus && doc.roundStatus !== 'lobby') {
-      const messages = {
-        active: 'TOURNAMENT IN PROGRESS — TOO LATE TO JOIN',
-        paused: 'TOURNAMENT IN PROGRESS — TOO LATE TO JOIN',
-        complete: 'ROUND CLOSED — TOO LATE TO JOIN',
-        finished: 'TOURNAMENT HAS ENDED',
-      };
-      setError(messages[doc.roundStatus] || 'TOURNAMENT UNAVAILABLE');
-      return false;
-    }
-
+    // Set event code to trigger the real-time subscription.
+    // The subscription callback will validate roundStatus and block if needed.
+    // We set phase to LOBBY optimistically — the subscription will override
+    // to TITLE if the tournament is past lobby.
     setEventCode(cleanCode);
-    setTournamentDoc(doc);
-    setPhase(TOURNAMENT_PHASES.LOBBY);
+    // Don't set phase yet — wait for subscription to confirm status
     return true;
   }, []);
 
