@@ -96,6 +96,14 @@ export default function AdminBoard({ eventCode }) {
     }
   }, [tournamentDoc?.currentRound, tournamentDoc?.advanceConfig]);
 
+  // Periodic re-render to update disconnect detection (every 10s)
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    if (!unlocked || !tournamentDoc || tournamentDoc.roundStatus !== 'active') return;
+    const interval = setInterval(() => setTick(t => t + 1), 10000);
+    return () => clearInterval(interval);
+  }, [unlocked, tournamentDoc?.roundStatus]);
+
   // ── Auto-advance: close round automatically when all players finish ──
   const [autoCloseCountdown, setAutoCloseCountdown] = useState(null); // seconds remaining
   const [autoAdvanceCountdown, setAutoAdvanceCountdown] = useState(null);
@@ -112,8 +120,11 @@ export default function AdminBoard({ eventCode }) {
     }
     if (entries.length === 0) return; // No scores yet
 
-    const allFinished = entries.length > 0 && entries.every(e => e.status === 'finished');
-    if (allFinished && !autoCloseRef.current) {
+    // Treat disconnected players (no update in 30s) as done — don't hold up the round
+    const allDone = entries.length > 0 && entries.every(e =>
+      e.status === 'finished' || (e.status === 'playing' && e.lastUpdate && (Date.now() - e.lastUpdate > 30000))
+    );
+    if (allDone && !autoCloseRef.current) {
       // Start 30s countdown to auto-close
       let remaining = 30;
       setAutoCloseCountdown(remaining);
@@ -235,8 +246,12 @@ export default function AdminBoard({ eventCode }) {
   const teams = tournamentDoc?.teams || {};
   const activeTeams = Object.entries(teams).filter(([_, t]) => !t.kicked);
   const teamCount = activeTeams.length;
+  const now = Date.now();
+  const DISCONNECT_THRESHOLD = 30000; // 30 seconds without update = disconnected
+  const isDisconnected = (entry) => entry.status === 'playing' && entry.lastUpdate && (now - entry.lastUpdate > DISCONNECT_THRESHOLD);
   const finishedCount = entries.filter(e => e.status === 'finished').length;
-  const playingCount = entries.filter(e => e.status === 'playing').length;
+  const disconnectedCount = entries.filter(e => isDisconnected(e)).length;
+  const playingCount = entries.filter(e => e.status === 'playing' && !isDisconnected(e)).length;
   const isPaused = tournamentDoc?.paused === true;
 
   // Compute advancing teams based on config
@@ -487,7 +502,7 @@ export default function AdminBoard({ eventCode }) {
                 {finishedCount}/{entries.length || teamCount}
               </div>
               <div className="font-mono text-xs text-gray-500 tracking-widest">
-                FINISHED {playingCount > 0 && `• ${playingCount} PLAYING`}
+                FINISHED {playingCount > 0 && `• ${playingCount} PLAYING`}{disconnectedCount > 0 && <span className="text-red-400/70"> • {disconnectedCount} DISCONNECTED</span>}
               </div>
               {autoCloseCountdown !== null && (
                 <div className="font-mono text-xs text-orange-400 tracking-wider mt-2">
@@ -498,12 +513,17 @@ export default function AdminBoard({ eventCode }) {
 
             {/* Leaderboard */}
             <div className="space-y-1 mb-6">
-              {entries.map((entry, i) => (
-                <div key={entry.name} className="flex items-center justify-between py-2 px-3 bg-gray-900/30 rounded">
+              {entries.map((entry, i) => {
+                const disconnected = isDisconnected(entry);
+                return (
+                <div key={entry.name} className={`flex items-center justify-between py-2 px-3 bg-gray-900/30 rounded ${disconnected ? 'opacity-40' : ''}`}>
                   <div className="flex items-center gap-2">
                     <span className="font-mono text-xs text-gray-500 w-6 text-right">{i + 1}</span>
                     <span className="font-mono text-sm text-gray-300">{entry.name}</span>
-                    {entry.status === 'playing' && (
+                    {disconnected && (
+                      <span className="font-mono text-[10px] text-red-400/70 tracking-wider">DISCONNECTED</span>
+                    )}
+                    {!disconnected && entry.status === 'playing' && (
                       <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
                     )}
                     {entry.status === 'finished' && (
@@ -514,7 +534,8 @@ export default function AdminBoard({ eventCode }) {
                     {(entry.score || 0).toLocaleString()}
                   </span>
                 </div>
-              ))}
+              );
+              })}
             </div>
 
             {/* Close button */}
