@@ -285,6 +285,12 @@ export default function useTournament(initialEventCode = null) {
       return false;
     }
 
+    // Block if tournament is past lobby phase
+    if (doc.roundStatus && doc.roundStatus !== 'lobby') {
+      setError('TOURNAMENT IN PROGRESS — TOO LATE TO JOIN');
+      return false;
+    }
+
     setEventCode(cleanCode);
     setTournamentDoc(doc);
     setPhase(TOURNAMENT_PHASES.LOBBY);
