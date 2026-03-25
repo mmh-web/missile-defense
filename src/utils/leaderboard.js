@@ -198,7 +198,7 @@ export async function getLeaderboard(gameMode = 'CAMPAIGN', eventFilter = null) 
     const q = query(
       collection(db, COLLECTION),
       orderBy('score', 'desc'),
-      limit(50)
+      limit(500)  // High limit to ensure event-filtered entries aren't excluded
     );
     const snapshot = await getDocs(q);
     const raw = [];
@@ -232,7 +232,7 @@ export function subscribeLeaderboard(gameMode, callback, eventFilter = null) {
     const q = query(
       collection(db, COLLECTION),
       orderBy('score', 'desc'),
-      limit(50)
+      limit(500)  // High limit to ensure event-filtered entries aren't excluded
     );
     return onSnapshot(q, (snapshot) => {
       const raw = [];

@@ -32,7 +32,7 @@ import {
 // ── Access Gate ──────────────────────────────────────────────
 // Set to a string to require password, null to disable.
 // Change this value and redeploy to rotate/remove the password.
-const GATE_PASSWORD = '1948';
+const GATE_PASSWORD = null;
 
 function AccessGate({ onUnlock }) {
   const [input, setInput] = useState('');

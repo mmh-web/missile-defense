@@ -50,9 +50,9 @@ function downloadCSV(entries, eventCode, roundNumber) {
 }
 
 export default function AdminBoard({ eventCode }) {
-  // PIN gate
+  // PIN gate — persist in sessionStorage so admin doesn't re-enter on refresh
   const [pinInput, setPinInput] = useState('');
-  const [unlocked, setUnlocked] = useState(false);
+  const [unlocked, setUnlocked] = useState(() => sessionStorage.getItem('admin_unlocked') === 'true');
   const [pinError, setPinError] = useState(false);
 
   // Tournament state
@@ -104,6 +104,7 @@ export default function AdminBoard({ eventCode }) {
           e.preventDefault();
           if (pinInput === ADMIN_PIN) {
             setUnlocked(true);
+            sessionStorage.setItem('admin_unlocked', 'true');
           } else {
             setPinError(true);
             setTimeout(() => setPinError(false), 1500);

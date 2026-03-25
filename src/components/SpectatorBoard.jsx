@@ -478,8 +478,12 @@ export default function SpectatorBoard({ eventCode }) {
           <div className={`flex flex-col ${scale.gap} h-full overflow-y-auto`}>
             {entries.map((entry, i) => {
               const rank = i + 1;
-              const isQualifying = rank <= qualifyCount;
-              const isClosed = roundClosed && revealPhase !== 'revealing'; // Don't show closed styling during reveal animation
+              // V2 tournament: use advancingTeams from tournament doc if available
+              const advancingTeams = tournamentDoc?.rounds?.[currentRound]?.advancingTeams;
+              const isQualifying = advancingTeams
+                ? advancingTeams.includes(sanitizeTeamKey(entry.name))
+                : rank <= qualifyCount;
+              const isClosed = roundClosed && revealPhase !== 'revealing';
               const isRevealing = revealPhase === 'revealing';
               const isRevealed = !isRevealing || i <= revealedIndex;
               const isAdvancing = isClosed && isQualifying;
