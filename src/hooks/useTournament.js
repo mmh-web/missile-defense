@@ -154,9 +154,11 @@ export default function useTournament(initialEventCode = null) {
       }
 
       // GATE: if player hasn't joined this tournament, check if they're allowed in
+      // Only the R1 (qualifier) lobby allows new players. Inter-round lobbies (R2+) do NOT.
       if (!joinedRef.current) {
-        if (!doc.roundStatus || doc.roundStatus === 'lobby') {
-          // Tournament is in lobby — allow entry, show lobby screen
+        const isInitialLobby = (!doc.roundStatus || doc.roundStatus === 'lobby') && (doc.currentRound || 1) === 1;
+        if (isInitialLobby) {
+          // R1 lobby — allow entry, show lobby screen
           if (phaseRef.current !== TOURNAMENT_PHASES.LOBBY) {
             setPhase(TOURNAMENT_PHASES.LOBBY);
           }
@@ -165,6 +167,7 @@ export default function useTournament(initialEventCode = null) {
           // Stay on LOBBY phase (which shows the code entry/join screen) with error
           // so the user sees the message instead of being silently kicked to title
           const messages = {
+            lobby: 'TOURNAMENT IN PROGRESS — TOO LATE TO JOIN',
             active: 'TOURNAMENT IN PROGRESS — TOO LATE TO JOIN',
             paused: 'TOURNAMENT IN PROGRESS — TOO LATE TO JOIN',
             complete: 'ROUND CLOSED — TOO LATE TO JOIN',
