@@ -17,7 +17,7 @@ import SpectatorBoard from './components/SpectatorBoard.jsx';
 import AdminBoard from './components/AdminBoard.jsx';
 import { getLevelConfig, LEVEL_ACCENT_COLORS } from './config/threats.js';
 import { ROUND_CONFIGS } from './hooks/useGameEngine.js';
-import { getLeaderboard, getEventCode, getRoundNumber, getSpectateCode, getAdminCode, getGameCode, getTournamentEventCode, updateLiveScore, markScoreFinished } from './utils/leaderboard.js';
+import { getLeaderboard, getEventCode, getRoundNumber, getSpectateCode, getAdminCode, getGameCode, getTournamentEventCode, updateLiveScore, markScoreFinished, createTournament } from './utils/leaderboard.js';
 import { containsProfanity } from './utils/nameFilter.js';
 import {
   startMusic,
@@ -2014,6 +2014,7 @@ function TournamentRouter({ initialGameCode }) {
   const tournament = useTournament(initialGameCode);
   const [soloMode, setSoloMode] = useState(false);
   const [gateUnlocked, setGateUnlocked] = useState(!GATE_PASSWORD);
+  const [adminHostCode, setAdminHostCode] = useState(null); // event code for admin host mode
 
   // Wake lock — prevent screen dimming during tournament
   useEffect(() => {
@@ -2062,7 +2063,12 @@ function TournamentRouter({ initialGameCode }) {
   }), [currentRound, tournament.eventCode, tournament.teamName, tournament.teamEmoji,
        tournament.cumulativeBase, tournament.currentRoundEventCode, tournament.isPaused]);
 
-  // Title screen — game code input + solo mission
+  // Admin host mode — renders unified admin+spectator screen
+  if (adminHostCode) {
+    return <AdminBoard eventCode={adminHostCode} skipPin />;
+  }
+
+  // Title screen — game code input + solo mission + host
   if (phase === TOURNAMENT_PHASES.TITLE) {
     return <TitleScreen
       tournament={tournament}
@@ -2073,6 +2079,7 @@ function TournamentRouter({ initialGameCode }) {
         }
         setSoloMode(true);
       }}
+      onHostMode={(code) => setAdminHostCode(code)}
       gatePassword={GATE_PASSWORD}
       gateUnlocked={gateUnlocked}
       onGateUnlock={() => {
@@ -2133,11 +2140,15 @@ function TournamentRouter({ initialGameCode }) {
 }
 
 // ── Title Screen (game code + solo mission) ──────────────────
-function TitleScreen({ tournament, onSoloMission, gatePassword, gateUnlocked, onGateUnlock }) {
-  const [screen, setScreen] = useState('main'); // 'main' | 'code' | 'gate'
+function TitleScreen({ tournament, onSoloMission, onHostMode, gatePassword, gateUnlocked, onGateUnlock }) {
+  const [screen, setScreen] = useState('main'); // 'main' | 'code' | 'gate' | 'host_pin' | 'host_create'
   const [codeInput, setCodeInput] = useState('');
   const [gateInput, setGateInput] = useState('');
   const [gateError, setGateError] = useState(false);
+  const [hostPinInput, setHostPinInput] = useState('');
+  const [hostPinError, setHostPinError] = useState(false);
+  const [hostCodeInput, setHostCodeInput] = useState('');
+  const [hostCreating, setHostCreating] = useState(false);
   const basePath = import.meta.env.BASE_URL || '/missile-defense/';
 
   const handleSoloClick = () => {
@@ -2157,6 +2168,94 @@ function TitleScreen({ tournament, onSoloMission, gatePassword, gateUnlocked, on
       setTimeout(() => setGateError(false), 1500);
     }
   };
+
+  // Host PIN screen
+  if (screen === 'host_pin') {
+    return (
+      <div className="h-screen bg-[#0a0e1a] flex items-center justify-center relative overflow-hidden">
+        <div className="absolute inset-0" style={{ background: `url('${basePath}images/ID3.jpg') center 40% / cover no-repeat` }} />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(10,14,26,0.7) 0%, rgba(10,14,26,0.85) 40%, rgba(10,14,26,0.95) 100%)' }} />
+        <form onSubmit={(e) => {
+          e.preventDefault();
+          if (hostPinInput === '1881') {
+            sessionStorage.setItem('admin_unlocked', 'true');
+            setScreen('host_create');
+          } else {
+            setHostPinError(true);
+            setTimeout(() => setHostPinError(false), 1500);
+          }
+        }} className="relative z-10 text-center">
+          <div className="font-mono text-xs tracking-[0.4em] text-green-400/70 mb-3">HOST TOURNAMENT</div>
+          <div className="font-mono text-xl font-bold tracking-[0.3em] text-white/80 mb-6"
+            style={{ textShadow: '0 2px 15px rgba(0,0,0,0.6)' }}>
+            ENTER PIN
+          </div>
+          <input type="password" value={hostPinInput} onChange={(e) => setHostPinInput(e.target.value)} autoFocus
+            className={`w-40 px-4 py-3 bg-gray-900/80 border rounded-lg text-center font-mono text-lg tracking-[0.3em] focus:outline-none backdrop-blur-sm
+              ${hostPinError ? 'border-red-500 text-red-400' : 'border-gray-700 text-green-400 focus:border-green-500'}`}
+            placeholder="PIN" />
+          <div className={`font-mono text-xs mt-2 h-4 tracking-wider ${hostPinError ? 'text-red-400' : 'text-transparent'}`}>
+            WRONG PIN
+          </div>
+          <button type="button" onClick={() => { setScreen('main'); setHostPinInput(''); }}
+            className="font-mono text-xs text-gray-500 tracking-wider mt-4 hover:text-gray-300 cursor-pointer">
+            ← BACK
+          </button>
+        </form>
+      </div>
+    );
+  }
+
+  // Host create screen — enter event code
+  if (screen === 'host_create') {
+    return (
+      <div className="h-screen bg-[#0a0e1a] flex items-center justify-center relative overflow-hidden">
+        <div className="absolute inset-0" style={{ background: `url('${basePath}images/ID3.jpg') center 40% / cover no-repeat` }} />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(10,14,26,0.7) 0%, rgba(10,14,26,0.85) 40%, rgba(10,14,26,0.95) 100%)' }} />
+        <div className="relative z-10 text-center w-full max-w-sm mx-auto px-6">
+          <div className="font-mono text-xs tracking-[0.4em] text-green-400/70 mb-3">HOST TOURNAMENT</div>
+          <div className="font-mono text-xl font-bold tracking-[0.2em] text-white/80 mb-8"
+            style={{ textShadow: '0 2px 15px rgba(0,0,0,0.6)' }}>
+            NAME YOUR EVENT
+          </div>
+          <form onSubmit={async (e) => {
+            e.preventDefault();
+            if (!hostCodeInput.trim() || hostCreating) return;
+            setHostCreating(true);
+            try {
+              await createTournament(hostCodeInput.trim());
+              onHostMode(hostCodeInput.trim());
+            } catch (err) {
+              setHostCreating(false);
+            }
+          }}>
+            <input type="text" value={hostCodeInput}
+              onChange={(e) => setHostCodeInput(e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, '').slice(0, 20))}
+              placeholder="EVENT CODE" maxLength={20} autoFocus
+              className="w-full px-4 py-4 bg-gray-900/70 border-2 border-green-500/50 rounded-xl text-center
+                font-mono text-2xl text-green-400 tracking-[0.3em]
+                focus:border-green-400 focus:outline-none placeholder-gray-700 backdrop-blur-sm"
+              style={{ boxShadow: '0 0 25px rgba(34,197,94,0.12), inset 0 0 20px rgba(0,0,0,0.3)' }} />
+            <div className="font-mono text-[11px] text-gray-500 tracking-wider mt-3">
+              e.g. LINCOLN, ACADEMY-2026, DEMO
+            </div>
+            <button type="submit" disabled={!hostCodeInput.trim() || hostCreating}
+              className={`w-full mt-6 py-4 rounded-xl font-mono text-lg tracking-widest transition-all cursor-pointer
+                ${!hostCodeInput.trim() || hostCreating
+                  ? 'bg-gray-800/50 border border-gray-700 text-gray-600'
+                  : 'bg-green-900/40 border-2 border-green-500/60 text-green-400 hover:bg-green-900/60'}`}
+              style={hostCodeInput.trim() && !hostCreating ? { textShadow: '0 0 20px rgba(34,197,94,0.3)' } : {}}>
+              {hostCreating ? 'CREATING...' : 'HOST TOURNAMENT'}
+            </button>
+          </form>
+          <button type="button" onClick={() => { setScreen('main'); setHostCodeInput(''); setHostCreating(false); }}
+            className="font-mono text-xs text-gray-500 tracking-wider mt-8 hover:text-gray-300 cursor-pointer">
+            ← BACK
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // Gate screen for solo mode
   if (screen === 'gate') {
@@ -2278,7 +2377,7 @@ function TitleScreen({ tournament, onSoloMission, gatePassword, gateUnlocked, on
 
         {/* Two side-by-side buttons */}
         <div className="flex gap-4">
-          {/* Tournament */}
+          {/* Tournament (player join) */}
           <button onClick={() => setScreen('code')}
             className="flex-1 py-4 bg-orange-950/40 border-2 border-orange-500/50 rounded-xl
               font-mono tracking-widest text-orange-400
@@ -2301,8 +2400,15 @@ function TitleScreen({ tournament, onSoloMission, gatePassword, gateUnlocked, on
           </button>
         </div>
 
+        {/* Host Tournament — smaller link below main buttons */}
+        <button onClick={() => setScreen('host_pin')}
+          className="mt-5 font-mono text-xs tracking-[0.2em] text-gray-500
+            hover:text-green-400/80 transition-all cursor-pointer">
+          HOST TOURNAMENT
+        </button>
+
         {/* Footer */}
-        <div className="mt-10">
+        <div className="mt-8">
           <div className="font-mono text-[10px] text-gray-500">© Hecht Studio 2026</div>
         </div>
       </div>
