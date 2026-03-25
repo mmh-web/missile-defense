@@ -100,6 +100,7 @@ export default function AdminBoard({ eventCode }) {
   const [autoCloseCountdown, setAutoCloseCountdown] = useState(null); // seconds remaining
   const [autoAdvanceCountdown, setAutoAdvanceCountdown] = useState(null);
   const autoCloseRef = useRef(null);
+  const isAdvancingRef = useRef(false); // Guard against double-advance race
   const autoAdvanceRef = useRef(null);
 
   // Detect when all players finish → start 30s auto-close countdown
@@ -152,6 +153,7 @@ export default function AdminBoard({ eventCode }) {
     if (!tournamentDoc || tournamentDoc.roundStatus !== 'complete') {
       if (autoAdvanceRef.current) { clearInterval(autoAdvanceRef.current); autoAdvanceRef.current = null; }
       setAutoAdvanceCountdown(null);
+      isAdvancingRef.current = false; // Reset guard for next round
       return;
     }
 
@@ -164,12 +166,15 @@ export default function AdminBoard({ eventCode }) {
         if (remaining <= 0) {
           clearInterval(autoAdvanceRef.current);
           autoAdvanceRef.current = null;
-          // Auto-advance
-          const currentRound = tournamentDoc.currentRound || 1;
-          if (currentRound >= 3) {
-            finishTournament(eventCode).catch(() => {});
-          } else {
-            advanceToNextRound(eventCode, currentRound + 1).catch(() => {});
+          // Auto-advance (guarded against race with manual advance)
+          if (!isAdvancingRef.current) {
+            isAdvancingRef.current = true;
+            const currentRound = tournamentDoc.currentRound || 1;
+            if (currentRound >= 3) {
+              finishTournament(eventCode).catch(() => {});
+            } else {
+              advanceToNextRound(eventCode, currentRound + 1).catch(() => {});
+            }
           }
         }
       }, 1000);

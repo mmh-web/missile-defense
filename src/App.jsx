@@ -1991,8 +1991,10 @@ function TournamentRouter({ initialGameCode }) {
   }
 
   // PLAYING phase — render the game with tournament config
+  // key forces remount on round change so game engine starts fresh
   if (phase === TOURNAMENT_PHASES.PLAYING) {
     return <AppInner
+      key={`round-${tournament.tournamentDoc?.currentRound || 1}`}
       tournamentConfig={{
         roundConfig: tournament.currentRoundConfig,
         eventCode: tournament.eventCode,

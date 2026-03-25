@@ -187,6 +187,10 @@ export default function SpectatorBoard({ eventCode }) {
           setRoundClosed(true);
         } else {
           setRoundClosed(false);
+          // Reset reveal animation state when round changes (prevents re-triggering)
+          setRevealPhase(null);
+          setRevealedIndex(-1);
+          setChampionReveal(null);
         }
       }
     });
@@ -195,7 +199,7 @@ export default function SpectatorBoard({ eventCode }) {
 
   // Trigger reveal animation when round closes
   useEffect(() => {
-    if (!roundClosed || !tournamentDoc?.roundStatus === 'complete') return;
+    if (!roundClosed || tournamentDoc?.roundStatus !== 'complete') return;
     if (revealPhase) return; // Already revealing
 
     // Start reveal sequence
@@ -222,7 +226,7 @@ export default function SpectatorBoard({ eventCode }) {
 
   // Champion reveal after R3
   useEffect(() => {
-    if (!tournamentDoc || tournamentDoc.roundStatus !== 'finished') return;
+    if (!tournamentDoc || tournamentDoc.roundStatus !== 'finished' || (tournamentDoc.currentRound || 1) < 3) return;
     if (championReveal) return;
 
     // Start champion reveal sequence
