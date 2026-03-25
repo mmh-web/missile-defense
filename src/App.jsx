@@ -564,9 +564,16 @@ function AppInner({ tournamentConfig = null, isPracticeMode = false }) {
         event: eventCode,
         stats,
       }).catch(() => {});
-      // Notify tournament hook of round completion
+      // Notify tournament hook of round completion — but only if player actually
+      // completed all levels in the round (safeguard against premature SUMMARY)
+      const rc = tournamentConfigRef.current?.roundConfig || roundConfig;
+      const expectedEndLevel = rc?.endLevel;
       if (tournamentConfigRef.current?.onRoundFinished) {
-        tournamentConfigRef.current.onRoundFinished(rawScore);
+        if (!expectedEndLevel || currentLevel >= expectedEndLevel) {
+          tournamentConfigRef.current.onRoundFinished(rawScore);
+        } else {
+          console.warn(`[Tournament] SUMMARY reached on L${currentLevel} but round ends at L${expectedEndLevel} — skipping onRoundFinished`);
+        }
       }
       return;
     }
