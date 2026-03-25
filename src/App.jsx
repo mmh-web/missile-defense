@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import useGameEngine from './hooks/useGameEngine.js';
+import useTournament, { TOURNAMENT_PHASES } from './hooks/useTournament.js';
 import RadarDisplay from './components/RadarDisplay.jsx';
 import ThreatPanel from './components/ThreatPanel.jsx';
 import ControlPanel from './components/ControlPanel.jsx';
@@ -13,9 +14,10 @@ import LevelComplete from './components/LevelComplete.jsx';
 import ScoringIntro from './components/ScoringIntro.jsx';
 import FacilitatorControls from './components/FacilitatorControls.jsx';
 import SpectatorBoard from './components/SpectatorBoard.jsx';
+import AdminBoard from './components/AdminBoard.jsx';
 import { getLevelConfig, LEVEL_ACCENT_COLORS } from './config/threats.js';
 import { ROUND_CONFIGS } from './hooks/useGameEngine.js';
-import { getLeaderboard, getEventCode, getRoundNumber, getSpectateCode, getTournamentEventCode, updateLiveScore, markScoreFinished } from './utils/leaderboard.js';
+import { getLeaderboard, getEventCode, getRoundNumber, getSpectateCode, getAdminCode, getGameCode, getTournamentEventCode, updateLiveScore, markScoreFinished } from './utils/leaderboard.js';
 import { containsProfanity } from './utils/nameFilter.js';
 import {
   startMusic,
@@ -111,10 +113,13 @@ function EmojiPicker({ selected, onSelect }) {
   );
 }
 
-function AppInner() {
+function AppInner({ tournamentConfig = null, isPracticeMode = false }) {
   const [bonusLevelEnabled, setBonusLevelEnabled] = useState(false);
+  // Legacy V1 tournament mode (URL-based)
   const roundNumber = getRoundNumber();
-  const roundConfig = roundNumber ? ROUND_CONFIGS[roundNumber] : null;
+  const legacyRoundConfig = roundNumber ? ROUND_CONFIGS[roundNumber] : null;
+  // Use tournament V2 config if provided, else legacy, else null
+  const roundConfig = tournamentConfig?.roundConfig || legacyRoundConfig || null;
   const spectateCode = getSpectateCode();
   const game = useGameEngine({ bonusLevelEnabled, roundConfig });
   // TEMP DEBUG: expose game to console for visual testing
@@ -154,8 +159,8 @@ function AppInner() {
     setShowLeaderboard(true);
     getLeaderboard('CAMPAIGN').then(setLeaderboardEntries);
   }, []);
-  const [campaignTeamName, setCampaignTeamName] = useState('');
-  const [teamEmoji, setTeamEmoji] = useState('');
+  const [campaignTeamName, setCampaignTeamName] = useState(tournamentConfig?.teamName || '');
+  const [teamEmoji, setTeamEmoji] = useState(tournamentConfig?.teamEmoji || '');
   const [skipBriefings, setSkipBriefings] = useState(false);
   const seenBriefingsRef = useRef(new Set());
   const briefingMusicRef = useRef(null);
@@ -438,39 +443,54 @@ function AppInner() {
     if (!roundConfig || !campaignTeamName.trim()) return;
     if (gameState === GAME_STATES.PRE_GAME) return;
 
+    // Tournament V2 event code takes priority over URL-based V1
+    const eventCode = tournamentConfig?.currentRoundEventCode || getTournamentEventCode();
+    const cumulBase = tournamentConfig?.cumulativeBase || 0;
+    const multiplier = tournamentConfig?.roundMultiplier || 1;
+    const pushInterval = tournamentConfig ? 10000 : 5000; // 10s for V2, 5s for V1
+
     // Auto-finalize when reaching SUMMARY (once)
     if (gameState === GAME_STATES.SUMMARY && !liveScoreFinalizedRef.current) {
       liveScoreFinalizedRef.current = true;
       const stats = getCampaignStatsRef.current();
+      const rawScore = stats.totalScore || 0;
+      const adjustedScore = Math.round(rawScore * multiplier);
+      const totalScore = cumulBase + adjustedScore;
       const displayName = teamEmoji ? `${teamEmoji} ${campaignTeamName.trim()}` : campaignTeamName.trim();
       markScoreFinished({
         name: displayName,
-        score: stats.totalScore || 0,
-        event: getTournamentEventCode(),
+        score: totalScore,
+        event: eventCode,
         stats,
       }).catch(() => {});
+      // Notify tournament hook of round completion
+      if (tournamentConfig?.onRoundFinished) {
+        tournamentConfig.onRoundFinished(rawScore);
+      }
       return;
     }
 
-    // During gameplay: push live score every 5 seconds
+    // During gameplay: push live score at interval
     const pushScore = () => {
       const stats = getCampaignStatsRef.current();
       const currentRunning = getRunningScoreRef.current();
-      const totalScore = (stats.totalScore || 0) + currentRunning;
+      const rawScore = (stats.totalScore || 0) + currentRunning;
+      const adjustedScore = Math.round(rawScore * multiplier);
+      const totalScore = cumulBase + adjustedScore;
       const displayName = teamEmoji ? `${teamEmoji} ${campaignTeamName.trim()}` : campaignTeamName.trim();
       updateLiveScore({
         name: displayName,
         score: totalScore,
-        event: getTournamentEventCode(),
+        event: eventCode,
         currentLevel,
         status: 'playing',
       }).catch(() => {});
     };
 
     pushScore(); // Push immediately on state change
-    const interval = setInterval(pushScore, 5000);
+    const interval = setInterval(pushScore, pushInterval);
     return () => clearInterval(interval);
-  }, [roundConfig, campaignTeamName, teamEmoji, gameState, currentLevel, GAME_STATES]);
+  }, [roundConfig, campaignTeamName, teamEmoji, gameState, currentLevel, GAME_STATES, tournamentConfig]);
 
   // Wrap handleAction to advance tutorial on mobile taps (not just keyboard)
   const handleActionWithTutorial = useCallback((action) => {
@@ -770,11 +790,6 @@ function AppInner() {
       </div>
     </div>
   );
-
-  // Spectator mode — render full-screen leaderboard instead of game
-  if (spectateCode) {
-    return <SpectatorBoard eventCode={spectateCode} />;
-  }
 
   // ========================
   // PRE-GAME SCREEN
@@ -1533,11 +1548,572 @@ function AppInner() {
   );
 }
 
-// Wrapper: access gate before game loads (skip if GATE_PASSWORD is null)
-export default function App() {
-  const [unlocked, setUnlocked] = useState(!GATE_PASSWORD);
-  const handleUnlock = useCallback(() => setUnlocked(true), []);
+// ── Tournament Player Screens ────────────────────────────────
+// These are rendered when in tournament V2 mode (via game code entry or ?code= URL param)
 
-  if (!unlocked) return <AccessGate onUnlock={handleUnlock} />;
-  return <AppInner />;
+function TournamentLobbyScreen({ tournament }) {
+  const [nameInput, setNameInput] = useState('');
+  const basePath = import.meta.env.BASE_URL || '/missile-defense/';
+
+  return (
+    <div className="h-screen bg-[#0a0e1a] flex items-center justify-center relative overflow-hidden">
+      <div className="absolute inset-0" style={{ background: `url('${basePath}images/ID3.jpg') center 40% / cover no-repeat` }} />
+      <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(10,14,26,0.6) 0%, rgba(10,14,26,0.85) 50%, rgba(10,14,26,0.95) 100%)' }} />
+      <div className="relative z-10 text-center max-w-sm mx-auto px-4">
+        <div className="font-mono text-xs tracking-[0.4em] text-green-500/60 mb-2">
+          {tournament.tournamentDoc?.eventCode || ''} TOURNAMENT
+        </div>
+        <div className="font-mono text-2xl font-black tracking-[0.2em] text-green-400 mb-6"
+          style={{ textShadow: '0 0 30px rgba(34,197,94,0.2)' }}>
+          JOIN THE MISSION
+        </div>
+
+        {/* Emoji picker */}
+        <div className="mb-4">
+          <EmojiPicker selected={tournament.teamEmoji} onSelect={tournament.setTeamEmoji} />
+        </div>
+
+        {/* Name input */}
+        <input
+          type="text"
+          value={nameInput}
+          onChange={(e) => {
+            setNameInput(e.target.value.toUpperCase().slice(0, 10));
+            tournament.setError(null);
+          }}
+          placeholder="ENTER TEAM NAME"
+          maxLength={10}
+          autoFocus
+          className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-center
+            font-mono text-lg text-orange-400 tracking-widest
+            focus:border-green-500 focus:outline-none placeholder-gray-700 mb-2"
+        />
+        {nameInput && containsProfanity(nameInput) && (
+          <div className="font-mono text-xs text-red-400 mb-2">CHOOSE A DIFFERENT NAME</div>
+        )}
+        {tournament.error && (
+          <div className="font-mono text-xs text-red-400 mb-2">{tournament.error}</div>
+        )}
+
+        {/* Join button */}
+        <button
+          onClick={() => tournament.submitTeamName(nameInput, tournament.teamEmoji)}
+          disabled={!nameInput.trim() || nameInput.trim().length < 2 || containsProfanity(nameInput)}
+          className={`w-full py-3 mt-2 rounded-xl font-mono text-lg tracking-widest transition-all cursor-pointer
+            ${!nameInput.trim() || nameInput.trim().length < 2
+              ? 'bg-gray-800/50 border border-gray-700 text-gray-600'
+              : 'bg-green-900/40 border-2 border-green-500/60 text-green-400 hover:bg-green-900/60'
+            }`}>
+          JOIN ▸
+        </button>
+
+        {/* Team count */}
+        {tournament.tournamentDoc?.teams && (
+          <div className="font-mono text-xs text-gray-500 tracking-wider mt-4">
+            {Object.keys(tournament.tournamentDoc.teams).filter(k => !tournament.tournamentDoc.teams[k].kicked).length} teams joined
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function TournamentWaitingScreen({ tournament }) {
+  return (
+    <div className="h-screen bg-[#0a0e1a] flex items-center justify-center">
+      <div className="text-center max-w-sm mx-auto px-4">
+        {/* Confirmed badge */}
+        <div className="mb-6">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-900/30 border border-green-500/40 rounded-full">
+            <span className="text-green-400">✓</span>
+            <span className="font-mono text-sm tracking-widest text-green-400">YOU'RE IN</span>
+          </div>
+        </div>
+
+        {/* Team display */}
+        <div className="mb-8">
+          {tournament.teamEmoji && (
+            <div className="text-4xl mb-2">{tournament.teamEmoji}</div>
+          )}
+          <div className="font-mono text-2xl font-bold tracking-wider text-green-400"
+            style={{ textShadow: '0 0 20px rgba(34,197,94,0.3)' }}>
+            {tournament.teamName}
+          </div>
+        </div>
+
+        {/* Look up message */}
+        <div className="font-mono text-sm text-gray-400 tracking-wider animate-pulse"
+          style={{ animationDuration: '2s' }}>
+          LOOK AT THE MAIN SCREEN
+        </div>
+
+        {/* Team count */}
+        <div className="font-mono text-xs text-gray-600 tracking-wider mt-6">
+          {Object.keys(tournament.tournamentDoc?.teams || {}).filter(k => !tournament.tournamentDoc?.teams?.[k]?.kicked).length} teams ready
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TournamentTapReadyScreen({ tournament }) {
+  return (
+    <div className="h-screen bg-[#0a0e1a] flex items-center justify-center cursor-pointer"
+      onClick={tournament.tapReady}>
+      <div className="text-center">
+        <div className="font-mono text-xs tracking-[0.4em] text-green-500/60 mb-4">
+          ROUND STARTING
+        </div>
+        <div className="font-mono text-3xl font-black tracking-[0.2em] text-green-400 mb-8 animate-pulse"
+          style={{ textShadow: '0 0 30px rgba(34,197,94,0.3)' }}>
+          TAP WHEN READY
+        </div>
+        <div className="font-mono text-sm text-gray-500 tracking-wider">
+          TAP ANYWHERE TO BEGIN
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TournamentCountdownScreen({ tournament }) {
+  return (
+    <div className="h-screen bg-[#0a0e1a] flex items-center justify-center">
+      <div className="text-center">
+        <div className="font-mono text-[120px] font-black text-green-400 tabular-nums"
+          style={{
+            textShadow: '0 0 60px rgba(34,197,94,0.4), 0 0 120px rgba(34,197,94,0.2)',
+            animation: 'pulse 1s ease-in-out infinite',
+          }}>
+          {tournament.countdownValue || ''}
+        </div>
+        <div className="font-mono text-sm tracking-[0.4em] text-green-500/60">
+          {ROUND_CONFIGS[tournament.tournamentDoc?.currentRound]?.label || 'GET READY'}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TournamentRoundCompleteScreen({ tournament }) {
+  const stats = tournament.roundLeaderboard;
+  const rank = tournament.playerRank;
+  const currentRound = tournament.tournamentDoc?.currentRound || 1;
+  const roundLabel = ROUND_CONFIGS[currentRound]?.label || `ROUND ${currentRound}`;
+
+  return (
+    <div className="h-screen bg-[#0a0e1a] flex items-center justify-center">
+      <div className="text-center max-w-sm mx-auto px-4">
+        <div className="font-mono text-xs tracking-[0.4em] text-green-500/60 mb-2">
+          {roundLabel}
+        </div>
+        <div className="font-mono text-2xl font-black tracking-[0.2em] text-green-400 mb-6"
+          style={{ textShadow: '0 0 30px rgba(34,197,94,0.2)' }}>
+          ROUND COMPLETE
+        </div>
+
+        {/* Score */}
+        <div className="mb-6">
+          <div className="font-mono text-5xl font-black text-green-400 tabular-nums mb-1"
+            style={{ textShadow: '0 0 40px rgba(34,197,94,0.3)' }}>
+            {tournament.cumulativeBase.toLocaleString()}
+          </div>
+          <div className="font-mono text-sm text-gray-500 tracking-widest">TOTAL SCORE</div>
+        </div>
+
+        {/* Rank */}
+        {rank > 0 && (
+          <div className="mb-6">
+            <div className="font-mono text-lg text-gray-400">
+              RANK: <span className="text-green-400 font-bold">{rank}</span> of {stats.length}
+            </div>
+          </div>
+        )}
+
+        {/* Waiting */}
+        <div className="py-4 px-6 rounded-xl bg-gray-900/50 border border-gray-800">
+          <div className="font-mono text-sm text-gray-400 tracking-wider animate-pulse"
+            style={{ animationDuration: '2s' }}>
+            WAITING FOR RESULTS
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TournamentAdvancingScreen({ tournament }) {
+  const currentRound = tournament.tournamentDoc?.currentRound || 1;
+
+  return (
+    <div className="h-screen bg-[#0a0e1a] flex items-center justify-center">
+      <div className="text-center max-w-sm mx-auto px-4">
+        <div className="font-mono text-xs tracking-[0.4em] text-green-500/60 mb-4">
+          {ROUND_CONFIGS[currentRound]?.label || ''}
+        </div>
+        <div className="font-mono text-3xl font-black tracking-[0.2em] text-green-400 mb-4"
+          style={{ textShadow: '0 0 40px rgba(34,197,94,0.4)' }}>
+          YOU ADVANCE!
+        </div>
+        <div className="text-4xl mb-4">{tournament.teamEmoji || '🎯'}</div>
+        <div className="font-mono text-xl font-bold text-green-400 tracking-wider mb-6">
+          {tournament.teamName}
+        </div>
+        <div className="font-mono text-sm text-gray-400 tracking-wider">
+          Score: <span className="text-green-400 font-bold">{tournament.cumulativeBase.toLocaleString()}</span>
+        </div>
+        <div className="font-mono text-xs text-gray-500 tracking-wider mt-6 animate-pulse">
+          NEXT ROUND STARTING SOON
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TournamentEliminatedScreen({ tournament }) {
+  return (
+    <div className="h-screen bg-[#0a0e1a] flex items-center justify-center">
+      <div className="text-center max-w-sm mx-auto px-4">
+        <div className="font-mono text-2xl font-black tracking-[0.2em] text-gray-400 mb-4">
+          GREAT RUN!
+        </div>
+        <div className="text-3xl mb-4">{tournament.teamEmoji || '🎯'}</div>
+        <div className="font-mono text-lg font-bold text-gray-400 tracking-wider mb-2">
+          {tournament.teamName}
+        </div>
+        <div className="font-mono text-sm text-gray-500 mb-6">
+          Final Score: <span className="text-green-400 font-bold">{tournament.cumulativeBase.toLocaleString()}</span>
+          {tournament.playerRank > 0 && <span className="text-gray-600"> • Rank {tournament.playerRank}</span>}
+        </div>
+
+        <button onClick={tournament.enterPractice}
+          className="px-6 py-3 bg-gray-800/50 border border-gray-700 rounded-xl
+            font-mono text-sm tracking-widest text-gray-400
+            hover:bg-gray-700/50 hover:text-gray-300 transition-all cursor-pointer">
+          PRACTICE ANY LEVEL ▸
+        </button>
+
+        <div className="font-mono text-xs text-gray-600 tracking-wider mt-6">
+          Watch the main screen for tournament results
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TournamentChampionScreen({ tournament }) {
+  const entries = tournament.roundLeaderboard;
+  const isChampion = tournament.playerRank === 1;
+
+  return (
+    <div className="h-screen bg-[#0a0e1a] flex items-center justify-center">
+      <div className="text-center max-w-sm mx-auto px-4">
+        <div className="font-mono text-xs tracking-[0.4em] text-yellow-500/60 mb-4">
+          TOURNAMENT COMPLETE
+        </div>
+        <div className="font-mono text-3xl font-black tracking-[0.2em] mb-4"
+          style={{
+            color: isChampion ? '#fbbf24' : '#9ca3af',
+            textShadow: isChampion ? '0 0 40px rgba(251,191,36,0.4)' : 'none',
+          }}>
+          {isChampion ? 'CHAMPION!' : 'RUNNER-UP'}
+        </div>
+        <div className="text-4xl mb-2">{tournament.teamEmoji || '🏆'}</div>
+        <div className="font-mono text-xl font-bold tracking-wider mb-2"
+          style={{ color: isChampion ? '#fbbf24' : '#9ca3af' }}>
+          {tournament.teamName}
+        </div>
+        <div className="font-mono text-3xl font-black text-green-400 tabular-nums mb-6"
+          style={{ textShadow: '0 0 30px rgba(34,197,94,0.3)' }}>
+          {tournament.cumulativeBase.toLocaleString()}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Main App Router ──────────────────────────────────────────
+export default function App() {
+  // Check URL params for routing
+  const adminCode = getAdminCode();
+  const spectateCode = getSpectateCode();
+  const gameCode = getGameCode();
+  const legacyRound = getRoundNumber();
+  const legacyEvent = getEventCode();
+
+  // Admin dashboard — ?admin=CODE
+  if (adminCode) {
+    return <AdminBoard eventCode={adminCode} />;
+  }
+
+  // Spectator board — ?score=CODE
+  if (spectateCode) {
+    return <SpectatorBoard eventCode={spectateCode} />;
+  }
+
+  // Legacy V1 tournament — ?event=CODE&round=N (backward compat)
+  if (legacyEvent && legacyRound) {
+    return <AppInner />;
+  }
+
+  // Tournament V2 or solo mode
+  return <TournamentRouter initialGameCode={gameCode} />;
+}
+
+// ── Tournament Router ────────────────────────────────────────
+// Handles the title screen (game code + solo mission) and tournament flow
+function TournamentRouter({ initialGameCode }) {
+  const tournament = useTournament(initialGameCode);
+  const [soloMode, setSoloMode] = useState(false);
+  const [gateUnlocked, setGateUnlocked] = useState(!GATE_PASSWORD);
+
+  // Wake lock — prevent screen dimming during tournament
+  useEffect(() => {
+    if (tournament.phase === TOURNAMENT_PHASES.TITLE || soloMode) return;
+    let wakeLock = null;
+    const requestWakeLock = async () => {
+      try {
+        wakeLock = await navigator.wakeLock?.request('screen');
+      } catch {}
+    };
+    requestWakeLock();
+    // Re-acquire on visibility change (iOS releases on tab switch)
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') requestWakeLock();
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => {
+      wakeLock?.release().catch(() => {});
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, [tournament.phase, soloMode]);
+
+  // If user chose solo mode, render the regular game
+  if (soloMode) {
+    return <AppInner />;
+  }
+
+  // Tournament phase screens
+  const { phase } = tournament;
+
+  // Title screen — game code input + solo mission
+  if (phase === TOURNAMENT_PHASES.TITLE) {
+    return <TitleScreen
+      tournament={tournament}
+      onSoloMission={() => {
+        if (GATE_PASSWORD && !gateUnlocked) {
+          // Show access gate for solo mode
+          return;
+        }
+        setSoloMode(true);
+      }}
+      gatePassword={GATE_PASSWORD}
+      gateUnlocked={gateUnlocked}
+      onGateUnlock={() => {
+        setGateUnlocked(true);
+        setSoloMode(true);
+      }}
+    />;
+  }
+
+  if (phase === TOURNAMENT_PHASES.LOBBY) {
+    return <TournamentLobbyScreen tournament={tournament} />;
+  }
+
+  if (phase === TOURNAMENT_PHASES.WAITING) {
+    return <TournamentWaitingScreen tournament={tournament} />;
+  }
+
+  if (phase === TOURNAMENT_PHASES.TAP_READY) {
+    return <TournamentTapReadyScreen tournament={tournament} />;
+  }
+
+  if (phase === TOURNAMENT_PHASES.COUNTDOWN) {
+    return <TournamentCountdownScreen tournament={tournament} />;
+  }
+
+  if (phase === TOURNAMENT_PHASES.ROUND_COMPLETE) {
+    return <TournamentRoundCompleteScreen tournament={tournament} />;
+  }
+
+  if (phase === TOURNAMENT_PHASES.ADVANCING) {
+    return <TournamentAdvancingScreen tournament={tournament} />;
+  }
+
+  if (phase === TOURNAMENT_PHASES.ELIMINATED) {
+    return <TournamentEliminatedScreen tournament={tournament} />;
+  }
+
+  if (phase === TOURNAMENT_PHASES.PRACTICE) {
+    // Practice mode — render AppInner without tournament config (solo-like)
+    return <AppInner isPracticeMode />;
+  }
+
+  if (phase === TOURNAMENT_PHASES.CHAMPION) {
+    return <TournamentChampionScreen tournament={tournament} />;
+  }
+
+  // PLAYING phase — render the game with tournament config
+  if (phase === TOURNAMENT_PHASES.PLAYING) {
+    return <AppInner
+      tournamentConfig={{
+        roundConfig: tournament.currentRoundConfig,
+        eventCode: tournament.eventCode,
+        currentRound: tournament.tournamentDoc?.currentRound || 1,
+        teamName: tournament.teamName,
+        teamEmoji: tournament.teamEmoji,
+        displayName: tournament.displayName,
+        cumulativeBase: tournament.cumulativeBase,
+        roundMultiplier: tournament.tournamentDoc?.roundMultipliers?.[tournament.tournamentDoc?.currentRound] || 1,
+        currentRoundEventCode: tournament.currentRoundEventCode,
+        onRoundFinished: tournament.onRoundFinished,
+        isPaused: tournament.isPaused,
+      }}
+    />;
+  }
+
+  // Fallback
+  return <TournamentWaitingScreen tournament={tournament} />;
+}
+
+// ── Title Screen (game code + solo mission) ──────────────────
+function TitleScreen({ tournament, onSoloMission, gatePassword, gateUnlocked, onGateUnlock }) {
+  const [codeInput, setCodeInput] = useState('');
+  const [showGate, setShowGate] = useState(false);
+  const [gateInput, setGateInput] = useState('');
+  const [gateError, setGateError] = useState(false);
+  const basePath = import.meta.env.BASE_URL || '/missile-defense/';
+
+  // Solo mission with gate
+  const handleSoloClick = () => {
+    if (gatePassword && !gateUnlocked) {
+      setShowGate(true);
+    } else {
+      onSoloMission();
+    }
+  };
+
+  const handleGateSubmit = (e) => {
+    e.preventDefault();
+    if (gateInput.trim().toUpperCase() === gatePassword?.toUpperCase()) {
+      onGateUnlock();
+    } else {
+      setGateError(true);
+      setTimeout(() => setGateError(false), 1500);
+    }
+  };
+
+  // Gate screen for solo mode
+  if (showGate) {
+    return (
+      <div className="h-screen bg-[#0a0e1a] flex items-center justify-center">
+        <form onSubmit={handleGateSubmit} className="text-center">
+          <div className="font-mono text-xl font-bold tracking-[0.3em] text-green-400/60 mb-6">
+            ACCESS CODE
+          </div>
+          <input
+            type="text"
+            value={gateInput}
+            onChange={(e) => setGateInput(e.target.value.toUpperCase())}
+            autoFocus
+            className={`w-48 px-4 py-3 bg-gray-900/80 border rounded-lg text-center
+              font-mono text-lg tracking-[0.3em] focus:outline-none
+              ${gateError ? 'border-red-500 text-red-400' : 'border-gray-700 text-green-400 focus:border-green-500'}`}
+            placeholder="••••"
+          />
+          <div className={`font-mono text-xs mt-2 h-4 tracking-wider ${gateError ? 'text-red-400' : 'text-transparent'}`}>
+            ACCESS DENIED
+          </div>
+          <button type="button" onClick={() => setShowGate(false)}
+            className="font-mono text-xs text-gray-600 tracking-wider mt-4 hover:text-gray-400 cursor-pointer">
+            ← BACK
+          </button>
+        </form>
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-screen bg-[#0a0e1a] flex items-center justify-center relative overflow-hidden">
+      {/* Hero background */}
+      <div className="absolute inset-0" style={{ background: `url('${basePath}images/ID3.jpg') center 40% / cover no-repeat` }} />
+      <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(10,14,26,0.5) 0%, rgba(10,14,26,0.35) 30%, rgba(10,14,26,0.35) 50%, rgba(10,14,26,0.6) 70%, rgba(10,14,26,0.92) 100%)' }} />
+      <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at center, transparent 40%, rgba(10,14,26,0.5) 100%)' }} />
+
+      <div className="relative z-10 text-center w-full max-w-md mx-auto px-6">
+        {/* Title */}
+        <div className="mb-2">
+          <div className="h-px w-16 mx-auto mb-4" style={{ background: 'linear-gradient(90deg, transparent, #f97316, transparent)' }} />
+          <h1 className="font-mono text-3xl md:text-4xl font-black tracking-[0.15em] text-white"
+            style={{ textShadow: '0 2px 20px rgba(0,0,0,0.8)' }}>
+            IRON DOME COMMAND
+          </h1>
+          <div className="font-mono text-lg md:text-xl text-gray-300 mt-1"
+            style={{ textShadow: '0 2px 10px rgba(0,0,0,0.6)' }}>
+            פיקוד כיפת ברזל
+          </div>
+        </div>
+
+        {/* System badges */}
+        <div className="flex justify-center gap-5 mt-4 mb-8">
+          {[
+            { name: 'IRON DOME', color: '#eab308' },
+            { name: "DAVID'S SLING", color: '#3b82f6' },
+            { name: 'ARROW 2', color: '#ef4444' },
+            { name: 'ARROW 3', color: '#a855f7' },
+          ].map(s => (
+            <div key={s.name} className="text-center">
+              <div className="w-2 h-2 rounded-full mx-auto mb-1" style={{ backgroundColor: s.color }} />
+              <div className="font-mono text-[9px] tracking-widest text-gray-400">{s.name}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Game code input */}
+        <div className="mb-4">
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            if (codeInput.trim()) tournament.joinTournament(codeInput.trim());
+          }}>
+            <input
+              type="text"
+              value={codeInput}
+              onChange={(e) => {
+                setCodeInput(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10));
+                tournament.setError(null);
+              }}
+              placeholder="ENTER GAME CODE"
+              maxLength={10}
+              className="w-full px-4 py-3 bg-gray-900/60 border border-orange-500/40 rounded-lg text-center
+                font-mono text-lg text-orange-400 tracking-[0.2em]
+                focus:border-orange-500 focus:outline-none placeholder-gray-600
+                backdrop-blur-sm"
+            />
+          </form>
+          {tournament.error && (
+            <div className="font-mono text-xs text-red-400 tracking-wider mt-1">{tournament.error}</div>
+          )}
+        </div>
+
+        {/* Divider */}
+        <div className="flex items-center gap-3 mb-4">
+          <div className="flex-1 h-px bg-gray-700/50" />
+          <span className="font-mono text-[10px] text-gray-600 tracking-widest">OR</span>
+          <div className="flex-1 h-px bg-gray-700/50" />
+        </div>
+
+        {/* Solo mission */}
+        <button onClick={handleSoloClick}
+          className="w-full py-3 bg-gray-900/40 border border-gray-600/40 rounded-lg
+            font-mono text-sm tracking-widest text-gray-400
+            hover:bg-gray-800/60 hover:border-gray-500/50 hover:text-gray-300
+            transition-all cursor-pointer backdrop-blur-sm">
+          SOLO MISSION ▸
+        </button>
+
+        {/* Footer */}
+        <div className="font-mono text-[10px] text-gray-600 mt-8">© Hecht Studio 2026</div>
+      </div>
+    </div>
+  );
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { subscribeLeaderboard } from '../utils/leaderboard.js';
+import { subscribeLeaderboard, subscribeTournament, sanitizeTeamKey } from '../utils/leaderboard.js';
 import { ROUND_CONFIGS } from '../hooks/useGameEngine.js';
 
 // Sound effects for spectator board
@@ -148,6 +148,92 @@ export default function SpectatorBoard({ eventCode }) {
   const prevScoresRef = useRef({}); // { teamName: score }
   const prevRanksRef = useRef({}); // { teamName: rankIndex }
 
+  // Tournament V2 state
+  const [tournamentDoc, setTournamentDoc] = useState(null);
+  const [lobbyTeams, setLobbyTeams] = useState([]); // array of { name, emoji, joinedAt }
+  const [revealPhase, setRevealPhase] = useState(null); // null | 'dimming' | 'revealing' | 'done'
+  const [revealedIndex, setRevealedIndex] = useState(-1);
+  const [championReveal, setChampionReveal] = useState(null); // null | 'runner_up' | 'champion' | 'hold'
+  const prevTeamCountRef = useRef(0);
+
+  // Subscribe to tournament doc (V2)
+  useEffect(() => {
+    const unsub = subscribeTournament(eventCode, (doc) => {
+      setTournamentDoc(doc);
+      if (doc) {
+        // Sync round from tournament doc
+        setCurrentRound(doc.currentRound || 1);
+
+        // Extract lobby teams
+        const teams = doc.teams || {};
+        const teamList = Object.entries(teams)
+          .filter(([_, t]) => !t.kicked)
+          .map(([key, t]) => ({ key, name: t.name, emoji: t.emoji || '', joinedAt: t.joinedAt }))
+          .sort((a, b) => a.joinedAt - b.joinedAt);
+
+        // Play sound for new team joins
+        if (teamList.length > prevTeamCountRef.current && prevTeamCountRef.current > 0) {
+          playNewScoreSound();
+          // Milestone chimes at 10, 20, 30, 40
+          if (teamList.length % 10 === 0) {
+            playNewLeaderSound();
+          }
+        }
+        prevTeamCountRef.current = teamList.length;
+        setLobbyTeams(teamList);
+
+        // Auto-close round based on tournament doc
+        if (doc.roundStatus === 'complete') {
+          setRoundClosed(true);
+        } else {
+          setRoundClosed(false);
+        }
+      }
+    });
+    return unsub;
+  }, [eventCode]);
+
+  // Trigger reveal animation when round closes
+  useEffect(() => {
+    if (!roundClosed || !tournamentDoc?.roundStatus === 'complete') return;
+    if (revealPhase) return; // Already revealing
+
+    // Start reveal sequence
+    setRevealPhase('dimming');
+    setRevealedIndex(-1);
+
+    // After 3s dim, start row-by-row reveal
+    const dimTimer = setTimeout(() => {
+      setRevealPhase('revealing');
+      let idx = 0;
+      const revealInterval = setInterval(() => {
+        if (idx >= entries.length) {
+          clearInterval(revealInterval);
+          setRevealPhase('done');
+          return;
+        }
+        setRevealedIndex(idx);
+        idx++;
+      }, 300); // 300ms per row
+    }, 3000);
+
+    return () => clearTimeout(dimTimer);
+  }, [roundClosed]);
+
+  // Champion reveal after R3
+  useEffect(() => {
+    if (!tournamentDoc || tournamentDoc.roundStatus !== 'finished') return;
+    if (championReveal) return;
+
+    // Start champion reveal sequence
+    setTimeout(() => setChampionReveal('runner_up'), 2000);
+    setTimeout(() => setChampionReveal('champion'), 5000);
+    setTimeout(() => setChampionReveal('hold'), 8000);
+  }, [tournamentDoc?.roundStatus]);
+
+  const isV2Tournament = !!tournamentDoc;
+  const roundStatus = tournamentDoc?.roundStatus || 'lobby';
+
   const roundLabel = ROUND_CONFIGS[currentRound]?.label || `ROUND ${currentRound}`;
   const roundEventCode = `${eventCode}-R${currentRound}`;
   const scale = getScaleConfig(entries.length);
@@ -205,6 +291,22 @@ export default function SpectatorBoard({ eventCode }) {
 
     return unsub;
   }, [currentRound, roundEventCode]);
+
+  // Offline detection — if no data arrives in 30s while teams are playing, show warning
+  const lastDataRef = useRef(Date.now());
+  useEffect(() => {
+    // Update last-data timestamp whenever entries change
+    lastDataRef.current = Date.now();
+  }, [entries]);
+  useEffect(() => {
+    const check = setInterval(() => {
+      const hasPlayingTeams = entries.some(e => e.status === 'playing');
+      if (hasPlayingTeams && Date.now() - lastDataRef.current > 30000) {
+        setOffline(true);
+      }
+    }, 5000);
+    return () => clearInterval(check);
+  }, [entries]);
 
   // Clean up old delta badges
   useEffect(() => {
@@ -278,18 +380,113 @@ export default function SpectatorBoard({ eventCode }) {
         </div>
       )}
 
-      {/* Leaderboard */}
+      {/* Main Content */}
       <div className="flex-1 px-8 pb-6 overflow-hidden">
-        {entries.length === 0 ? (
+        {/* V2 Tournament Lobby */}
+        {isV2Tournament && roundStatus === 'lobby' ? (
+          <div className="h-full flex flex-col items-center justify-center">
+            {/* Game code + instructions */}
+            <div className="text-center mb-8">
+              <div className="font-mono text-lg text-gray-500 tracking-widest mb-2">
+                GO TO kipat-barzel.org
+              </div>
+              <div className="font-mono text-sm text-gray-600 tracking-wider mb-1">ENTER CODE</div>
+              <div className="font-mono text-5xl font-black text-green-400 tracking-[0.4em]"
+                style={{ textShadow: '0 0 40px rgba(34,197,94,0.3)' }}>
+                {eventCode}
+              </div>
+            </div>
+
+            {/* Team count */}
+            <div className="font-mono text-3xl font-bold text-green-400/80 mb-6 tabular-nums">
+              {lobbyTeams.length} <span className="text-lg text-green-400/50 tracking-widest">TEAMS DEPLOYED</span>
+            </div>
+
+            {/* Team grid — names pop in */}
+            <div className="flex flex-wrap justify-center gap-3 max-w-4xl">
+              {lobbyTeams.map((team, i) => (
+                <div key={team.key}
+                  className="px-4 py-2 bg-gray-900/60 border border-green-500/20 rounded-lg
+                    flex items-center gap-2 lobby-team-enter"
+                  style={{
+                    animation: `lobbySlideIn 0.4s ease-out ${i * 0.05}s both`,
+                  }}>
+                  {team.emoji && <span className="text-lg">{team.emoji}</span>}
+                  <span className="font-mono text-sm font-bold text-green-400 tracking-wider">{team.name}</span>
+                </div>
+              ))}
+            </div>
+
+            {lobbyTeams.length === 0 && (
+              <div className="mt-8">
+                <RadarWaiting eventCode={eventCode} currentRound={currentRound} />
+              </div>
+            )}
+
+            <style>{`
+              @keyframes lobbySlideIn {
+                from { opacity: 0; transform: translateY(20px) scale(0.9); }
+                to { opacity: 1; transform: translateY(0) scale(1); }
+              }
+            `}</style>
+          </div>
+        ) : /* V2 Champion reveal */
+        isV2Tournament && roundStatus === 'finished' && championReveal ? (
+          <div className="h-full flex items-center justify-center">
+            <div className="text-center">
+              {championReveal === 'runner_up' && entries.length >= 2 && (
+                <div className="animate-pulse">
+                  <div className="font-mono text-xs tracking-[0.4em] text-gray-400 mb-4">RUNNER-UP</div>
+                  <div className="text-4xl mb-2">{entries[1]?.name?.match(/^[\p{Emoji}]/u)?.[0] || '🥈'}</div>
+                  <div className="font-mono text-2xl font-bold text-gray-300 tracking-wider mb-2">{entries[1]?.name?.replace(/^[\p{Emoji}\s]+/u, '') || entries[1]?.name}</div>
+                  <div className="font-mono text-xl text-gray-400 tabular-nums">{(entries[1]?.score || 0).toLocaleString()}</div>
+                </div>
+              )}
+              {(championReveal === 'champion' || championReveal === 'hold') && entries.length >= 1 && (
+                <div>
+                  {entries.length >= 2 && (
+                    <div className="mb-8 opacity-50">
+                      <div className="font-mono text-xs tracking-[0.4em] text-gray-500 mb-1">RUNNER-UP</div>
+                      <div className="font-mono text-lg text-gray-400">{entries[1]?.name} — {(entries[1]?.score || 0).toLocaleString()}</div>
+                    </div>
+                  )}
+                  <div className="font-mono text-xs tracking-[0.4em] text-yellow-500 mb-4">CHAMPION</div>
+                  <div className="text-6xl mb-3">🏆</div>
+                  <div className="font-mono text-4xl font-black text-yellow-400 tracking-wider mb-3"
+                    style={{ textShadow: '0 0 40px rgba(234,179,8,0.4)' }}>
+                    {entries[0]?.name}
+                  </div>
+                  <div className="font-mono text-3xl font-bold text-yellow-400 tabular-nums"
+                    style={{ textShadow: '0 0 30px rgba(234,179,8,0.3)' }}>
+                    {(entries[0]?.score || 0).toLocaleString()}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        ) : /* Reveal ceremony overlay */
+        revealPhase === 'dimming' ? (
+          <div className="h-full flex items-center justify-center">
+            <div className="font-mono text-3xl text-green-400/60 tracking-[0.4em] animate-pulse">
+              RESULTS INCOMING...
+            </div>
+          </div>
+        ) : /* Normal leaderboard (or reveal in progress) */
+        entries.length === 0 ? (
           <RadarWaiting eventCode={eventCode} currentRound={currentRound} />
         ) : (
           <div className={`flex flex-col ${scale.gap} h-full overflow-y-auto`}>
             {entries.map((entry, i) => {
               const rank = i + 1;
               const isQualifying = rank <= qualifyCount;
-              const isClosed = roundClosed;
+              const isClosed = roundClosed && revealPhase !== 'revealing'; // Don't show closed styling during reveal animation
+              const isRevealing = revealPhase === 'revealing';
+              const isRevealed = !isRevealing || i <= revealedIndex;
               const isAdvancing = isClosed && isQualifying;
               const isEliminated = isClosed && !isQualifying;
+
+              // Hide unrevealed rows during reveal animation
+              if (isRevealing && !isRevealed) return null;
               const hasRecentChange = recentChanges[entry.name] && (Date.now() - recentChanges[entry.name].time < 2500);
               const delta = hasRecentChange ? recentChanges[entry.name].delta : 0;
               const isLeader = rank === 1 && !isClosed;
@@ -386,11 +583,7 @@ export default function SpectatorBoard({ eventCode }) {
                         ADVANCING
                       </div>
                     )}
-                    {isEliminated && (
-                      <div className={`px-3 py-1 rounded-full bg-gray-800/50 border border-gray-700/40 font-mono ${scale.statusSize} tracking-widest text-gray-600 shrink-0`}>
-                        ELIMINATED
-                      </div>
-                    )}
+                    {/* Eliminated rows just dim — no harsh "ELIMINATED" text */}
 
                     {/* Score + delta badge */}
                     <div className="flex items-center gap-2 shrink-0">

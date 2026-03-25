@@ -1106,6 +1106,8 @@ export default function useGameEngine({ bonusLevelEnabled = false, roundConfig =
       sirenCount,
       bestStreak,
       quizBonus,
+      quizCorrect: Math.round(quizBonus / 250), // 250 points per correct answer
+      quizTotal: 2, // always 2 questions per level
       rating,
       score,
       isPerfect,
@@ -1163,6 +1165,8 @@ export default function useGameEngine({ bonusLevelEnabled = false, roundConfig =
     c.totalWastedIntercepts += stats.wastedIntercepts;
     c.overallBestStreak = Math.max(c.overallBestStreak, stats.bestStreak);
     c.quizPoints = (c.quizPoints || 0) + (stats.quizBonus || 0);
+    c.quizCorrect = (c.quizCorrect || 0) + (stats.quizCorrect || 0);
+    c.quizTotal = (c.quizTotal || 0) + (stats.quizTotal || 0);
   }, [getLevelStats]);
 
   // Start campaign from Level 1

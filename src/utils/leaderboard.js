@@ -8,6 +8,7 @@ import {
   addDoc,
   doc,
   setDoc,
+  getDoc,
   query,
   orderBy,
   limit,
@@ -53,6 +54,34 @@ export function getSpectateCode() {
   try {
     const params = new URLSearchParams(window.location.search);
     const code = params.get('score');
+    return code ? code.toUpperCase().replace(/[^A-Z0-9-]/g, '').slice(0, 20) : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Read ?admin= param from URL. Returns event code string or null.
+ * Used for the admin dashboard view.
+ */
+export function getAdminCode() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('admin');
+    return code ? code.toUpperCase().replace(/[^A-Z0-9-]/g, '').slice(0, 20) : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Read ?code= param from URL. Returns game code string or null.
+ * Used for tournament V2 player join flow.
+ */
+export function getGameCode() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
     return code ? code.toUpperCase().replace(/[^A-Z0-9-]/g, '').slice(0, 20) : null;
   } catch {
     return null;
@@ -299,6 +328,8 @@ export async function markScoreFinished({ name, score, event, stats = {} }) {
       correctIntercepts: stats.totalCorrectIntercepts || 0,
       sirenCount: stats.totalSirens || 0,
       bestStreak: stats.overallBestStreak || 0,
+      quizCorrect: stats.quizCorrect || 0,
+      quizTotal: stats.quizTotal || 0,
     };
     await setDoc(docRef, finalData, { merge: true });
     // Also save locally as fallback
@@ -314,4 +345,219 @@ export async function markScoreFinished({ name, score, event, stats = {} }) {
       timestamp: Date.now(),
     });
   }
+}
+
+// ── Tournament V2 (Lobby + Auto-Advancement) ─────────────────
+
+const TOURNAMENTS = 'tournaments';
+
+/** Sanitize team name for use as map key / doc ID component */
+export function sanitizeTeamKey(name) {
+  return (name || 'anon').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 20);
+}
+
+/** Get tournament Firestore doc ID */
+function getTournamentDocId(eventCode) {
+  return `tournament__${(eventCode || '').toUpperCase()}`;
+}
+
+/**
+ * Check if a tournament exists for the given event code.
+ * Returns the tournament data or null.
+ */
+export async function getTournament(eventCode) {
+  if (!db || !eventCode) return null;
+  try {
+    const docRef = doc(db, TOURNAMENTS, getTournamentDocId(eventCode));
+    const snap = await getDoc(docRef);
+    return snap.exists() ? snap.data() : null;
+  } catch (err) {
+    console.warn('getTournament failed:', err.message);
+    return null;
+  }
+}
+
+/**
+ * Create a new tournament. Called from the admin dashboard.
+ */
+export async function createTournament(eventCode) {
+  if (!db || !eventCode) return null;
+  const docId = getTournamentDocId(eventCode);
+  const docRef = doc(db, TOURNAMENTS, docId);
+  const data = {
+    eventCode: eventCode.toUpperCase(),
+    currentRound: 1,
+    roundStatus: 'lobby', // lobby | active | complete | finished
+    advanceConfig: {
+      1: { type: 'percentage', value: 50 },
+      2: { type: 'count', value: 2 },
+    },
+    rounds: {},
+    teams: {},
+    createdAt: Date.now(),
+  };
+  await setDoc(docRef, data);
+  return data;
+}
+
+/**
+ * Subscribe to a tournament document in real-time.
+ * Returns an unsubscribe function.
+ */
+export function subscribeTournament(eventCode, callback) {
+  if (!db || !eventCode) {
+    callback(null);
+    return () => {};
+  }
+  try {
+    const docRef = doc(db, TOURNAMENTS, getTournamentDocId(eventCode));
+    return onSnapshot(docRef, (snap) => {
+      callback(snap.exists() ? snap.data() : null);
+    }, (err) => {
+      console.warn('Tournament subscription failed:', err.message);
+      callback(null);
+    });
+  } catch (err) {
+    console.warn('Tournament subscription setup failed:', err.message);
+    callback(null);
+    return () => {};
+  }
+}
+
+/**
+ * Register a team in the tournament lobby.
+ * Writes to the teams map in the tournament doc.
+ */
+export async function registerTeam(eventCode, name, emoji = '') {
+  if (!db || !eventCode || !name) return;
+  const key = sanitizeTeamKey(name);
+  const docRef = doc(db, TOURNAMENTS, getTournamentDocId(eventCode));
+  await setDoc(docRef, {
+    teams: {
+      [key]: {
+        name: name.toUpperCase().slice(0, 10),
+        emoji: emoji || '',
+        joinedAt: Date.now(),
+      },
+    },
+  }, { merge: true });
+}
+
+/**
+ * Admin: start the current round (lobby → active).
+ */
+export async function startRound(eventCode) {
+  if (!db || !eventCode) return;
+  const docRef = doc(db, TOURNAMENTS, getTournamentDocId(eventCode));
+  await setDoc(docRef, { roundStatus: 'active' }, { merge: true });
+}
+
+/**
+ * Admin: close the current round and set advancing teams.
+ * @param {string} eventCode
+ * @param {number} roundNumber - which round to close (1, 2, or 3)
+ * @param {string[]} advancingTeamKeys - sanitized team keys that advance
+ * @param {number} cutoffScore - score at the cutoff line
+ */
+export async function closeRound(eventCode, roundNumber, advancingTeamKeys, cutoffScore) {
+  if (!db || !eventCode) return;
+  const docRef = doc(db, TOURNAMENTS, getTournamentDocId(eventCode));
+  await setDoc(docRef, {
+    roundStatus: 'complete',
+    rounds: {
+      [roundNumber]: {
+        advancingTeams: advancingTeamKeys,
+        cutoffScore: cutoffScore || 0,
+      },
+    },
+  }, { merge: true });
+}
+
+/**
+ * Admin: advance to the next round (complete → lobby for next round).
+ * @param {number} nextRound - the round number to advance to (2 or 3)
+ */
+export async function advanceToNextRound(eventCode, nextRound) {
+  if (!db || !eventCode) return;
+  const docRef = doc(db, TOURNAMENTS, getTournamentDocId(eventCode));
+  await setDoc(docRef, {
+    currentRound: nextRound,
+    roundStatus: 'lobby',
+  }, { merge: true });
+}
+
+/**
+ * Admin: mark tournament as finished (after final round).
+ */
+export async function finishTournament(eventCode) {
+  if (!db || !eventCode) return;
+  const docRef = doc(db, TOURNAMENTS, getTournamentDocId(eventCode));
+  await setDoc(docRef, { roundStatus: 'finished' }, { merge: true });
+}
+
+/**
+ * Admin: update advancement config for a round.
+ * @param {number} roundNumber
+ * @param {{ type: 'percentage'|'count', value: number }} config
+ */
+export async function updateAdvanceConfig(eventCode, roundNumber, config) {
+  if (!db || !eventCode) return;
+  const docRef = doc(db, TOURNAMENTS, getTournamentDocId(eventCode));
+  await setDoc(docRef, {
+    advanceConfig: { [roundNumber]: config },
+  }, { merge: true });
+}
+
+/**
+ * Admin: reset tournament back to round 1 lobby with no teams.
+ */
+export async function resetTournament(eventCode) {
+  if (!db || !eventCode) return;
+  return createTournament(eventCode); // overwrite with fresh state
+}
+
+/**
+ * Admin: pause all players (simple boolean flag).
+ */
+export async function pauseRound(eventCode) {
+  if (!db || !eventCode) return;
+  const docRef = doc(db, TOURNAMENTS, getTournamentDocId(eventCode));
+  await setDoc(docRef, { paused: true }, { merge: true });
+}
+
+/**
+ * Admin: resume all players.
+ */
+export async function resumeRound(eventCode) {
+  if (!db || !eventCode) return;
+  const docRef = doc(db, TOURNAMENTS, getTournamentDocId(eventCode));
+  await setDoc(docRef, { paused: false }, { merge: true });
+}
+
+/**
+ * Admin: kick a team from the tournament.
+ */
+export async function kickTeam(eventCode, teamKey) {
+  if (!db || !eventCode || !teamKey) return;
+  const docRef = doc(db, TOURNAMENTS, getTournamentDocId(eventCode));
+  // Remove team from the teams map by setting to deleteField sentinel
+  // Since Firestore merge doesn't support deleting nested fields easily,
+  // we'll mark them as kicked instead
+  await setDoc(docRef, {
+    teams: { [teamKey]: { kicked: true } },
+  }, { merge: true });
+}
+
+/**
+ * Admin: start round with absolute timestamp for synchronized countdown.
+ * Writes roundStartsAt = Date.now() + delayMs.
+ */
+export async function startRoundWithCountdown(eventCode, delayMs = 5000) {
+  if (!db || !eventCode) return;
+  const docRef = doc(db, TOURNAMENTS, getTournamentDocId(eventCode));
+  await setDoc(docRef, {
+    roundStatus: 'active',
+    roundStartsAt: Date.now() + delayMs,
+    paused: false,
+  }, { merge: true });
 }
