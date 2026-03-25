@@ -143,6 +143,17 @@ export default function useTournament(initialEventCode = null) {
       }
       setError(null);
 
+      // Validate session restoration: if we think we're "joined" (from sessionStorage)
+      // but our team isn't in this tournament's teams map, we have stale session data.
+      if (joinedRef.current && teamKeyRef.current && doc.teams) {
+        if (!doc.teams[teamKeyRef.current]) {
+          // Stale session — team not in this tournament (probably reset)
+          setJoined(false);
+          joinedRef.current = false;
+          clearSessionState();
+        }
+      }
+
       // Block anyone who hasn't joined — only lobby phase allows new players
       if (!joinedRef.current && doc.roundStatus && doc.roundStatus !== 'lobby') {
         const messages = {
