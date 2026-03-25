@@ -429,6 +429,33 @@ function AppInner({ tournamentConfig = null, isPracticeMode = false }) {
     }
   }, [currentLevel, gameState, sessionTime, tutorialStep, showPauseReminder, activeThreats, GAME_STATES]);
 
+  // ── Tournament auto-timers: prevent stalling ──
+  // Auto-unpause after 10s, auto-skip scoring intro after 15s, auto-advance level complete after 10s
+  useEffect(() => {
+    if (!roundConfig) return; // Solo mode — no auto-timers
+
+    // Auto-unpause after 10 seconds
+    if (paused && gameState === GAME_STATES.ACTIVE) {
+      const timer = setTimeout(() => togglePause(), 10000);
+      return () => clearTimeout(timer);
+    }
+
+    // Auto-advance from SCORING_INTRO after 15s
+    if (gameState === GAME_STATES.SCORING_INTRO) {
+      const timer = setTimeout(() => {
+        seenBriefingsRef.current.add(currentLevel);
+        startLevel(currentLevel);
+      }, 15000);
+      return () => clearTimeout(timer);
+    }
+
+    // Auto-advance from LEVEL_COMPLETE after 10s
+    if (gameState === GAME_STATES.LEVEL_COMPLETE) {
+      const timer = setTimeout(() => advanceLevel(), 10000);
+      return () => clearTimeout(timer);
+    }
+  }, [roundConfig, paused, gameState, currentLevel, GAME_STATES]);
+
   // ── Live score push interval (tournament mode only) ──
   // Pushes running score to Firestore every 5 seconds so spectator board updates live.
   // Uses refs to avoid stale closures — getRunningScore depends on resultLog/sirenCount/etc.
@@ -1223,6 +1250,12 @@ function AppInner({ tournamentConfig = null, isPracticeMode = false }) {
             <span className="text-green-400/70 text-xs md:text-base lg:text-lg font-bold hidden md:inline-block tracking-wider" style={{ fontFamily: 'Arial, sans-serif' }}>
               {({ 1: 'חֲזִית הַדָּרוֹם', 2: 'חֲזִית הַצָּפוֹן', 3: 'חֲזִית הַמֶּרְכָּז', 4: 'מַטָּרוֹת אִסְטְרָטֶגִיּוֹת', 5: 'בְּסִיסֵי צָבָא', 6: 'מִתְקֶפֶת גַּלִּים', 7: 'שְׁלוֹשָׁה עָשָׂר בְּאַפְּרִיל' })[currentLevel] || ''}
             </span>
+            {/* Tournament mode indicator */}
+            {tournamentConfig && (
+              <div className="font-mono text-[9px] text-orange-400/50 tracking-[0.3em] mt-0.5">
+                {ROUND_CONFIGS[tournamentConfig.currentRound]?.label || 'TOURNAMENT'} — {tournamentConfig.eventCode}
+              </div>
+            )}
           </div>
         </div>
 
@@ -1318,7 +1351,7 @@ function AppInner({ tournamentConfig = null, isPracticeMode = false }) {
       {/* HUD hint — Pause & Explore — removed, now in AmmoStack */}
 
       {/* TUTORIAL OVERLAY — step-by-step coaching */}
-      {tutorialStep && tutorialStep !== 'done' && (() => {
+      {tutorialStep && !['done', 'wait_holdfire', 'wait_pause'].includes(tutorialStep) && (() => {
         // L3-L5 new weapon tutorial data
         const weaponTutorials = {
           3: { key: '2', system: "DAVID'S SLING", threat: 'CRUISE MISSILE', color: '#3b82f6' },

@@ -100,8 +100,8 @@ export default function useGameEngine({ bonusLevelEnabled = false, roundConfig =
   const [bouncingThreats, setBouncingThreats] = useState([]);
   const [sufrinActive, setSufrinActive] = useState(false);
 
-  // Campaign-wide cheat uses (3 each, persist across levels, reset on campaign start)
-  const CHEAT_MAX_USES = 3;
+  // Campaign-wide cheat uses (3 each solo, 1 each tournament — persist across levels, reset on campaign start)
+  const CHEAT_MAX_USES = roundConfig ? 1 : 3;
   const [cheatUses, setCheatUses] = useState({ tzur: CHEAT_MAX_USES, sasha: CHEAT_MAX_USES, dvir: CHEAT_MAX_USES, sufrin: CHEAT_MAX_USES, bh: CHEAT_MAX_USES, bsd: CHEAT_MAX_USES });
   const cheatUsesRef = useRef({ tzur: CHEAT_MAX_USES, sasha: CHEAT_MAX_USES, dvir: CHEAT_MAX_USES, sufrin: CHEAT_MAX_USES, bh: CHEAT_MAX_USES, bsd: CHEAT_MAX_USES });
 
