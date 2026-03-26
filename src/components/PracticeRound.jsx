@@ -136,12 +136,7 @@ export default function PracticeRound({ onBack }) {
     return () => clearInterval(interval);
   }, [step]);
 
-  // ── Flash cleanup ──
-  useEffect(() => {
-    if (impactFlashes.length === 0) return;
-    const timer = setTimeout(() => setImpactFlashes([]), 600);
-    return () => clearTimeout(timer);
-  }, [impactFlashes]);
+  // Flash cleanup handled per-flash via setTimeout in handleAction
 
   // ── Handle intercept / hold-fire ──
   const handleAction = useCallback((action) => {
@@ -161,20 +156,25 @@ export default function PracticeRound({ onBack }) {
       if (ammoRef.current <= 0) return;
       setAmmo((prev) => prev - 1);
 
-      // Flash effect at blip position
+      // Flash effect at blip position — match real game engine format
       const pos = getBlipMapPosition(threat);
-      setImpactFlashes([{
-        id: Date.now() + Math.random(),
+      const flashId = Date.now() + Math.random();
+      const particles = Array.from({ length: 8 }, (_, i) => {
+        const angle = (i / 8) * Math.PI * 2;
+        return { endX: Math.cos(angle) * 6, endY: Math.sin(angle) * 6, r: 0.4, delay: i * 0.02 };
+      });
+      setImpactFlashes((prev) => [...prev, {
+        id: flashId,
         zone: threat.impact_zone,
         cx: pos.x, cy: pos.y,
         type: 'intercept',
         threatType: 'rocket',
         scoreText: null,
-        particles: Array.from({ length: 8 }, (_, i) => ({
-          angle: (i / 8) * Math.PI * 2,
-          speed: 0.5 + Math.random() * 0.5,
-        })),
+        particles,
       }]);
+      setTimeout(() => {
+        setImpactFlashes((prev) => prev.filter((f) => f.id !== flashId));
+      }, 2000);
 
       setActiveThreats((prev) =>
         prev.map((t) =>
