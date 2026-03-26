@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import RadarDisplay, { mapToSVG, easeProgress } from './RadarDisplay';
-import { IMPACT_POSITIONS } from '../config/threats';
+import { IMPACT_POSITIONS, COMMAND_CENTER, INTERCEPTOR_COLORS } from '../config/threats';
 import { getSpawnOrigin } from '../config/spawnOrigins';
 import { LEVEL_VIEWPORTS } from '../config/mapLayers';
 
@@ -74,6 +74,7 @@ export default function PracticeRound({ onBack }) {
   const [step, setStep] = useState(STEPS.INTRO);
   const [feedback, setFeedback] = useState(null);
   const [impactFlashes, setImpactFlashes] = useState([]);
+  const [activeTrails, setActiveTrails] = useState([]);
   const [timeRemaining, setTimeRemaining] = useState(PRACTICE_DURATION);
 
   // Refs for tick loop
@@ -156,31 +157,54 @@ export default function PracticeRound({ onBack }) {
       if (ammoRef.current <= 0) return;
       setAmmo((prev) => prev - 1);
 
-      // Flash effect at blip position — match real game engine format
+      // Launch interceptor trail from command center to blip
       const pos = getBlipMapPosition(threat);
-      const flashId = Date.now() + Math.random();
-      const particles = Array.from({ length: 8 }, (_, i) => {
-        const angle = (i / 8) * Math.PI * 2;
-        return { endX: Math.cos(angle) * 6, endY: Math.sin(angle) * 6, r: 0.4, delay: i * 0.02 };
-      });
-      setImpactFlashes((prev) => [...prev, {
-        id: flashId,
-        zone: threat.impact_zone,
-        cx: pos.x, cy: pos.y,
-        type: 'intercept',
-        threatType: 'rocket',
-        scoreText: null,
-        particles,
-      }]);
-      setTimeout(() => {
-        setImpactFlashes((prev) => prev.filter((f) => f.id !== flashId));
-      }, 2000);
+      const trailId = Date.now() + Math.random();
+      const trailDuration = 600;
 
-      setActiveThreats((prev) =>
-        prev.map((t) =>
-          t.id === threat.id ? { ...t, intercepted: true, frozenTimeLeft: t.timeLeft } : t
-        )
-      );
+      setActiveTrails((prev) => [...prev, {
+        id: trailId,
+        startX: COMMAND_CENTER.x,
+        startY: COMMAND_CENTER.y,
+        endX: pos.x,
+        endY: pos.y,
+        color: INTERCEPTOR_COLORS.iron_dome,
+        duration: trailDuration,
+      }]);
+
+      // Clean up trail
+      setTimeout(() => {
+        setActiveTrails((prev) => prev.filter((t) => t.id !== trailId));
+      }, trailDuration + 500);
+
+      // Delayed intercept + flash (after trail reaches target)
+      const threatId = threat.id;
+      setTimeout(() => {
+        const blipPos = getBlipMapPosition(
+          activeThreatsRef.current.find((t) => t.id === threatId) || threat
+        );
+        const flashId = Date.now() + Math.random();
+        const particles = Array.from({ length: 8 }, (_, i) => {
+          const angle = (i / 8) * Math.PI * 2;
+          return { endX: Math.cos(angle) * 6, endY: Math.sin(angle) * 6, r: 0.4, delay: i * 0.02 };
+        });
+        setImpactFlashes((prev) => [...prev, {
+          id: flashId, zone: threat.impact_zone,
+          cx: blipPos.x, cy: blipPos.y,
+          type: 'intercept', threatType: 'rocket',
+          scoreText: null, particles,
+        }]);
+        setTimeout(() => {
+          setImpactFlashes((prev) => prev.filter((f) => f.id !== flashId));
+        }, 2000);
+
+        setActiveThreats((prev) =>
+          prev.map((t) =>
+            t.id === threatId ? { ...t, intercepted: true, frozenTimeLeft: t.timeLeft } : t
+          )
+        );
+      }, trailDuration);
+
       resolvedIds.current.add(threat.id);
       setSelectedThreatId(null);
 
@@ -232,6 +256,7 @@ export default function PracticeRound({ onBack }) {
     setStep(STEPS.INTRO);
     setFeedback(null);
     setImpactFlashes([]);
+    setActiveTrails([]);
     setTimeRemaining(PRACTICE_DURATION);
     spawnedIds.current = new Set();
     resolvedIds.current = new Set();
@@ -388,7 +413,7 @@ export default function PracticeRound({ onBack }) {
               showSweep={true}
               paused={false}
               impactFlashes={impactFlashes}
-              activeTrails={[]}
+              activeTrails={activeTrails}
             />
 
             {/* Tracking overlays — positioned over radar */}
