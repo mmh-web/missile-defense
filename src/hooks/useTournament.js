@@ -95,7 +95,7 @@ export default function useTournament(initialEventCode = null) {
   // Error state
   const [error, setError] = useState(null);
 
-  // Refs for stable callbacks
+  // Refs for stable callbacks (avoid stale closures)
   const phaseRef = useRef(phase);
   phaseRef.current = phase;
   const joinedRef = useRef(joined);
@@ -103,6 +103,10 @@ export default function useTournament(initialEventCode = null) {
   const teamKeyRef = useRef('');
   const eventCodeRef = useRef(eventCode);
   eventCodeRef.current = eventCode;
+  const tournamentDocRef = useRef(tournamentDoc);
+  tournamentDocRef.current = tournamentDoc;
+  const cumulativeBaseRef = useRef(cumulativeBase);
+  cumulativeBaseRef.current = cumulativeBase;
 
   // ── Session restoration ──────────────────────────────────────
   useEffect(() => {
@@ -202,7 +206,15 @@ export default function useTournament(initialEventCode = null) {
     if (currentRound > 1) {
       const prevRound = rounds?.[currentRound - 1];
       if (prevRound?.advancingTeams && !prevRound.advancingTeams.includes(teamKey)) {
-        if (phaseRef.current !== TOURNAMENT_PHASES.PRACTICE) {
+        // Don't interrupt active gameplay or practice — only transition if safe
+        const protectedPhases = [
+          TOURNAMENT_PHASES.PLAYING,
+          TOURNAMENT_PHASES.COUNTDOWN,
+          TOURNAMENT_PHASES.TAP_READY,
+          TOURNAMENT_PHASES.PRACTICE,
+          TOURNAMENT_PHASES.LOBBY_PRACTICE,
+        ];
+        if (!protectedPhases.includes(phaseRef.current)) {
           setPhase(TOURNAMENT_PHASES.ELIMINATED);
         }
         return;
@@ -402,17 +414,21 @@ export default function useTournament(initialEventCode = null) {
    * Stores the round score and transitions to round_complete.
    */
   const onRoundFinished = useCallback((roundScore) => {
-    const currentRound = tournamentDoc?.currentRound || 1;
-    const multiplier = tournamentDoc?.roundMultipliers?.[currentRound] || 1;
+    // Read from refs to avoid stale closure — tournamentDoc and cumulativeBase
+    // can change between when this callback is created and when it's called
+    const doc = tournamentDocRef.current;
+    const currentRound = doc?.currentRound || 1;
+    const multiplier = doc?.roundMultipliers?.[currentRound] || 1;
     const adjustedScore = Math.round(roundScore * multiplier);
-    const totalScore = cumulativeBase + adjustedScore;
+    const base = cumulativeBaseRef.current;
+    const totalScore = base + adjustedScore;
 
     setRoundScores(prev => ({ ...prev, [currentRound]: adjustedScore }));
     setCumulativeBase(totalScore);
     setPhase(TOURNAMENT_PHASES.ROUND_COMPLETE);
 
     return totalScore;
-  }, [tournamentDoc, cumulativeBase]);
+  }, []); // No deps — reads from refs
 
   /**
    * Player chooses to enter practice mode after elimination.

@@ -85,6 +85,15 @@ export default function PracticeRound({ onBack }) {
   const spawnedIds = useRef(new Set());
   const resolvedIds = useRef(new Set());
   const stepRef = useRef(STEPS.INTRO);
+  const pendingTimersRef = useRef([]); // Track setTimeouts for cleanup on unmount
+
+  // Clean up all pending timers on unmount
+  useEffect(() => {
+    return () => {
+      pendingTimersRef.current.forEach(id => clearTimeout(id));
+      pendingTimersRef.current = [];
+    };
+  }, []);
 
   // Keep refs in sync
   activeThreatsRef.current = activeThreats;
@@ -172,14 +181,14 @@ export default function PracticeRound({ onBack }) {
         duration: trailDuration,
       }]);
 
-      // Clean up trail
-      setTimeout(() => {
+      // Clean up trail (tracked for unmount cleanup)
+      pendingTimersRef.current.push(setTimeout(() => {
         setActiveTrails((prev) => prev.filter((t) => t.id !== trailId));
-      }, trailDuration + 500);
+      }, trailDuration + 500));
 
       // Delayed intercept + flash (after trail reaches target)
       const threatId = threat.id;
-      setTimeout(() => {
+      pendingTimersRef.current.push(setTimeout(() => {
         const blipPos = getBlipMapPosition(
           activeThreatsRef.current.find((t) => t.id === threatId) || threat
         );
@@ -194,16 +203,16 @@ export default function PracticeRound({ onBack }) {
           type: 'intercept', threatType: 'rocket',
           scoreText: null, particles,
         }]);
-        setTimeout(() => {
+        pendingTimersRef.current.push(setTimeout(() => {
           setImpactFlashes((prev) => prev.filter((f) => f.id !== flashId));
-        }, 2000);
+        }, 2000));
 
         setActiveThreats((prev) =>
           prev.map((t) =>
             t.id === threatId ? { ...t, intercepted: true, frozenTimeLeft: t.timeLeft } : t
           )
         );
-      }, trailDuration);
+      }, trailDuration));
 
       resolvedIds.current.add(threat.id);
       setSelectedThreatId(null);
@@ -211,7 +220,7 @@ export default function PracticeRound({ onBack }) {
       // Feedback on first intercept
       if (threat.id === 1) {
         setFeedback({ text: '✓ INTERCEPTED!', color: '#22c55e' });
-        setTimeout(() => setFeedback(null), 1200);
+        pendingTimersRef.current.push(setTimeout(() => setFeedback(null), 1200));
       }
     }
   }, []);

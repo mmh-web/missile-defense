@@ -35,6 +35,7 @@ Built for classroom/escape-room use with facilitator controls and escape room ti
 | `src/utils/firebase.js` | Firebase config + Firestore init |
 | `src/utils/leaderboard.js` | Shared leaderboard (Firestore + localStorage fallback), event code system |
 | `src/utils/nameFilter.js` | Client-side profanity filter for team names |
+| `src/components/PracticeRound.jsx` | Guided tutorial during tournament lobby (6 threats, tracking overlays) |
 
 ## Level Progression
 
@@ -239,6 +240,25 @@ The other 5 (Orot Rabin, Sorek, Rutenberg, Ashdod Port, The Kirya) are hidden at
 - **SUFRIN**: Auto-zap for 15s with portrait (3 uses/campaign)
 - **BH**: Clear all active threats (3 uses/campaign)
 - **BSD**: Resupply +1 of each interceptor (3 uses/campaign)
+
+## Practice Round (Tournament Lobby)
+- Playable from the tournament WAITING screen via prominent `🎯 PRACTICE` button
+- 28-second guided tutorial: 6 rockets, Iron Dome only, L1 viewport (Otef Aza)
+- **Threat sequence:**
+  - T1@2s → Sderot (solo, guided: "CLICK IT → PRESS 1")
+  - T2@7s → Ashkelon (solo, guided: "ANOTHER ONE → CLICK + PRESS 1")
+  - T3+T4@9s → Netivot + Re'im (simultaneous, guided: "TWO AT ONCE → INTERCEPT BOTH")
+  - T5@14s → Southern Negev (hold-fire dud, guided: "OFF TARGET → SAVE YOUR AMMO")
+  - T6@16s → Judean Hills (hold-fire dud, guided: "ANOTHER DUD → HOLD FIRE")
+- **Tracking overlays**: tutorial text follows blips in real-time using `mapToSVG` coordinate transform
+- Overlays use `pointer-events: none` so they don't block click targets
+- Interceptor trail fires from Hatzerim AFB (L1 battery position)
+- `impactFlashes` rendered inside RadarDisplay SVG for proper intercept animation
+- Repeatable — "PLAY AGAIN" button after completion
+- "← BACK TO LOBBY" always visible in top-left
+- Auto-exits if admin starts the round (tournament phase changes from WAITING)
+- No scoring, no ammo stack, no threat panel — just radar + overlays
+- PracticeRound renders its own RadarDisplay with `isPractice={true}` flag
 
 ## Escape Room Mode
 - 25-minute campaign-wide countdown (does not reset between levels)
@@ -569,7 +589,11 @@ const basePath = import.meta.env.BASE_URL || '/missile-defense/';
 - ✅ Spectator board reveal animation sequencing
 - ✅ Admin auto-advance race condition guard
 - ✅ Legacy V1 (`?event=CODE&round=N`) backward compatible
+- ✅ Practice Round — guided 28s tutorial in tournament lobby with tracking overlays
+- ✅ Premature onRoundFinished safeguard — blocks ROUND_COMPLETE unless player reached endLevel
+- ✅ Tournament stale roundStatus guard — PLAYING phase ignores stale 'complete' from Firestore
 - ⬜ V2.1: QR code on spectator lobby, lobby music, full pause-all wiring
+- ⬜ Admin+Score screen merge — combine `?admin=` and `?score=` into single projected screen (Kahoot-style)
 
 ### No Other Pending Work
 All previously tracked items have been completed and merged.

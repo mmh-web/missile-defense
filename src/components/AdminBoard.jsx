@@ -447,8 +447,10 @@ export default function AdminBoard({ eventCode, skipPin }) {
           if (!isAdvancingRef.current) {
             isAdvancingRef.current = true;
             const cr = tournamentDoc.currentRound || 1;
-            if (cr >= 3) finishTournament(eventCode).catch(() => {});
-            else advanceToNextRound(eventCode, cr + 1).catch(() => {});
+            const advanceFn = cr >= 3
+              ? finishTournament(eventCode)
+              : advanceToNextRound(eventCode, cr + 1);
+            advanceFn.catch(() => { isAdvancingRef.current = false; });
           }
         }
       }, 1000);
@@ -540,8 +542,12 @@ export default function AdminBoard({ eventCode, skipPin }) {
     setConfirmAction(null);
   };
   const handleAdvanceToNext = async () => {
-    if (currentRound >= 3) await finishTournament(eventCode);
-    else await advanceToNextRound(eventCode, currentRound + 1);
+    if (isAdvancingRef.current) return; // Prevent double-advance
+    isAdvancingRef.current = true;
+    try {
+      if (currentRound >= 3) await finishTournament(eventCode);
+      else await advanceToNextRound(eventCode, currentRound + 1);
+    } catch { isAdvancingRef.current = false; }
     setConfirmAction(null);
   };
   const handleReset = async () => { await resetTournament(eventCode); setConfirmAction(null); };

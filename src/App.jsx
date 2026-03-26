@@ -532,6 +532,11 @@ function AppInner({ tournamentConfig = null, isPracticeMode = false }) {
   // Uses refs to avoid stale closures — getRunningScore depends on resultLog/sirenCount/etc.
   // which change frequently during gameplay but aren't in the effect's dependency array.
   const liveScoreFinalizedRef = useRef(false);
+  // Reset finalized flag when leaving SUMMARY (e.g., page restore, game reset)
+  // so score push works correctly on re-entry
+  if (gameState !== GAME_STATES.SUMMARY) {
+    liveScoreFinalizedRef.current = false;
+  }
   const getRunningScoreRef = useRef(getRunningScore);
   const getCampaignStatsRef = useRef(getCampaignStats);
   getRunningScoreRef.current = getRunningScore;
@@ -2084,7 +2089,8 @@ function TournamentRouter({ initialGameCode }) {
     onRoundFinished: tournament.onRoundFinished,
     isPaused: tournament.isPaused,
   }), [currentRound, tournament.eventCode, tournament.teamName, tournament.teamEmoji,
-       tournament.cumulativeBase, tournament.currentRoundEventCode, tournament.isPaused]);
+       tournament.cumulativeBase, tournament.currentRoundEventCode, tournament.isPaused,
+       tournament.currentRoundConfig, tournament.onRoundFinished]);
 
   // ── Conditional returns (after all hooks) ──────────────────
 
