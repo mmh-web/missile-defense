@@ -15,13 +15,13 @@ const PRACTICE_THREATS = [
     trajectory: 'ballistic arc', impact_zone: 'Ashkelon', is_populated: true,
     correct_action: 'iron_dome', appear_time: 7, countdown: 6, intel: 'full',
     reveal_pct: 1.0, origin: 'gaza', priority: false, is_final_salvo: false },
-  // T3+T4: Simultaneous live rockets (handle two at once)
+  // T3+T4: Simultaneous live rockets — spread apart (north vs south of cluster)
   { id: 3, name: 'Qassam-3', type: 'rocket', speed_mach: 1.0, altitude_km: 5,
-    trajectory: 'ballistic arc', impact_zone: 'Kfar Aza', is_populated: true,
+    trajectory: 'ballistic arc', impact_zone: 'Ashkelon', is_populated: true,
     correct_action: 'iron_dome', appear_time: 9, countdown: 6, intel: 'full',
     reveal_pct: 1.0, origin: 'gaza', priority: false, is_final_salvo: false },
   { id: 4, name: 'Qassam-4', type: 'rocket', speed_mach: 1.0, altitude_km: 5,
-    trajectory: 'ballistic arc', impact_zone: 'Netivot', is_populated: true,
+    trajectory: 'ballistic arc', impact_zone: "Re'im", is_populated: true,
     correct_action: 'iron_dome', appear_time: 9, countdown: 6, intel: 'full',
     reveal_pct: 1.0, origin: 'gaza', priority: false, is_final_salvo: false },
   // T5: Dud — flies into Southern Negev (far south-east, away from T4's path)
