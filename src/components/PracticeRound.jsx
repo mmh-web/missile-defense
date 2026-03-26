@@ -24,9 +24,9 @@ const PRACTICE_THREATS = [
     trajectory: 'ballistic arc', impact_zone: 'Netivot', is_populated: true,
     correct_action: 'iron_dome', appear_time: 9, countdown: 6, intel: 'full',
     reveal_pct: 1.0, origin: 'gaza', priority: false, is_final_salvo: false },
-  // T5: Dud — flies into Sinai desert, slower (8s countdown)
+  // T5: Dud — flies into Southern Negev (far south-east, away from T4's path)
   { id: 5, name: 'Qassam-5', type: 'rocket', speed_mach: 1.0, altitude_km: 5,
-    trajectory: 'ballistic arc', impact_zone: 'Sinai Border Region', is_populated: false,
+    trajectory: 'ballistic arc', impact_zone: 'Southern Negev', is_populated: false,
     correct_action: 'iron_dome', appear_time: 12, countdown: 8, intel: 'full',
     reveal_pct: 1.0, origin: 'gaza', priority: false, is_final_salvo: false },
   // T6: Dud — flies into Judean Hills (opposite side of radar from T5)
