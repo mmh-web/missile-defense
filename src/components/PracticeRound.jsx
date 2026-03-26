@@ -403,7 +403,7 @@ export default function PracticeRound({ onBack }) {
                     style={{
                       left: pos.left,
                       top: pos.top,
-                      transform: 'translate(-50%, calc(-100% - 20px))',
+                      transform: 'translate(-50%, calc(-100% - 40px))',
                       zIndex: 25,
                     }}
                   >
