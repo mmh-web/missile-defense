@@ -162,7 +162,7 @@ function pick(arr, seed) {
   return arr[seed % arr.length];
 }
 
-function threat(id, time, type, zone, populated, cdn, intel, reveal, extra = {}) {
+export function threat(id, time, type, zone, populated, cdn, intel, reveal, extra = {}) {
   const d = THREAT_DATA[type];
   return {
     id,

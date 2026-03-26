@@ -27,7 +27,7 @@ const LABEL_OFFSETS = {
 // --- Viewport Transform ---
 // Converts 0-1 normalized map coordinates to SVG viewBox coordinates (0-100)
 // through the current level's viewport (center + scale).
-function mapToSVG(x, y, viewport) {
+export function mapToSVG(x, y, viewport) {
   const tx = (x - viewport.centerX) * viewport.scale + 0.5;
   const ty = (y - viewport.centerY) * viewport.scale + 0.5;
   return { x: tx * 100, y: ty * 100 };
@@ -35,7 +35,7 @@ function mapToSVG(x, y, viewport) {
 
 // Easing: ballistic missiles start slow, accelerate on reentry
 // Hypersonics accelerate even more aggressively
-function easeProgress(linearProgress, type) {
+export function easeProgress(linearProgress, type) {
   if (type === 'ballistic') return linearProgress ** 3;
   if (type === 'hypersonic') return linearProgress ** 4;
   return linearProgress;

@@ -15,6 +15,7 @@ import ScoringIntro from './components/ScoringIntro.jsx';
 import FacilitatorControls from './components/FacilitatorControls.jsx';
 import SpectatorBoard from './components/SpectatorBoard.jsx';
 import AdminBoard from './components/AdminBoard.jsx';
+import PracticeRound from './components/PracticeRound.jsx';
 import { getLevelConfig, LEVEL_ACCENT_COLORS } from './config/threats.js';
 import { ROUND_CONFIGS } from './hooks/useGameEngine.js';
 import { getLeaderboard, getEventCode, getRoundNumber, getSpectateCode, getAdminCode, getGameCode, getTournamentEventCode, updateLiveScore, markScoreFinished, createTournament } from './utils/leaderboard.js';
@@ -1796,14 +1797,27 @@ function TournamentWaitingScreen({ tournament }) {
           </div>
         </div>
 
+        {/* Practice round button */}
+        <button onClick={tournament.enterLobbyPractice}
+          className="mt-6 w-full px-6 py-4 bg-cyan-900/30 border-2 border-cyan-400/50 rounded-xl
+                     font-mono text-base font-bold tracking-[0.2em] text-cyan-400
+                     hover:bg-cyan-900/50 hover:border-cyan-400 transition-all
+                     active:scale-95"
+          style={{ boxShadow: '0 0 20px rgba(34,211,238,0.15)', animationDuration: '3s' }}>
+          🎯 PRACTICE ROUND
+        </button>
+        <div className="font-mono text-[10px] text-gray-500 tracking-wider mt-1.5">
+          LEARN THE CONTROLS WHILE YOU WAIT
+        </div>
+
         {/* Look up message */}
-        <div className="font-mono text-sm text-gray-400 tracking-wider animate-pulse"
+        <div className="font-mono text-xs text-gray-500 tracking-wider mt-6 animate-pulse"
           style={{ animationDuration: '2s' }}>
           LOOK AT THE MAIN SCREEN
         </div>
 
         {/* Team count */}
-        <div className="font-mono text-xs text-gray-600 tracking-wider mt-6">
+        <div className="font-mono text-xs text-gray-600 tracking-wider mt-3">
           {Object.keys(tournament.tournamentDoc?.teams || {}).filter(k => !tournament.tournamentDoc?.teams?.[k]?.kicked).length} teams ready
         </div>
       </div>
@@ -2105,6 +2119,10 @@ function TournamentRouter({ initialGameCode }) {
 
   if (phase === TOURNAMENT_PHASES.WAITING) {
     return <TournamentWaitingScreen tournament={tournament} />;
+  }
+
+  if (phase === TOURNAMENT_PHASES.LOBBY_PRACTICE) {
+    return <PracticeRound onBack={() => tournament.setPhase(TOURNAMENT_PHASES.WAITING)} />;
   }
 
   if (phase === TOURNAMENT_PHASES.TAP_READY) {

@@ -29,6 +29,7 @@ export const TOURNAMENT_PHASES = {
   ADVANCING: 'advancing',   // "Great run! You advance!"
   ELIMINATED: 'eliminated', // "Great run! Practice any level."
   PRACTICE: 'practice',     // Practice mode (replay any level)
+  LOBBY_PRACTICE: 'lobby_practice', // Guided practice round from lobby/waiting
   CHAMPION: 'champion',     // Tournament winner
 };
 
@@ -222,7 +223,8 @@ export default function useTournament(initialEventCode = null) {
       }
     } else if (roundStatus === 'active') {
       if (phaseRef.current === TOURNAMENT_PHASES.WAITING ||
-          phaseRef.current === TOURNAMENT_PHASES.LOBBY) {
+          phaseRef.current === TOURNAMENT_PHASES.LOBBY ||
+          phaseRef.current === TOURNAMENT_PHASES.LOBBY_PRACTICE) {
         // Round starting! Transition to tap_ready (for audio unlock) or countdown
         setPhase(audioUnlocked ? TOURNAMENT_PHASES.COUNTDOWN : TOURNAMENT_PHASES.TAP_READY);
       }
@@ -420,6 +422,13 @@ export default function useTournament(initialEventCode = null) {
   }, []);
 
   /**
+   * Enter guided practice round from lobby/waiting screen.
+   */
+  const enterLobbyPractice = useCallback(() => {
+    setPhase(TOURNAMENT_PHASES.LOBBY_PRACTICE);
+  }, []);
+
+  /**
    * Get the current round config for the game engine.
    */
   const currentRoundConfig = tournamentDoc
@@ -489,6 +498,7 @@ export default function useTournament(initialEventCode = null) {
     tapReady,
     onRoundFinished,
     enterPractice,
+    enterLobbyPractice,
     reset,
     setPhase,
     setTeamName,
