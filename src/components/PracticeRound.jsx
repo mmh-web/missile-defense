@@ -4,7 +4,7 @@ import { IMPACT_POSITIONS } from '../config/threats';
 import { getSpawnOrigin } from '../config/spawnOrigins';
 import { LEVEL_VIEWPORTS } from '../config/mapLayers';
 
-// ── Practice threats: 6 rockets, Iron Dome only, compressed timing ──
+// ── Practice threats: 5 rockets, Iron Dome only, compressed timing ──
 const PRACTICE_THREATS = [
   // T1-T2: Solo live rockets (learn click → press 1)
   { id: 1, name: 'Qassam-1', type: 'rocket', speed_mach: 1.0, altitude_km: 5,
@@ -24,15 +24,10 @@ const PRACTICE_THREATS = [
     trajectory: 'ballistic arc', impact_zone: 'Netivot', is_populated: true,
     correct_action: 'iron_dome', appear_time: 9, countdown: 6, intel: 'full',
     reveal_pct: 1.0, origin: 'gaza', priority: false, is_final_salvo: false },
-  // T5: Dud — open ground, player should IGNORE
+  // T5: Dud — flies clearly into empty Sinai desert, far from all cities
   { id: 5, name: 'Qassam-5', type: 'rocket', speed_mach: 1.0, altitude_km: 5,
-    trajectory: 'ballistic arc', impact_zone: 'Northern Negev', is_populated: false,
+    trajectory: 'ballistic arc', impact_zone: 'Sinai Border Region', is_populated: false,
     correct_action: 'iron_dome', appear_time: 13, countdown: 6, intel: 'full',
-    reveal_pct: 1.0, origin: 'gaza', priority: false, is_final_salvo: false },
-  // T6: Final live rocket
-  { id: 6, name: 'Qassam-6', type: 'rocket', speed_mach: 1.0, altitude_km: 5,
-    trajectory: 'ballistic arc', impact_zone: "Be'eri", is_populated: true,
-    correct_action: 'iron_dome', appear_time: 16, countdown: 6, intel: 'full',
     reveal_pct: 1.0, origin: 'gaza', priority: false, is_final_salvo: false },
 ];
 
@@ -70,7 +65,7 @@ export default function PracticeRound({ onBack }) {
   const [sessionTime, setSessionTime] = useState(0);
   const [activeThreats, setActiveThreats] = useState([]);
   const [selectedThreatId, setSelectedThreatId] = useState(null);
-  const [ammo, setAmmo] = useState(5);
+  const [ammo, setAmmo] = useState(4);
   const [step, setStep] = useState(STEPS.INTRO);
   const [feedback, setFeedback] = useState(null);
   const [impactFlashes, setImpactFlashes] = useState([]);
@@ -80,7 +75,7 @@ export default function PracticeRound({ onBack }) {
   const sessionTimeRef = useRef(0);
   const activeThreatsRef = useRef([]);
   const selectedThreatIdRef = useRef(null);
-  const ammoRef = useRef(5);
+  const ammoRef = useRef(4);
   const spawnedIds = useRef(new Set());
   const resolvedIds = useRef(new Set());
   const stepRef = useRef(STEPS.INTRO);
@@ -222,7 +217,7 @@ export default function PracticeRound({ onBack }) {
     sessionTimeRef.current = 0;
     setActiveThreats([]);
     setSelectedThreatId(null);
-    setAmmo(5);
+    setAmmo(4);
     setStep(STEPS.INTRO);
     setFeedback(null);
     setImpactFlashes([]);
@@ -349,13 +344,14 @@ export default function PracticeRound({ onBack }) {
         <div className="font-mono text-xs font-bold tracking-[0.3em] text-green-400">
           PRACTICE ROUND
         </div>
-        <div className="font-mono text-xs tracking-wider">
-          <span className={`font-bold ${timeRemaining <= 5 ? 'text-red-400' : 'text-gray-400'}`}>
-            {Math.ceil(timeRemaining)}s
-          </span>
-          <span className="text-gray-600 ml-2">
+        <div className="flex items-center gap-3">
+          <div className={`font-mono text-lg font-black tabular-nums ${timeRemaining <= 5 ? 'text-red-400' : 'text-white'}`}
+            style={{ textShadow: timeRemaining <= 5 ? '0 0 12px rgba(239,68,68,0.5)' : 'none', minWidth: '2.5ch', textAlign: 'right' }}>
+            {Math.ceil(timeRemaining)}
+          </div>
+          <div className="font-mono text-[10px] text-gray-500 tracking-wider">
             AMMO: <span className={`font-bold ${ammo <= 1 ? 'text-red-400' : 'text-yellow-400'}`}>{ammo}</span>
-          </span>
+          </div>
         </div>
       </div>
 
