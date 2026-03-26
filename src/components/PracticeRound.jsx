@@ -24,9 +24,13 @@ const PRACTICE_THREATS = [
     trajectory: 'ballistic arc', impact_zone: 'Netivot', is_populated: true,
     correct_action: 'iron_dome', appear_time: 9, countdown: 6, intel: 'full',
     reveal_pct: 1.0, origin: 'gaza', priority: false, is_final_salvo: false },
-  // T5: Dud — flies clearly into empty Sinai desert, far from all cities
+  // T5+T6: Duds — fly clearly into empty desert, far from all cities
   { id: 5, name: 'Qassam-5', type: 'rocket', speed_mach: 1.0, altitude_km: 5,
     trajectory: 'ballistic arc', impact_zone: 'Sinai Border Region', is_populated: false,
+    correct_action: 'iron_dome', appear_time: 13, countdown: 6, intel: 'full',
+    reveal_pct: 1.0, origin: 'gaza', priority: false, is_final_salvo: false },
+  { id: 6, name: 'Qassam-6', type: 'rocket', speed_mach: 1.0, altitude_km: 5,
+    trajectory: 'ballistic arc', impact_zone: 'Central Negev', is_populated: false,
     correct_action: 'iron_dome', appear_time: 13, countdown: 6, intel: 'full',
     reveal_pct: 1.0, origin: 'gaza', priority: false, is_final_salvo: false },
 ];
@@ -156,11 +160,17 @@ export default function PracticeRound({ onBack }) {
       if (ammoRef.current <= 0) return;
       setAmmo((prev) => prev - 1);
 
-      // Get position for flash effect
+      // Flash effect at blip position
       const pos = getBlipMapPosition(threat);
-      setImpactFlashes([{ cx: pos.x, cy: pos.y, type: 'intercept', threatType: 'rocket',
-        particles: Array.from({ length: 6 }, (_, i) => ({
-          angle: (i / 6) * Math.PI * 2,
+      setImpactFlashes([{
+        id: Date.now() + Math.random(),
+        zone: threat.impact_zone,
+        cx: pos.x, cy: pos.y,
+        type: 'intercept',
+        threatType: 'rocket',
+        scoreText: null,
+        particles: Array.from({ length: 8 }, (_, i) => ({
+          angle: (i / 8) * Math.PI * 2,
           speed: 0.5 + Math.random() * 0.5,
         })),
       }]);
@@ -373,7 +383,7 @@ export default function PracticeRound({ onBack }) {
             />
 
             {/* Tracking overlays — positioned over radar */}
-            <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ borderRadius: '50%' }}>
+            <div className="absolute inset-0 pointer-events-none overflow-visible">
               {overlayThreats.map(({ threat: t, overlay }) => {
                 const pos = getOverlayPosition(t);
                 const lines = overlay.text.split('\n');
