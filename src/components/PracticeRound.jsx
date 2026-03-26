@@ -13,7 +13,7 @@ const PRACTICE_THREATS = [
     reveal_pct: 1.0, origin: 'gaza', priority: false, is_final_salvo: false },
   { id: 2, name: 'Qassam-2', type: 'rocket', speed_mach: 1.0, altitude_km: 5,
     trajectory: 'ballistic arc', impact_zone: 'Ashkelon', is_populated: true,
-    correct_action: 'iron_dome', appear_time: 5, countdown: 6, intel: 'full',
+    correct_action: 'iron_dome', appear_time: 7, countdown: 6, intel: 'full',
     reveal_pct: 1.0, origin: 'gaza', priority: false, is_final_salvo: false },
   // T3+T4: Simultaneous live rockets (handle two at once)
   { id: 3, name: 'Qassam-3', type: 'rocket', speed_mach: 1.0, altitude_km: 5,
@@ -354,19 +354,27 @@ export default function PracticeRound({ onBack }) {
         <div className="font-mono text-xs font-bold tracking-[0.3em] text-green-400">
           PRACTICE ROUND
         </div>
-        <div className="flex items-center gap-3">
-          <div className={`font-mono text-lg font-black tabular-nums ${timeRemaining <= 5 ? 'text-red-400' : 'text-white'}`}
-            style={{ textShadow: timeRemaining <= 5 ? '0 0 12px rgba(239,68,68,0.5)' : 'none', minWidth: '2.5ch', textAlign: 'right' }}>
-            {Math.ceil(timeRemaining)}
-          </div>
-          <div className="font-mono text-[10px] text-gray-500 tracking-wider">
-            AMMO: <span className={`font-bold ${ammo <= 1 ? 'text-red-400' : 'text-yellow-400'}`}>{ammo}</span>
-          </div>
+        <div className="font-mono text-[10px] text-gray-500 tracking-wider">
+          AMMO: <span className={`font-bold ${ammo <= 1 ? 'text-red-400' : 'text-yellow-400'}`}>{ammo}</span>
         </div>
       </div>
 
       {/* Radar area with overlay */}
       <div className="flex-1 flex items-center justify-center min-h-0 p-2 relative">
+        {/* Large floating countdown timer */}
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 pointer-events-none">
+          <div className={`font-mono font-black tabular-nums text-center ${timeRemaining <= 5 ? 'text-red-400' : 'text-white/80'}`}
+            style={{
+              fontSize: '48px',
+              lineHeight: 1,
+              textShadow: timeRemaining <= 5
+                ? '0 0 20px rgba(239,68,68,0.6), 0 0 40px rgba(239,68,68,0.3)'
+                : '0 2px 8px rgba(0,0,0,0.8)',
+            }}>
+            {Math.ceil(timeRemaining)}
+          </div>
+        </div>
+
         <div className="relative w-full h-full flex items-center justify-center">
           {/* Radar */}
           <div className="relative" style={{ maxWidth: '700px', maxHeight: '100%', aspectRatio: '1', width: '100%' }}>
