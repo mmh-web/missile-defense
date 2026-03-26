@@ -24,18 +24,19 @@ const PRACTICE_THREATS = [
     trajectory: 'ballistic arc', impact_zone: 'Netivot', is_populated: true,
     correct_action: 'iron_dome', appear_time: 9, countdown: 6, intel: 'full',
     reveal_pct: 1.0, origin: 'gaza', priority: false, is_final_salvo: false },
-  // T5+T6: Duds — fly clearly into empty desert, far from all cities
+  // T5: Dud — flies into Sinai desert, slower (8s countdown)
   { id: 5, name: 'Qassam-5', type: 'rocket', speed_mach: 1.0, altitude_km: 5,
     trajectory: 'ballistic arc', impact_zone: 'Sinai Border Region', is_populated: false,
-    correct_action: 'iron_dome', appear_time: 13, countdown: 6, intel: 'full',
+    correct_action: 'iron_dome', appear_time: 12, countdown: 8, intel: 'full',
     reveal_pct: 1.0, origin: 'gaza', priority: false, is_final_salvo: false },
+  // T6: Dud — flies into Central Negev, staggered 3s after T5
   { id: 6, name: 'Qassam-6', type: 'rocket', speed_mach: 1.0, altitude_km: 5,
     trajectory: 'ballistic arc', impact_zone: 'Central Negev', is_populated: false,
-    correct_action: 'iron_dome', appear_time: 13, countdown: 6, intel: 'full',
+    correct_action: 'iron_dome', appear_time: 15, countdown: 8, intel: 'full',
     reveal_pct: 1.0, origin: 'gaza', priority: false, is_final_salvo: false },
 ];
 
-const PRACTICE_DURATION = 20; // seconds — hard timer
+const PRACTICE_DURATION = 25; // seconds — enough for staggered duds
 const PRACTICE_VIEWPORT = LEVEL_VIEWPORTS[1]; // L1: tight on Otef Aza
 
 // ── Blip position calculation (mirrors RadarDisplay's getBlipPosition) ──
