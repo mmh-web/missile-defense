@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import RadarDisplay, { mapToSVG, easeProgress } from './RadarDisplay';
-import { IMPACT_POSITIONS, COMMAND_CENTER, INTERCEPTOR_COLORS } from '../config/threats';
+import { IMPACT_POSITIONS, INTERCEPTOR_COLORS } from '../config/threats';
 import { getSpawnOrigin } from '../config/spawnOrigins';
-import { LEVEL_VIEWPORTS } from '../config/mapLayers';
+import { LEVEL_VIEWPORTS, LEVEL_BATTERIES } from '../config/mapLayers';
 
 // ── Practice threats: 5 rockets, Iron Dome only, compressed timing ──
 const PRACTICE_THREATS = [
@@ -15,28 +15,28 @@ const PRACTICE_THREATS = [
     trajectory: 'ballistic arc', impact_zone: 'Ashkelon', is_populated: true,
     correct_action: 'iron_dome', appear_time: 7, countdown: 6, intel: 'full',
     reveal_pct: 1.0, origin: 'gaza', priority: false, is_final_salvo: false },
-  // T3+T4: Simultaneous live rockets — spread apart (north vs south of cluster)
+  // T3+T4: Simultaneous live rockets — spread apart (Netivot east vs Re'im south-west)
   { id: 3, name: 'Qassam-3', type: 'rocket', speed_mach: 1.0, altitude_km: 5,
-    trajectory: 'ballistic arc', impact_zone: 'Ashkelon', is_populated: true,
+    trajectory: 'ballistic arc', impact_zone: 'Netivot', is_populated: true,
     correct_action: 'iron_dome', appear_time: 9, countdown: 6, intel: 'full',
     reveal_pct: 1.0, origin: 'gaza', priority: false, is_final_salvo: false },
   { id: 4, name: 'Qassam-4', type: 'rocket', speed_mach: 1.0, altitude_km: 5,
     trajectory: 'ballistic arc', impact_zone: "Re'im", is_populated: true,
     correct_action: 'iron_dome', appear_time: 9, countdown: 6, intel: 'full',
     reveal_pct: 1.0, origin: 'gaza', priority: false, is_final_salvo: false },
-  // T5: Dud — flies into Southern Negev (far south-east, away from T4's path)
+  // T5: Dud — flies into Southern Negev, 5s gap after T3+T4
   { id: 5, name: 'Qassam-5', type: 'rocket', speed_mach: 1.0, altitude_km: 5,
     trajectory: 'ballistic arc', impact_zone: 'Southern Negev', is_populated: false,
-    correct_action: 'iron_dome', appear_time: 12, countdown: 8, intel: 'full',
+    correct_action: 'iron_dome', appear_time: 14, countdown: 10, intel: 'full',
     reveal_pct: 1.0, origin: 'gaza', priority: false, is_final_salvo: false },
-  // T6: Dud — flies into Judean Hills (opposite side of radar from T5)
+  // T6: Dud — flies into Judean Hills, 2s after T5
   { id: 6, name: 'Qassam-6', type: 'rocket', speed_mach: 1.0, altitude_km: 5,
     trajectory: 'ballistic arc', impact_zone: 'Judean Hills', is_populated: false,
-    correct_action: 'iron_dome', appear_time: 15, countdown: 8, intel: 'full',
+    correct_action: 'iron_dome', appear_time: 16, countdown: 10, intel: 'full',
     reveal_pct: 1.0, origin: 'gaza', priority: false, is_final_salvo: false },
 ];
 
-const PRACTICE_DURATION = 25; // seconds — enough for staggered duds
+const PRACTICE_DURATION = 28; // seconds — room for slow duds
 const PRACTICE_VIEWPORT = LEVEL_VIEWPORTS[1]; // L1: tight on Otef Aza
 
 // ── Blip position calculation (mirrors RadarDisplay's getBlipPosition) ──
@@ -164,8 +164,8 @@ export default function PracticeRound({ onBack }) {
 
       setActiveTrails((prev) => [...prev, {
         id: trailId,
-        startX: COMMAND_CENTER.x,
-        startY: COMMAND_CENTER.y,
+        startX: LEVEL_BATTERIES[1].x,
+        startY: LEVEL_BATTERIES[1].y,
         endX: pos.x,
         endY: pos.y,
         color: INTERCEPTOR_COLORS.iron_dome,
