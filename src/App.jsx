@@ -2011,6 +2011,12 @@ export default function App() {
   const legacyRound = getRoundNumber();
   const legacyEvent = getEventCode();
 
+  // Debug: direct practice round — ?practice=1
+  const practiceParam = new URLSearchParams(window.location.search).get('practice');
+  if (practiceParam) {
+    return <PracticeRound onBack={() => { window.location.href = window.location.pathname; }} />;
+  }
+
   // Admin dashboard — ?admin=CODE
   if (adminCode) {
     return <AdminBoard eventCode={adminCode} />;

@@ -4,38 +4,39 @@ import { IMPACT_POSITIONS } from '../config/threats';
 import { getSpawnOrigin } from '../config/spawnOrigins';
 import { LEVEL_VIEWPORTS } from '../config/mapLayers';
 
-// ── Practice threats: 6 rockets, Iron Dome only ──────────────────
+// ── Practice threats: 6 rockets, Iron Dome only, compressed timing ──
 const PRACTICE_THREATS = [
-  // T1-T3: Live rockets, sequential (guided interception)
+  // T1-T2: Solo live rockets (learn click → press 1)
   { id: 1, name: 'Qassam-1', type: 'rocket', speed_mach: 1.0, altitude_km: 5,
     trajectory: 'ballistic arc', impact_zone: 'Sderot', is_populated: true,
-    correct_action: 'iron_dome', appear_time: 3, countdown: 8, intel: 'full',
+    correct_action: 'iron_dome', appear_time: 2, countdown: 6, intel: 'full',
     reveal_pct: 1.0, origin: 'gaza', priority: false, is_final_salvo: false },
   { id: 2, name: 'Qassam-2', type: 'rocket', speed_mach: 1.0, altitude_km: 5,
     trajectory: 'ballistic arc', impact_zone: 'Ashkelon', is_populated: true,
-    correct_action: 'iron_dome', appear_time: 14, countdown: 8, intel: 'full',
+    correct_action: 'iron_dome', appear_time: 5, countdown: 6, intel: 'full',
     reveal_pct: 1.0, origin: 'gaza', priority: false, is_final_salvo: false },
+  // T3+T4: Simultaneous live rockets (handle two at once)
   { id: 3, name: 'Qassam-3', type: 'rocket', speed_mach: 1.0, altitude_km: 5,
     trajectory: 'ballistic arc', impact_zone: 'Kfar Aza', is_populated: true,
-    correct_action: 'iron_dome', appear_time: 25, countdown: 8, intel: 'full',
+    correct_action: 'iron_dome', appear_time: 9, countdown: 6, intel: 'full',
     reveal_pct: 1.0, origin: 'gaza', priority: false, is_final_salvo: false },
-  // T4: Hold-fire (open ground)
   { id: 4, name: 'Qassam-4', type: 'rocket', speed_mach: 1.0, altitude_km: 5,
-    trajectory: 'ballistic arc', impact_zone: 'Northern Negev', is_populated: false,
-    correct_action: 'iron_dome', appear_time: 36, countdown: 8, intel: 'full',
-    reveal_pct: 1.0, origin: 'gaza', priority: false, is_final_salvo: false },
-  // T5-T6: Simultaneous live rockets (no hand-holding)
-  { id: 5, name: 'Qassam-5', type: 'rocket', speed_mach: 1.0, altitude_km: 5,
     trajectory: 'ballistic arc', impact_zone: 'Netivot', is_populated: true,
-    correct_action: 'iron_dome', appear_time: 47, countdown: 7, intel: 'full',
+    correct_action: 'iron_dome', appear_time: 9, countdown: 6, intel: 'full',
     reveal_pct: 1.0, origin: 'gaza', priority: false, is_final_salvo: false },
+  // T5: Dud — open ground, player should IGNORE
+  { id: 5, name: 'Qassam-5', type: 'rocket', speed_mach: 1.0, altitude_km: 5,
+    trajectory: 'ballistic arc', impact_zone: 'Northern Negev', is_populated: false,
+    correct_action: 'iron_dome', appear_time: 13, countdown: 6, intel: 'full',
+    reveal_pct: 1.0, origin: 'gaza', priority: false, is_final_salvo: false },
+  // T6: Final live rocket
   { id: 6, name: 'Qassam-6', type: 'rocket', speed_mach: 1.0, altitude_km: 5,
     trajectory: 'ballistic arc', impact_zone: "Be'eri", is_populated: true,
-    correct_action: 'iron_dome', appear_time: 47, countdown: 7, intel: 'full',
+    correct_action: 'iron_dome', appear_time: 16, countdown: 6, intel: 'full',
     reveal_pct: 1.0, origin: 'gaza', priority: false, is_final_salvo: false },
 ];
 
-const PRACTICE_DURATION = 60; // seconds — enough for all threats + buffer
+const PRACTICE_DURATION = 20; // seconds — hard timer
 const PRACTICE_VIEWPORT = LEVEL_VIEWPORTS[1]; // L1: tight on Otef Aza
 
 // ── Blip position calculation (mirrors RadarDisplay's getBlipPosition) ──
@@ -45,7 +46,6 @@ function getBlipMapPosition(threat) {
   const linearProgress = 1 - timeLeft / threat.countdown;
   const progress = easeProgress(linearProgress, threat.type);
   const baseStart = getSpawnOrigin(threat.type, threat.origin);
-  // Simplified — no spread offset needed for 6 threats
   return {
     x: baseStart.x + (target.x - baseStart.x) * progress,
     y: baseStart.y + (target.y - baseStart.y) * progress,
@@ -61,12 +61,7 @@ function getOverlayPosition(threat) {
 // ── Practice step definitions ──
 const STEPS = {
   INTRO: 'intro',
-  GUIDED_T1: 'guided_t1',       // auto-pause, "CLICK THIS THREAT"
-  FIRE_T1: 'fire_t1',           // "PRESS 1 TO INTERCEPT"
-  FREE_PLAY: 'free_play',       // T2-T3 with overlays, no pause
-  GUIDED_T4: 'guided_t4',       // auto-pause, hold-fire instruction
-  AFTER_T4: 'after_t4',         // continue after T4
-  FINAL_WAVE: 'final_wave',     // T5+T6, no overlays
+  PLAYING: 'playing',           // All threats with tracking overlays, no pauses
   COMPLETE: 'complete',
 };
 
@@ -76,9 +71,10 @@ export default function PracticeRound({ onBack }) {
   const [activeThreats, setActiveThreats] = useState([]);
   const [selectedThreatId, setSelectedThreatId] = useState(null);
   const [ammo, setAmmo] = useState(5);
-  const [paused, setPaused] = useState(true); // start paused for intro
   const [step, setStep] = useState(STEPS.INTRO);
-  const [feedback, setFeedback] = useState(null); // brief ✓ messages
+  const [feedback, setFeedback] = useState(null);
+  const [impactFlashes, setImpactFlashes] = useState([]);
+  const [timeRemaining, setTimeRemaining] = useState(PRACTICE_DURATION);
 
   // Refs for tick loop
   const sessionTimeRef = useRef(0);
@@ -87,14 +83,12 @@ export default function PracticeRound({ onBack }) {
   const ammoRef = useRef(5);
   const spawnedIds = useRef(new Set());
   const resolvedIds = useRef(new Set());
-  const pausedRef = useRef(true);
   const stepRef = useRef(STEPS.INTRO);
 
   // Keep refs in sync
   activeThreatsRef.current = activeThreats;
   selectedThreatIdRef.current = selectedThreatId;
   ammoRef.current = ammo;
-  pausedRef.current = paused;
   stepRef.current = step;
 
   // ── Tick loop: spawn threats + countdown ──
@@ -102,12 +96,20 @@ export default function PracticeRound({ onBack }) {
     if (step === STEPS.INTRO || step === STEPS.COMPLETE) return;
 
     const interval = setInterval(() => {
-      if (pausedRef.current) return;
-
       const dt = 0.1; // 100ms tick
       const newTime = sessionTimeRef.current + dt;
       sessionTimeRef.current = newTime;
       setSessionTime(newTime);
+
+      // Update countdown timer
+      const remaining = Math.max(0, PRACTICE_DURATION - newTime);
+      setTimeRemaining(remaining);
+
+      // Auto-end when timer hits 0
+      if (remaining <= 0) {
+        setStep(STEPS.COMPLETE);
+        return;
+      }
 
       // Spawn new threats
       PRACTICE_THREATS.forEach((t) => {
@@ -115,58 +117,31 @@ export default function PracticeRound({ onBack }) {
           spawnedIds.current.add(t.id);
           const newThreat = { ...t, timeLeft: t.countdown, impactRevealed: true };
           setActiveThreats((prev) => [...prev, newThreat]);
-
-          // Auto-pause for guided steps
-          if (t.id === 1 && stepRef.current !== STEPS.FIRE_T1) {
-            setPaused(true);
-            setStep(STEPS.GUIDED_T1);
-          }
-          if (t.id === 4) {
-            setPaused(true);
-            setStep(STEPS.GUIDED_T4);
-          }
-          if (t.id === 5) {
-            setStep(STEPS.FINAL_WAVE);
-          }
         }
       });
 
       // Decrement countdowns
       setActiveThreats((prev) => {
-        const updated = prev.map((t) => {
+        return prev.map((t) => {
           if (t.intercepted || t.held || resolvedIds.current.has(t.id)) return t;
           const newTimeLeft = Math.max(0, t.timeLeft - dt);
+          if (newTimeLeft <= 0 && !resolvedIds.current.has(t.id)) {
+            resolvedIds.current.add(t.id);
+          }
           return { ...t, timeLeft: newTimeLeft };
         });
-
-        // Handle timeouts (timeLeft reached 0)
-        updated.forEach((t) => {
-          if (t.timeLeft <= 0 && !t.intercepted && !t.held && !resolvedIds.current.has(t.id)) {
-            resolvedIds.current.add(t.id);
-            // Threat hit — no penalty in practice, just mark it
-          }
-        });
-
-        return updated;
       });
     }, 100);
 
     return () => clearInterval(interval);
   }, [step]);
 
-  // ── Check for completion ──
+  // ── Flash cleanup ──
   useEffect(() => {
-    if (step === STEPS.COMPLETE || step === STEPS.INTRO) return;
-    const allSpawned = spawnedIds.current.size === PRACTICE_THREATS.length;
-    if (!allSpawned) return;
-
-    const allResolved = activeThreats.every(
-      (t) => t.intercepted || t.held || resolvedIds.current.has(t.id) || t.timeLeft <= 0
-    );
-    if (allResolved && activeThreats.length === PRACTICE_THREATS.length) {
-      setTimeout(() => setStep(STEPS.COMPLETE), 800);
-    }
-  }, [activeThreats, step]);
+    if (impactFlashes.length === 0) return;
+    const timer = setTimeout(() => setImpactFlashes([]), 600);
+    return () => clearTimeout(timer);
+  }, [impactFlashes]);
 
   // ── Handle intercept / hold-fire ──
   const handleAction = useCallback((action) => {
@@ -179,18 +154,22 @@ export default function PracticeRound({ onBack }) {
       );
       resolvedIds.current.add(threat.id);
       setSelectedThreatId(null);
-
-      if (stepRef.current === STEPS.GUIDED_T4) {
-        setFeedback({ text: '✓ SAVED YOUR AMMO!', color: '#22c55e' });
-        setTimeout(() => setFeedback(null), 1500);
-        setStep(STEPS.AFTER_T4);
-      }
       return;
     }
 
     if (action === 'iron_dome') {
       if (ammoRef.current <= 0) return;
       setAmmo((prev) => prev - 1);
+
+      // Get position for flash effect
+      const pos = getBlipMapPosition(threat);
+      setImpactFlashes([{ cx: pos.x, cy: pos.y, type: 'intercept', threatType: 'rocket',
+        particles: Array.from({ length: 6 }, (_, i) => ({
+          angle: (i / 6) * Math.PI * 2,
+          speed: 0.5 + Math.random() * 0.5,
+        })),
+      }]);
+
       setActiveThreats((prev) =>
         prev.map((t) =>
           t.id === threat.id ? { ...t, intercepted: true, frozenTimeLeft: t.timeLeft } : t
@@ -199,14 +178,10 @@ export default function PracticeRound({ onBack }) {
       resolvedIds.current.add(threat.id);
       setSelectedThreatId(null);
 
-      // Step progression
-      if (stepRef.current === STEPS.FIRE_T1) {
-        setFeedback({ text: '✓ NICE!', color: '#22c55e' });
-        setTimeout(() => setFeedback(null), 1500);
-        setStep(STEPS.FREE_PLAY);
-      } else if (stepRef.current === STEPS.GUIDED_T1) {
-        // Shouldn't happen but handle gracefully
-        setStep(STEPS.FREE_PLAY);
+      // Feedback on first intercept
+      if (threat.id === 1) {
+        setFeedback({ text: '✓ INTERCEPTED!', color: '#22c55e' });
+        setTimeout(() => setFeedback(null), 1200);
       }
     }
   }, []);
@@ -215,14 +190,7 @@ export default function PracticeRound({ onBack }) {
   const handleSelectThreat = useCallback((id) => {
     const threat = activeThreatsRef.current.find((t) => t.id === id);
     if (!threat || threat.intercepted || threat.held) return;
-
     setSelectedThreatId(id);
-
-    // Step progression for T1
-    if (id === 1 && stepRef.current === STEPS.GUIDED_T1) {
-      setStep(STEPS.FIRE_T1);
-      setPaused(false); // unpause after selecting T1
-    }
   }, []);
 
   // ── Keyboard handler ──
@@ -245,8 +213,7 @@ export default function PracticeRound({ onBack }) {
 
   // ── Start practice ──
   const startPractice = useCallback(() => {
-    setPaused(false);
-    setStep(STEPS.GUIDED_T1); // Will auto-pause when T1 spawns
+    setStep(STEPS.PLAYING);
   }, []);
 
   // ── Restart ──
@@ -256,9 +223,10 @@ export default function PracticeRound({ onBack }) {
     setActiveThreats([]);
     setSelectedThreatId(null);
     setAmmo(5);
-    setPaused(true);
     setStep(STEPS.INTRO);
     setFeedback(null);
+    setImpactFlashes([]);
+    setTimeRemaining(PRACTICE_DURATION);
     spawnedIds.current = new Set();
     resolvedIds.current = new Set();
   }, []);
@@ -271,30 +239,21 @@ export default function PracticeRound({ onBack }) {
 
     const isSelected = selectedThreatId === threat.id;
 
-    // T1: Guided
-    if (threat.id === 1) {
-      if (step === STEPS.GUIDED_T1 && !isSelected) {
-        return { text: '👆 CLICK THIS THREAT', color: '#f59e0b', pulse: true };
-      }
-      if ((step === STEPS.FIRE_T1 || step === STEPS.GUIDED_T1) && isSelected) {
-        return { text: 'PRESS 1 TO INTERCEPT', color: '#22c55e', pulse: true };
-      }
-    }
-
-    // T2-T3: Free play with tracking overlays
-    if ((threat.id === 2 || threat.id === 3) && step === STEPS.FREE_PLAY) {
+    // Live threats: show "CLICK → PRESS 1" overlay
+    if (threat.is_populated) {
       if (isSelected) {
         return { text: 'PRESS 1', color: '#22c55e', pulse: false };
       }
-      return { text: 'CLICK ME → PRESS 1', color: '#f59e0b', pulse: false };
+      // Only show overlay on T1-T4 (not T6 finale — let them figure it out)
+      if (threat.id <= 4) {
+        return { text: 'CLICK ME → PRESS 1', color: '#f59e0b', pulse: threat.id === 1 };
+      }
+      return null;
     }
 
-    // T4: Hold-fire guided
-    if (threat.id === 4 && step === STEPS.GUIDED_T4) {
-      return { text: '🚫 OPEN GROUND\nIGNORE ME — SAVE YOUR AMMO', color: '#ef4444', pulse: true };
-    }
-    if (threat.id === 4 && step === STEPS.AFTER_T4) {
-      return { text: '🚫 IGNORE', color: '#ef4444', pulse: false };
+    // T5: Dud — no clicking needed, just observe
+    if (!threat.is_populated) {
+      return { text: '🚫 OPEN GROUND\nIGNORE ME — SAVE YOUR AMMO', color: '#ef4444', pulse: false };
     }
 
     return null;
@@ -390,8 +349,13 @@ export default function PracticeRound({ onBack }) {
         <div className="font-mono text-xs font-bold tracking-[0.3em] text-green-400">
           PRACTICE ROUND
         </div>
-        <div className="font-mono text-xs text-gray-500 tracking-wider">
-          AMMO: <span className={`font-bold ${ammo <= 1 ? 'text-red-400' : 'text-yellow-400'}`}>{ammo}</span>
+        <div className="font-mono text-xs tracking-wider">
+          <span className={`font-bold ${timeRemaining <= 5 ? 'text-red-400' : 'text-gray-400'}`}>
+            {Math.ceil(timeRemaining)}s
+          </span>
+          <span className="text-gray-600 ml-2">
+            AMMO: <span className={`font-bold ${ammo <= 1 ? 'text-red-400' : 'text-yellow-400'}`}>{ammo}</span>
+          </span>
         </div>
       </div>
 
@@ -407,8 +371,8 @@ export default function PracticeRound({ onBack }) {
               sessionTime={sessionTime}
               currentLevel={1}
               showSweep={true}
-              paused={paused}
-              impactFlashes={[]}
+              paused={false}
+              impactFlashes={impactFlashes}
               activeTrails={[]}
             />
 
@@ -470,29 +434,7 @@ export default function PracticeRound({ onBack }) {
           </div>
         )}
 
-        {/* Pause overlay */}
-        {paused && step === STEPS.GUIDED_T1 && (
-          <div className="absolute inset-0 flex items-end justify-center pb-24 z-20 pointer-events-none">
-            <div className="bg-black/80 border border-yellow-500/50 rounded-lg px-5 py-3 text-center">
-              <div className="font-mono text-xs text-yellow-400 tracking-wider font-bold">
-                👆 CLICK THE BLIP ON THE RADAR
-              </div>
-            </div>
-          </div>
-        )}
-
-        {paused && step === STEPS.GUIDED_T4 && (
-          <div className="absolute inset-0 flex items-end justify-center pb-24 z-20 pointer-events-none">
-            <div className="bg-black/80 border border-red-500/50 rounded-lg px-5 py-3 text-center max-w-xs">
-              <div className="font-mono text-xs text-red-400 tracking-wider font-bold mb-1">
-                THIS ROCKET IS HEADING FOR OPEN GROUND
-              </div>
-              <div className="font-mono text-xs text-gray-300 tracking-wider">
-                Click it → press <span className="text-white font-bold">SPACE</span> to hold fire
-              </div>
-            </div>
-          </div>
-        )}
+        {/* empty */}
       </div>
 
       {/* Bottom controls (mobile) */}
