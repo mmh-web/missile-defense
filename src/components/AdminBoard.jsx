@@ -211,7 +211,7 @@ export default function AdminBoard({ eventCode, skipPin }) {
   const [revealedIndex, setRevealedIndex] = useState(-1);
   const [championReveal, setChampionReveal] = useState(null);
   const [offline, setOffline] = useState(false);
-  const [qualifyCount, setQualifyCount] = useState(5);
+  // qualifyCount is now derived below from advanceConfig + entries count
 
   // ── Refs ───────────────────────────────────────────────────
   const prevTopRef = useRef(null);
@@ -519,6 +519,11 @@ export default function AdminBoard({ eventCode, skipPin }) {
   const playingCount = entries.filter(e => e.status === 'playing' && !isDisconnected(e)).length;
   const isPaused = tournamentDoc?.paused === true;
   const scale = getScaleConfig(entries.length);
+
+  // Derive qualifyCount from advanceConfig + team count
+  const qualifyCount = advanceType === 'percentage'
+    ? Math.max(1, Math.ceil(teamCount * advanceValue / 100))
+    : Math.min(advanceValue, teamCount || 1);
 
   const computeAdvancing = () => {
     const sorted = [...entries].sort((a, b) => (b.score || 0) - (a.score || 0));

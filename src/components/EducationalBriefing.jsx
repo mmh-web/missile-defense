@@ -1351,12 +1351,12 @@ function CombinedBriefingPhase({ threatData, defenseData, onComplete, onSkip, le
   }, []);
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-5">
       {/* Hero image with big stat (from threat data) */}
       {threatData.heroImage && (
         <div className="relative rounded-xl overflow-hidden flex-shrink-0">
           <div
-            className="w-full h-[200px]"
+            className="w-full h-[220px]"
             style={{ background: `url('${basePath}images/${threatData.heroImage}') center center / cover no-repeat` }}
           />
           <div
@@ -1378,31 +1378,8 @@ function CombinedBriefingPhase({ threatData, defenseData, onComplete, onSkip, le
         </div>
       )}
 
-      {/* Threat Profile Bar */}
-      {profile && (
-        <div className="px-3.5 py-2 rounded-lg bg-gray-900/60 flex items-center justify-between gap-2 text-[10px] font-mono"
-          style={{ border: `1px solid ${color}25` }}>
-          <div className="flex items-center gap-2">
-            <span className="tracking-[0.18em] text-gray-500">SPEED</span>
-            <span className="font-bold" style={{ color }}>{profile.speed}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="tracking-[0.18em] text-gray-500">RANGE</span>
-            <span className="font-bold" style={{ color }}>{profile.range}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="tracking-[0.18em] text-gray-500">ALT</span>
-            <span className="font-bold" style={{ color }}>{profile.altitude}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="tracking-[0.18em] text-gray-500">COST</span>
-            <span className="font-bold" style={{ color }}>{profile.cost}</span>
-          </div>
-        </div>
-      )}
-
       {/* Fact cards — static, no interaction needed */}
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-4">
         {bullets.map((bullet, i) => (
           <div
             key={bullet.id || i}
