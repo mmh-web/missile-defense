@@ -289,7 +289,9 @@ function AppInner({ tournamentConfig = null, isPracticeMode = false }) {
   const isTournamentMode = !!tournamentConfig;
   useEffect(() => {
     if (isTournamentMode && gameState === GAME_STATES.PRE_GAME) {
-      startCampaign();
+      // Skip scoring intro for R2+ — players already saw it in R1
+      const currentRound = tournamentConfig?.currentRound || 1;
+      startCampaign({ skipScoringIntro: currentRound > 1 });
     }
   }, [isTournamentMode, gameState, GAME_STATES]);
 

@@ -1170,7 +1170,7 @@ export default function useGameEngine({ bonusLevelEnabled = false, roundConfig =
   }, [getLevelStats]);
 
   // Start campaign from Level 1
-  const startCampaign = useCallback(() => {
+  const startCampaign = useCallback((options = {}) => {
     campaignStatsRef.current = {
       totalScore: 0, levelScores: [],
       totalCorrectIntercepts: 0, totalCorrectHolds: 0,
@@ -1181,7 +1181,7 @@ export default function useGameEngine({ bonusLevelEnabled = false, roundConfig =
       endedEarly: false,
     };
     setCurrentLevel(startingLevel);
-    setGameState(GAME_STATES.SCORING_INTRO);
+    setGameState(options.skipScoringIntro ? GAME_STATES.BRIEFING : GAME_STATES.SCORING_INTRO);
     setSessionTime(0);
     setAmmo({ ...getLevelConfig(startingLevel).ammo });
     setActiveThreats([]);
