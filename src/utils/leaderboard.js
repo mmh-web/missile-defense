@@ -263,6 +263,50 @@ export function subscribeLeaderboard(gameMode, callback, eventFilter = null) {
 }
 
 /**
+ * Subscribe to all-time leaderboard (all events, all tournaments).
+ * Returns top scores across the entire scores collection.
+ */
+export function subscribeAllTimeLeaderboard(callback, maxEntries = 25) {
+  if (!db) {
+    callback([]);
+    return () => {};
+  }
+  try {
+    const q = query(
+      collection(db, COLLECTION),
+      orderBy('score', 'desc'),
+      limit(500)
+    );
+    return onSnapshot(q, (snapshot) => {
+      const raw = [];
+      snapshot.forEach((d) => {
+        const data = d.data();
+        // Only finished scores (exclude live tournament updates)
+        if (data.status === 'playing') return;
+        if (data.gameMode === 'CAMPAIGN') raw.push(data);
+      });
+      // Deduplicate by team name — keep highest score per team
+      const dedupKey = (name) => (name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+      const byName = new Map();
+      raw.forEach((entry) => {
+        const key = dedupKey(entry.name);
+        const existing = byName.get(key);
+        if (!existing || (entry.score || 0) > (existing.score || 0)) byName.set(key, entry);
+      });
+      const entries = [...byName.values()].sort((a, b) => (b.score || 0) - (a.score || 0));
+      callback(entries.slice(0, maxEntries));
+    }, (err) => {
+      console.warn('All-time leaderboard subscription failed:', err.message);
+      callback([]);
+    });
+  } catch (err) {
+    console.warn('All-time leaderboard subscription setup failed:', err.message);
+    callback([]);
+    return () => {};
+  }
+}
+
+/**
  * Check if a score would make the top 10 (uses localStorage for instant check).
  */
 export function isHighScore(score, gameMode = 'CAMPAIGN') {
@@ -416,7 +460,8 @@ export async function createTournament(eventCode) {
  */
 export function subscribeTournament(eventCode, callback) {
   if (!db || !eventCode) {
-    callback(null);
+    // Signal connectivity issue vs missing tournament
+    callback(null, !db ? 'CONNECTION_ERROR' : null);
     return () => {};
   }
   try {
@@ -425,11 +470,11 @@ export function subscribeTournament(eventCode, callback) {
       callback(snap.exists() ? snap.data() : null);
     }, (err) => {
       console.warn('Tournament subscription failed:', err.message);
-      callback(null);
+      callback(null, 'CONNECTION_ERROR');
     });
   } catch (err) {
     console.warn('Tournament subscription setup failed:', err.message);
-    callback(null);
+    callback(null, 'CONNECTION_ERROR');
     return () => {};
   }
 }

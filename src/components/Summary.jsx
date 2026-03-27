@@ -283,9 +283,9 @@ function StatRow({ label, value, good, bad }) {
   );
 }
 
-export function LeaderboardTable({ entries, gameMode = 'CAMPAIGN', highlightTimestamp = null }) {
+export function LeaderboardTable({ entries, gameMode = 'CAMPAIGN', highlightTimestamp = null, title: titleOverride = null }) {
   const eventCode = getEventCode();
-  const title = eventCode ? `${eventCode} LEADERBOARD` : 'LEADERBOARD';
+  const title = titleOverride || (eventCode ? `${eventCode} LEADERBOARD` : 'LEADERBOARD');
 
   if (!entries || entries.length === 0) {
     return (

@@ -18,7 +18,7 @@ import AdminBoard from './components/AdminBoard.jsx';
 import PracticeRound from './components/PracticeRound.jsx';
 import { getLevelConfig, LEVEL_ACCENT_COLORS } from './config/threats.js';
 import { ROUND_CONFIGS } from './hooks/useGameEngine.js';
-import { getLeaderboard, getEventCode, getRoundNumber, getSpectateCode, getAdminCode, getGameCode, getTournamentEventCode, updateLiveScore, markScoreFinished, createTournament } from './utils/leaderboard.js';
+import { getLeaderboard, getEventCode, getRoundNumber, getSpectateCode, getAdminCode, getGameCode, getTournamentEventCode, updateLiveScore, markScoreFinished, createTournament, subscribeAllTimeLeaderboard } from './utils/leaderboard.js';
 import { containsProfanity } from './utils/nameFilter.js';
 import {
   startMusic,
@@ -1815,11 +1815,17 @@ function TournamentWaitingScreen({ tournament }) {
           LEARN THE CONTROLS WHILE YOU WAIT
         </div>
 
-        {/* Look up message */}
-        <div className="font-mono text-xs text-gray-500 tracking-wider mt-6 animate-pulse"
-          style={{ animationDuration: '2s' }}>
-          LOOK AT THE MAIN SCREEN
-        </div>
+        {/* Status message */}
+        {tournament.lateJoiner ? (
+          <div className="font-mono text-xs text-amber-400/80 tracking-wider mt-6">
+            ROUND 1 IN PROGRESS — YOU'LL PLAY NEXT ROUND
+          </div>
+        ) : (
+          <div className="font-mono text-xs text-gray-500 tracking-wider mt-6 animate-pulse"
+            style={{ animationDuration: '2s' }}>
+            LOOK AT THE MAIN SCREEN
+          </div>
+        )}
 
         {/* Team count */}
         <div className="font-mono text-xs text-gray-600 tracking-wider mt-3">
@@ -2179,6 +2185,46 @@ function TournamentRouter({ initialGameCode }) {
   return <TournamentWaitingScreen tournament={tournament} />;
 }
 
+// ── All-Time Leaderboard Screen ──────────────────────────────
+function AllTimeLeaderboardScreen({ onBack }) {
+  const [entries, setEntries] = useState([]);
+  const basePath = import.meta.env.BASE_URL || '/missile-defense/';
+
+  useEffect(() => {
+    const unsub = subscribeAllTimeLeaderboard(setEntries, 25);
+    return unsub;
+  }, []);
+
+  return (
+    <div className="h-screen bg-[#0a0e1a] flex flex-col items-center justify-center relative overflow-hidden">
+      <div className="absolute inset-0" style={{ background: `url('${basePath}images/ID3.jpg') center 40% / cover no-repeat` }} />
+      <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(10,14,26,0.8) 0%, rgba(10,14,26,0.92) 30%, rgba(10,14,26,0.97) 100%)' }} />
+
+      <div className="relative z-10 w-full max-w-md mx-auto px-6 max-h-[90vh] overflow-y-auto">
+        <div className="text-center mb-6">
+          <div className="font-mono text-3xl mb-1">🏆</div>
+          <div className="font-mono text-lg font-bold tracking-[0.2em] text-yellow-400"
+            style={{ textShadow: '0 0 20px rgba(234,179,8,0.3)' }}>
+            ALL-TIME LEADERBOARD
+          </div>
+          <div className="font-mono text-[10px] text-gray-500 tracking-wider mt-1">
+            TOP SCORES ACROSS ALL GAMES
+          </div>
+        </div>
+
+        <LeaderboardTable entries={entries} title="ALL-TIME BEST" />
+
+        <div className="text-center mt-6 mb-4">
+          <button onClick={onBack}
+            className="font-mono text-xs text-gray-500 tracking-wider hover:text-gray-300 cursor-pointer">
+            ← BACK
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Title Screen (game code + solo mission) ──────────────────
 function TitleScreen({ tournament, onSoloMission, onHostMode, gatePassword, gateUnlocked, onGateUnlock }) {
   const [screen, setScreen] = useState('main'); // 'main' | 'code' | 'gate' | 'host_pin' | 'host_create'
@@ -2378,6 +2424,11 @@ function TitleScreen({ tournament, onSoloMission, onHostMode, gatePassword, gate
     );
   }
 
+  // All-time leaderboard screen
+  if (screen === 'leaderboard') {
+    return <AllTimeLeaderboardScreen onBack={() => setScreen('main')} />;
+  }
+
   // Main title screen — two side-by-side options
   return (
     <div className="h-screen bg-[#0a0e1a] flex items-center justify-center relative overflow-hidden">
@@ -2440,12 +2491,20 @@ function TitleScreen({ tournament, onSoloMission, onHostMode, gatePassword, gate
           </button>
         </div>
 
-        {/* Host Tournament — smaller link below main buttons */}
-        <button onClick={() => setScreen('host_pin')}
-          className="mt-5 font-mono text-xs tracking-[0.2em] text-gray-500
-            hover:text-green-400/80 transition-all cursor-pointer">
-          HOST TOURNAMENT
-        </button>
+        {/* Secondary links */}
+        <div className="mt-5 flex items-center justify-center gap-4">
+          <button onClick={() => setScreen('host_pin')}
+            className="font-mono text-xs tracking-[0.2em] text-gray-500
+              hover:text-green-400/80 transition-all cursor-pointer">
+            HOST TOURNAMENT
+          </button>
+          <span className="text-gray-700">|</span>
+          <button onClick={() => setScreen('leaderboard')}
+            className="font-mono text-xs tracking-[0.2em] text-gray-500
+              hover:text-yellow-400/80 transition-all cursor-pointer">
+            🏆 ALL-TIME
+          </button>
+        </div>
 
         {/* Footer */}
         <div className="mt-8">
