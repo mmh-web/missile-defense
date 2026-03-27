@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0a0e1a;
+    color: #e5e7eb;
+    font-family: 'Courier New', monospace;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .page {
+    width: 100%;
+    max-width: 520px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    padding: 0 24px;
+  }
+
+  /* Background photo */
+  .bg {
+    position: absolute;
+    inset: 0;
+    background: url('/missile-defense/images/ID4.jpeg') center center / cover no-repeat;
+  }
+  .bg-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(10,14,26,0.5) 0%,
+      rgba(10,14,26,0.65) 30%,
+      rgba(10,14,26,0.85) 60%,
+      #0a0e1a 100%
+    );
+  }
+
+  .header {
+    text-align: center;
+    padding: 16px 0 10px;
+    position: relative;
+    z-index: 2;
+  }
+  .header h1 {
+    font-size: 18px;
+    font-weight: 900;
+    letter-spacing: 0.2em;
+    color: #f97316;
+    text-shadow: 0 0 30px rgba(249,115,22,0.3);
+  }
+  .header .sub {
+    font-size: 10px;
+    color: #f9731670;
+    letter-spacing: 0.15em;
+    margin-top: 2px;
+  }
+
+  .content {
+    position: relative;
+    z-index: 2;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  /* Score rule cards */
+  .rule {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: rgba(17,24,39,0.55);
+    border: 1px solid #1e2736;
+  }
+  .rule-points {
+    font-size: 18px;
+    font-weight: 900;
+    min-width: 50px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .rule-points.pos { color: #22c55e; }
+  .rule-points.neg { color: #ef4444; }
+  .rule-points.streak { color: #eab308; }
+  .rule-divider {
+    width: 1px;
+    height: 28px;
+    background: #374151;
+    flex-shrink: 0;
+  }
+  .rule-text {
+    font-size: 12px;
+    color: #9ca3af;
+    line-height: 1.4;
+  }
+  .rule-text strong { color: #d1d5db; }
+
+  /* Key insight callout */
+  .insight {
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: rgba(249,115,22,0.06);
+    border: 1px solid #f9731620;
+    margin-top: 2px;
+  }
+  .insight-label {
+    font-size: 9px;
+    color: #f9731670;
+    letter-spacing: 0.25em;
+    margin-bottom: 4px;
+  }
+  .insight-text {
+    font-size: 13px;
+    color: #c9cdd4;
+    line-height: 1.5;
+  }
+  .insight-text strong { color: #f97316; }
+
+  .controls {
+    padding: 8px 0 14px;
+    margin-top: auto;
+    position: relative;
+    z-index: 2;
+  }
+  .btn-row {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+  }
+  .btn {
+    padding: 9px 28px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    border-radius: 8px;
+    border: 1px solid;
+  }
+  .btn-primary { background: rgba(22,101,52,0.25); border-color: #15803d; color: #4ade80; }
+
+  .mockup-label {
+    position: fixed; top: 8px; right: 12px; font-size: 10px; color: #4ade80;
+    background: #0a0e1a; padding: 2px 8px; border: 1px solid #22c55e40;
+    border-radius: 4px; z-index: 10;
+  }
+</style>
+</head>
+<body>
+
+<div class="mockup-label">MOCKUP — SCORING INTRO</div>
+
+<div class="page">
+  <div class="bg"></div>
+  <div class="bg-overlay"></div>
+
+  <div class="header">
+    <h1>HOW SCORING WORKS</h1>
+    <div class="sub">MISSION BRIEFING · תדריך ניקוד</div>
+  </div>
+
+  <div class="content">
+    <div class="rule">
+      <div class="rule-points pos">+100</div>
+      <div class="rule-divider"></div>
+      <div class="rule-text"><strong>Correct intercept</strong> — right system on a populated target</div>
+    </div>
+    <div class="rule">
+      <div class="rule-points streak">+25×</div>
+      <div class="rule-divider"></div>
+      <div class="rule-text"><strong>Streak bonus</strong> — consecutive correct decisions multiply your score</div>
+    </div>
+    <div class="rule">
+      <div class="rule-points pos">FREE</div>
+      <div class="rule-divider"></div>
+      <div class="rule-text"><strong>Hold fire on open ground</strong> — builds streak, saves interceptors</div>
+    </div>
+    <div class="rule">
+      <div class="rule-points neg">−100</div>
+      <div class="rule-divider"></div>
+      <div class="rule-text"><strong>City hit</strong> — siren sounds, streak resets, points deducted</div>
+    </div>
+    <div class="rule">
+      <div class="rule-points neg">RESET</div>
+      <div class="rule-divider"></div>
+      <div class="rule-text"><strong>Wasted interceptor</strong> — firing at open ground resets your streak</div>
+    </div>
+
+    <div class="insight">
+      <div class="insight-label">KEY INSIGHT</div>
+      <div class="insight-text">
+        Real Iron Dome operators face this same dilemma — <strong>fire at everything</strong> and run out of interceptors, or <strong>hold fire</strong> on threats aimed at open ground and save ammo for what matters.
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="btn-row">
+      <div class="btn btn-primary">UNDERSTOOD ▸</div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

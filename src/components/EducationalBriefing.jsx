@@ -1340,7 +1340,7 @@ function CombinedBriefingPhase({ threatData, defenseData, onComplete, onSkip, le
   // Merge threat + defense facts into one pool, pick 3 — stable across re-renders
   const [bullets] = useState(() => {
     const allFacts = [...(threatData.bullets || []), ...(defenseData.bullets || [])];
-    return allFacts.length > 3 ? selectRandom(allFacts, 3) : allFacts;
+    return allFacts.length > 2 ? selectRandom(allFacts, 2) : allFacts;
   });
 
   // Use threat color as primary accent
@@ -1351,7 +1351,7 @@ function CombinedBriefingPhase({ threatData, defenseData, onComplete, onSkip, le
   }, []);
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-3">
       {/* Hero image with big stat (from threat data) */}
       {threatData.heroImage && (
         <div className="relative rounded-xl overflow-hidden flex-shrink-0">
@@ -1402,7 +1402,7 @@ function CombinedBriefingPhase({ threatData, defenseData, onComplete, onSkip, le
       )}
 
       {/* Fact cards — static, no interaction needed */}
-      <div className="flex flex-col gap-1.5">
+      <div className="flex flex-col gap-3">
         {bullets.map((bullet, i) => (
           <div
             key={bullet.id || i}

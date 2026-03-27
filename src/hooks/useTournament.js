@@ -79,6 +79,8 @@ export default function useTournament(initialEventCode = null) {
   const [teamName, setTeamName] = useState('');
   const [teamEmoji, setTeamEmoji] = useState('');
   const [joined, setJoined] = useState(false);
+  const [lateJoiner, setLateJoiner] = useState(false); // Joined after R1 started — skip R1 gameplay
+  const lateJoinerRef = useRef(false);
   const [audioUnlocked, setAudioUnlocked] = useState(false);
 
   // Countdown state
@@ -140,10 +142,12 @@ export default function useTournament(initialEventCode = null) {
   useEffect(() => {
     if (!eventCode) return;
 
-    const unsub = subscribeTournament(eventCode, (doc) => {
+    const unsub = subscribeTournament(eventCode, (doc, reason) => {
       setTournamentDoc(doc);
       if (!doc) {
-        setError('TOURNAMENT NOT FOUND');
+        setError(reason === 'CONNECTION_ERROR'
+          ? 'CONNECTION ERROR — CHECK WIFI AND TRY AGAIN'
+          : 'TOURNAMENT NOT FOUND');
         return;
       }
       setError(null);
@@ -159,34 +163,26 @@ export default function useTournament(initialEventCode = null) {
       }
 
       // GATE: if player hasn't joined this tournament, check if they're allowed in
-      // Only the R1 (qualifier) lobby allows new players. Inter-round lobbies (R2+) do NOT.
+      // Allow joining anytime during Round 1 (lobby, active, or complete).
+      // Block joining once R2+ has started (inter-round lobbies don't accept new players).
       if (!joinedRef.current) {
-        // A tournament is in initial lobby ONLY if: roundStatus is lobby, currentRound is 1,
-        // AND no round results exist yet (rounds object empty). The rounds check catches
-        // stale Firestore cache that might show R1 lobby after a reset.
-        const hasRoundResults = Object.keys(doc.rounds || {}).length > 0;
-        const isInitialLobby = (!doc.roundStatus || doc.roundStatus === 'lobby')
-          && (doc.currentRound || 1) === 1
-          && !hasRoundResults;
-        if (isInitialLobby) {
-          // R1 lobby — allow entry, show lobby screen
+        const isRound1 = (doc.currentRound || 1) === 1;
+        const isFinished = doc.roundStatus === 'finished';
+        if (isRound1 && !isFinished) {
+          // R1 in any state — allow entry, show lobby screen for name entry
           if (phaseRef.current !== TOURNAMENT_PHASES.LOBBY) {
             setPhase(TOURNAMENT_PHASES.LOBBY);
           }
         } else {
-          // Tournament is NOT in lobby — block entry completely
-          // Stay on LOBBY phase (which shows the code entry/join screen) with error
-          // so the user sees the message instead of being silently kicked to title
+          // Tournament is past R1 or finished — block entry
           const messages = {
-            lobby: 'TOURNAMENT IN PROGRESS — TOO LATE TO JOIN',
+            lobby: 'ROUND 2+ IN PROGRESS — TOO LATE TO JOIN',
             active: 'TOURNAMENT IN PROGRESS — TOO LATE TO JOIN',
             paused: 'TOURNAMENT IN PROGRESS — TOO LATE TO JOIN',
             complete: 'ROUND CLOSED — TOO LATE TO JOIN',
             finished: 'TOURNAMENT HAS ENDED',
           };
           setError(messages[doc.roundStatus] || 'TOURNAMENT UNAVAILABLE');
-          // Don't clear eventCode or change phase — keep showing the error
-          // on whatever screen they're on (code entry or lobby)
           return; // Don't process any further
         }
       }
@@ -230,10 +226,18 @@ export default function useTournament(initialEventCode = null) {
         // Don't interrupt active gameplay
         return;
       }
+      // Don't kick players out of practice when tournament doc updates (e.g., new player joins)
+      if (phaseRef.current === TOURNAMENT_PHASES.LOBBY_PRACTICE) {
+        return;
+      }
       if (phaseRef.current !== TOURNAMENT_PHASES.LOBBY) {
         setPhase(TOURNAMENT_PHASES.WAITING);
       }
     } else if (roundStatus === 'active') {
+      // Late joiners stay in WAITING — don't push them into R1 gameplay
+      if (lateJoinerRef.current && currentRound === 1) {
+        return;
+      }
       if (phaseRef.current === TOURNAMENT_PHASES.WAITING ||
           phaseRef.current === TOURNAMENT_PHASES.LOBBY ||
           phaseRef.current === TOURNAMENT_PHASES.LOBBY_PRACTICE) {
@@ -244,6 +248,11 @@ export default function useTournament(initialEventCode = null) {
       // Don't interrupt active gameplay — player may still be between levels
       if (phaseRef.current === TOURNAMENT_PHASES.PLAYING) {
         return;
+      }
+      // Late R1 joiners: when R1 completes, clear lateJoiner flag so they play R2
+      if (lateJoinerRef.current && currentRound === 1) {
+        setLateJoiner(false);
+        lateJoinerRef.current = false;
       }
       // Round closed by admin — check if we advance
       const roundResult = rounds?.[currentRound];
@@ -256,6 +265,7 @@ export default function useTournament(initialEventCode = null) {
             setPhase(TOURNAMENT_PHASES.ADVANCING);
           }
         } else {
+          // Late joiners with no R1 score get eliminated unless admin includes them
           setPhase(TOURNAMENT_PHASES.ELIMINATED);
         }
       }
@@ -343,8 +353,12 @@ export default function useTournament(initialEventCode = null) {
 
     // Set event code to trigger the real-time subscription.
     // The subscription callback will validate roundStatus and block if needed.
-    // We set phase to LOBBY optimistically — the subscription will override
-    // to TITLE if the tournament is past lobby.
+    // If retrying the same code after a connection error, clear first to re-trigger the effect.
+    if (eventCode === cleanCode) {
+      setEventCode('');
+      // Use microtask to ensure state clears before re-setting
+      await new Promise(r => setTimeout(r, 0));
+    }
     setEventCode(cleanCode);
     // Don't set phase yet — wait for subscription to confirm status
     return true;
@@ -356,16 +370,11 @@ export default function useTournament(initialEventCode = null) {
   const submitTeamName = useCallback(async (name, emoji = '') => {
     if (!eventCode || !name?.trim()) return false;
 
-    // Block joining if tournament is past lobby phase
+    // Block joining if tournament is past Round 1
+    const currentRound = tournamentDoc?.currentRound || 1;
     const status = tournamentDoc?.roundStatus;
-    if (status && status !== 'lobby') {
-      const messages = {
-        active: 'TOURNAMENT IN PROGRESS — TOO LATE TO JOIN',
-        paused: 'TOURNAMENT IN PROGRESS — TOO LATE TO JOIN',
-        complete: 'ROUND CLOSED — TOO LATE TO JOIN',
-        finished: 'TOURNAMENT HAS ENDED',
-      };
-      setError(messages[status] || 'TOURNAMENT UNAVAILABLE');
+    if (currentRound > 1 || status === 'finished') {
+      setError(status === 'finished' ? 'TOURNAMENT HAS ENDED' : 'TOURNAMENT IN PROGRESS — TOO LATE TO JOIN');
       return false;
     }
 
@@ -387,6 +396,12 @@ export default function useTournament(initialEventCode = null) {
     try {
       await registerTeam(eventCode, cleanName, emoji);
       setJoined(true);
+      // If R1 is already active or complete, mark as late joiner — they'll wait for R2
+      const isLate = status && status !== 'lobby';
+      if (isLate) {
+        setLateJoiner(true);
+        lateJoinerRef.current = true;
+      }
       setPhase(TOURNAMENT_PHASES.WAITING);
 
       return true;
@@ -498,6 +513,7 @@ export default function useTournament(initialEventCode = null) {
     teamEmoji,
     displayName,
     joined,
+    lateJoiner,
     error,
     countdownValue,
     cumulativeBase,

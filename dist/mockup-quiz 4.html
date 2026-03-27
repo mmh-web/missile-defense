@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0a0e1a;
+    color: #e5e7eb;
+    font-family: 'Courier New', monospace;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .page {
+    width: 100%;
+    max-width: 520px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 0 24px;
+    position: relative;
+  }
+
+  /* Background photo */
+  .bg {
+    position: absolute;
+    inset: 0;
+    background: url('/missile-defense/images/ID1.jpg') center center / cover no-repeat;
+  }
+  .bg-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(10,14,26,0.45) 0%,
+      rgba(10,14,26,0.6) 25%,
+      rgba(10,14,26,0.85) 55%,
+      #0a0e1a 100%
+    );
+  }
+
+  .header {
+    text-align: center;
+    padding: 12px 0 8px;
+    position: relative;
+    z-index: 2;
+  }
+  .phase-bar {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 10px;
+    position: relative;
+    z-index: 2;
+  }
+  .phase-tab {
+    flex: 1; text-align: center; padding: 5px 0; font-size: 10px;
+    letter-spacing: 0.12em; border: 1px solid #374151; border-radius: 5px; color: #6b7280;
+  }
+  .phase-tab.done { border-color: #22c55e40; color: #22c55e80; }
+  .phase-tab.active { background: #06b6d420; border-color: #06b6d4; color: #06b6d4; }
+
+  .content {
+    position: relative;
+    z-index: 2;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Quiz header */
+  .quiz-header {
+    text-align: center;
+    margin-bottom: 10px;
+  }
+  .quiz-title {
+    font-size: 16px;
+    font-weight: 900;
+    letter-spacing: 0.2em;
+    color: #06b6d4;
+    text-shadow: 0 0 20px rgba(6,182,212,0.2);
+  }
+  .quiz-sub {
+    font-size: 10px;
+    color: #06b6d470;
+    letter-spacing: 0.15em;
+    margin-top: 2px;
+  }
+
+  /* Timer bar */
+  .timer-track {
+    height: 3px;
+    background: #1f2937;
+    border-radius: 2px;
+    margin-bottom: 14px;
+    overflow: hidden;
+  }
+  .timer-fill {
+    height: 100%;
+    width: 65%;
+    background: #06b6d4;
+    border-radius: 2px;
+    transition: width 0.3s;
+  }
+
+  /* Question */
+  .question {
+    font-size: 15px;
+    color: #e5e7eb;
+    text-align: center;
+    line-height: 1.5;
+    margin-bottom: 16px;
+    padding: 0 8px;
+  }
+
+  /* Options */
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: rgba(17,24,39,0.55);
+    border: 1px solid #1e2736;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .option:hover {
+    border-color: #06b6d440;
+    background: rgba(6,182,212,0.06);
+  }
+  .option.selected {
+    border-color: #06b6d4;
+    background: rgba(6,182,212,0.1);
+  }
+  .option.correct {
+    border-color: #22c55e;
+    background: rgba(34,197,94,0.1);
+  }
+  .option-key {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    background: rgba(6,182,212,0.15);
+    border: 1px solid #06b6d440;
+    color: #06b6d4;
+    font-size: 11px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .option.correct .option-key {
+    background: rgba(34,197,94,0.2);
+    border-color: #22c55e60;
+    color: #22c55e;
+  }
+  .option-text {
+    font-size: 13px;
+    color: #d1d5db;
+  }
+  .option.correct .option-text { color: #22c55e; }
+
+  /* Result box */
+  .result-box {
+    padding: 10px 14px;
+    border-radius: 8px;
+    background: rgba(34,197,94,0.06);
+    border: 1px solid #22c55e25;
+    margin-bottom: 10px;
+  }
+  .result-label {
+    font-size: 11px;
+    color: #22c55e;
+    font-weight: bold;
+    letter-spacing: 0.15em;
+    margin-bottom: 4px;
+  }
+  .result-text {
+    font-size: 12px;
+    color: #9ca3af;
+    line-height: 1.5;
+  }
+
+  /* Points tracker */
+  .points-tracker {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    padding: 8px;
+    margin-top: auto;
+    margin-bottom: 8px;
+  }
+  .pt-item {
+    text-align: center;
+  }
+  .pt-val {
+    font-size: 18px;
+    font-weight: 900;
+    color: #22c55e;
+  }
+  .pt-lbl {
+    font-size: 8px;
+    color: #6b7280;
+    letter-spacing: 0.15em;
+    margin-top: 2px;
+  }
+
+  .controls {
+    padding: 4px 0 14px;
+  }
+  .btn-row { display: flex; justify-content: center; gap: 10px; }
+  .btn {
+    padding: 9px 28px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    border-radius: 8px;
+    border: 1px solid;
+  }
+  .btn-primary { background: rgba(22,101,52,0.25); border-color: #15803d; color: #4ade80; }
+  .btn-secondary { background: rgba(55,65,81,0.2); border-color: #4b5563; color: #9ca3af; }
+
+  .mockup-label {
+    position: fixed; top: 8px; right: 12px; font-size: 10px; color: #4ade80;
+    background: #0a0e1a; padding: 2px 8px; border: 1px solid #22c55e40;
+    border-radius: 4px; z-index: 10;
+  }
+</style>
+</head>
+<body>
+
+<div class="mockup-label">MOCKUP — QUIZ PHASE</div>
+
+<div class="page">
+  <div class="bg"></div>
+  <div class="bg-overlay"></div>
+
+  <div class="phase-bar">
+    <div class="phase-tab done">SITUATION</div>
+    <div class="phase-tab done">RESPONSE</div>
+    <div class="phase-tab active">READINESS CHECK</div>
+  </div>
+
+  <div class="content">
+    <div class="quiz-header">
+      <div class="quiz-title">READINESS CHECK</div>
+      <div class="quiz-sub">QUESTION 1 OF 2 · +250 PER CORRECT</div>
+    </div>
+
+    <div class="timer-track"><div class="timer-fill"></div></div>
+
+    <div class="question">
+      How long do residents of Sderot have to reach shelter when a rocket is launched from Gaza?
+    </div>
+
+    <div class="options">
+      <div class="option">
+        <div class="option-key">A</div>
+        <div class="option-text">45 seconds</div>
+      </div>
+      <div class="option correct">
+        <div class="option-key">✓</div>
+        <div class="option-text">15 seconds</div>
+      </div>
+      <div class="option">
+        <div class="option-key">C</div>
+        <div class="option-text">2 minutes</div>
+      </div>
+      <div class="option">
+        <div class="option-key">D</div>
+        <div class="option-text">30 seconds</div>
+      </div>
+    </div>
+
+    <div class="result-box">
+      <div class="result-label">✓ CORRECT — +250 POINTS</div>
+      <div class="result-text">
+        Sderot is less than 1 km from the Gaza fence. Residents have trained to reach shelter in 15 seconds — including children.
+      </div>
+    </div>
+
+    <div class="points-tracker">
+      <div class="pt-item">
+        <div class="pt-val">250</div>
+        <div class="pt-lbl">QUIZ POINTS</div>
+      </div>
+      <div class="pt-item">
+        <div class="pt-val">1/2</div>
+        <div class="pt-lbl">ANSWERED</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="btn-row">
+      <div class="btn btn-primary">NEXT QUESTION ▸</div>
+      <div class="btn btn-secondary">SKIP QUIZ ▸</div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

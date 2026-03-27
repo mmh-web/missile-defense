@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0a0e1a;
+    color: #e5e7eb;
+    font-family: 'Courier New', monospace;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* Centered column — max 480px with generous padding */
+  .page {
+    width: 100%;
+    max-width: 520px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 0 24px;
+  }
+
+  .header {
+    text-align: center;
+    padding: 10px 0 6px;
+    flex-shrink: 0;
+  }
+  .header h1 {
+    font-size: 18px;
+    font-weight: bold;
+    letter-spacing: 0.15em;
+    color: #f97316;
+  }
+  .header .subtitle {
+    font-size: 10px;
+    color: #f9731680;
+    letter-spacing: 0.2em;
+  }
+
+  .phase-bar {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 10px;
+    flex-shrink: 0;
+  }
+  .phase-tab {
+    flex: 1;
+    text-align: center;
+    padding: 5px 0;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    border: 1px solid #374151;
+    border-radius: 5px;
+    color: #6b7280;
+  }
+  .phase-tab.active {
+    background: #f9731620;
+    border-color: #f97316;
+    color: #f97316;
+  }
+
+  .content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    gap: 8px;
+  }
+
+  /* === HERO IMAGE === */
+  .hero {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .hero-img {
+    width: 100%;
+    height: 240px;
+    background: url('/missile-defense/images/ID1.jpg') center center / cover no-repeat;
+  }
+  .hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(10,14,26,0.15) 0%,
+      rgba(10,14,26,0.3) 40%,
+      rgba(10,14,26,0.88) 100%
+    );
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 18px 22px;
+  }
+  .hero-caption {
+    position: absolute;
+    top: 12px;
+    left: 16px;
+    font-size: 9px;
+    color: #f9731670;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+  }
+  .hero-stat {
+    font-size: 56px;
+    font-weight: 900;
+    color: #f97316;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    text-shadow: 0 0 40px rgba(249,115,22,0.35);
+  }
+  .hero-label {
+    font-size: 13px;
+    color: #c9cdd4;
+    letter-spacing: 0.04em;
+    margin-top: 6px;
+    line-height: 1.4;
+  }
+
+  /* === FACT CARDS === */
+  .facts {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+    min-height: 0;
+  }
+  .fact-card {
+    display: flex;
+    align-items: start;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: rgba(17,24,39,0.55);
+    border: 1px solid #1e2736;
+  }
+  .fact-icon {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    margin-top: 1px;
+    opacity: 0.75;
+  }
+  .fact-text {
+    font-size: 13px;
+    color: #bfc4cc;
+    line-height: 1.55;
+  }
+
+  /* === BOTTOM CONTROLS === */
+  .controls {
+    padding: 10px 0 14px;
+    flex-shrink: 0;
+  }
+  .progress-bar {
+    height: 3px;
+    background: #1f2937;
+    border-radius: 2px;
+    margin-bottom: 6px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    width: 45%;
+    background: #22c55e;
+    border-radius: 2px;
+  }
+  .timer {
+    text-align: right;
+    font-size: 11px;
+    color: #4b5563;
+    margin-bottom: 8px;
+  }
+  .btn-row {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+  }
+  .btn {
+    padding: 9px 28px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    border-radius: 8px;
+    cursor: pointer;
+    border: 1px solid;
+  }
+  .btn-primary {
+    background: rgba(22,101,52,0.25);
+    border-color: #15803d;
+    color: #4ade80;
+  }
+  .btn-secondary {
+    background: rgba(55,65,81,0.2);
+    border-color: #4b5563;
+    color: #9ca3af;
+  }
+
+  .classified {
+    position: fixed;
+    bottom: 10px;
+    left: 14px;
+    font-size: 9px;
+    color: #f9731635;
+    letter-spacing: 0.2em;
+    border: 1px solid #f9731620;
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+
+  .mockup-label {
+    position: fixed;
+    top: 8px;
+    right: 12px;
+    font-size: 10px;
+    color: #4ade80;
+    background: #0a0e1a;
+    padding: 2px 8px;
+    border: 1px solid #22c55e40;
+    border-radius: 4px;
+    z-index: 10;
+  }
+</style>
+</head>
+<body>
+
+<div class="mockup-label">MOCKUP — SITUATION PHASE</div>
+
+<div class="page">
+  <div class="header">
+    <h1>LEVEL 1 BRIEFING</h1>
+    <div class="subtitle">SOUTHERN FRONT · חזית הדרום</div>
+  </div>
+
+  <div class="phase-bar">
+    <div class="phase-tab active">SITUATION</div>
+    <div class="phase-tab">RESPONSE</div>
+    <div class="phase-tab">READINESS CHECK</div>
+  </div>
+
+  <div class="content">
+    <div class="hero">
+      <div class="hero-img"></div>
+      <div class="hero-overlay">
+        <div class="hero-caption">SOUTHERN ISRAEL · דְּרוֹם יִשְׂרָאֵל</div>
+        <div class="hero-stat">20,000+</div>
+        <div class="hero-label">rockets and mortars fired at Israel since 2001 — ranging from Sderot to Beersheba</div>
+      </div>
+    </div>
+
+    <div class="facts">
+      <div class="fact-card">
+        <svg class="fact-icon" viewBox="0 0 20 20" fill="none" stroke="#f97316" stroke-width="1.5">
+          <path d="M10 2v2M3 10H1M19 10h-2M4.9 4.9l1.4 1.4M15.1 4.9l-1.4 1.4"/>
+          <circle cx="10" cy="10" r="4"/>
+          <circle cx="10" cy="10" r="1.5" fill="#f97316"/>
+        </svg>
+        <div class="fact-text">
+          Residents of Sderot have <strong style="color:#f97316">15 seconds</strong> to reach shelter when a rocket launches — the city sits less than 1 km from the Gaza fence
+        </div>
+      </div>
+      <div class="fact-card">
+        <svg class="fact-icon" viewBox="0 0 20 20" fill="none" stroke="#f97316" stroke-width="1.5">
+          <circle cx="7" cy="6" r="2.5"/>
+          <circle cx="14" cy="6" r="2.5"/>
+          <path d="M2 17c0-3 2.5-5 5-5s5 2 5 5"/>
+          <path d="M10 17c0-3 2-5 4-5s4 2 4 5"/>
+        </svg>
+        <div class="fact-text">
+          Over <strong style="color:#f97316">1 million Israelis</strong> — 12% of the population — live within rocket range of Gaza
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="progress-bar"><div class="progress-fill"></div></div>
+    <div class="timer">12s</div>
+    <div class="btn-row">
+      <div class="btn btn-primary">CONTINUE ▸</div>
+      <div class="btn btn-secondary">SKIP BRIEFING ▸</div>
+    </div>
+  </div>
+</div>
+
+<div class="classified">LVL 1 — SOUTH</div>
+
+</body>
+</html>
