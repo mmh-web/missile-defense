@@ -2437,6 +2437,15 @@ function TitleScreen({ tournament, onSoloMission, onHostMode, gatePassword, gate
       <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(10,14,26,0.5) 0%, rgba(10,14,26,0.35) 30%, rgba(10,14,26,0.35) 50%, rgba(10,14,26,0.6) 70%, rgba(10,14,26,0.92) 100%)' }} />
       <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at center, transparent 40%, rgba(10,14,26,0.5) 100%)' }} />
 
+      {/* Trophy — top right corner */}
+      <button onClick={() => setScreen('leaderboard')}
+        className="absolute top-5 right-5 z-20 font-mono text-sm tracking-wider text-yellow-400/70
+          hover:text-yellow-400 transition-all cursor-pointer flex items-center gap-1.5"
+        style={{ textShadow: '0 1px 8px rgba(0,0,0,0.8)' }}>
+        <span className="text-lg">🏆</span>
+        <span className="hidden sm:inline text-xs tracking-[0.15em]">ALL-TIME</span>
+      </button>
+
       <div className="relative z-10 text-center w-full max-w-md mx-auto px-6">
         {/* Title */}
         <div className="mb-2">
@@ -2491,20 +2500,12 @@ function TitleScreen({ tournament, onSoloMission, onHostMode, gatePassword, gate
           </button>
         </div>
 
-        {/* Secondary links */}
-        <div className="mt-5 flex items-center justify-center gap-4">
-          <button onClick={() => setScreen('host_pin')}
-            className="font-mono text-xs tracking-[0.2em] text-gray-500
-              hover:text-green-400/80 transition-all cursor-pointer">
-            HOST TOURNAMENT
-          </button>
-          <span className="text-gray-700">|</span>
-          <button onClick={() => setScreen('leaderboard')}
-            className="font-mono text-xs tracking-[0.2em] text-gray-500
-              hover:text-yellow-400/80 transition-all cursor-pointer">
-            🏆 ALL-TIME
-          </button>
-        </div>
+        {/* Host Tournament — smaller link below main buttons */}
+        <button onClick={() => setScreen('host_pin')}
+          className="mt-5 font-mono text-xs tracking-[0.2em] text-gray-500
+            hover:text-green-400/80 transition-all cursor-pointer">
+          HOST TOURNAMENT
+        </button>
 
         {/* Footer */}
         <div className="mt-8">
