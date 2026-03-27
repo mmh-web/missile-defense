@@ -234,10 +234,6 @@ export default function useTournament(initialEventCode = null) {
         setPhase(TOURNAMENT_PHASES.WAITING);
       }
     } else if (roundStatus === 'active') {
-      // Late joiners stay in WAITING — don't push them into R1 gameplay
-      if (lateJoinerRef.current && currentRound === 1) {
-        return;
-      }
       if (phaseRef.current === TOURNAMENT_PHASES.WAITING ||
           phaseRef.current === TOURNAMENT_PHASES.LOBBY ||
           phaseRef.current === TOURNAMENT_PHASES.LOBBY_PRACTICE) {
@@ -248,11 +244,6 @@ export default function useTournament(initialEventCode = null) {
       // Don't interrupt active gameplay — player may still be between levels
       if (phaseRef.current === TOURNAMENT_PHASES.PLAYING) {
         return;
-      }
-      // Late R1 joiners: when R1 completes, clear lateJoiner flag so they play R2
-      if (lateJoinerRef.current && currentRound === 1) {
-        setLateJoiner(false);
-        lateJoinerRef.current = false;
       }
       // Round closed by admin — check if we advance
       const roundResult = rounds?.[currentRound];
@@ -396,13 +387,13 @@ export default function useTournament(initialEventCode = null) {
     try {
       await registerTeam(eventCode, cleanName, emoji);
       setJoined(true);
-      // If R1 is already active or complete, mark as late joiner — they'll wait for R2
+      // If R1 is already active, jump straight into gameplay (skip waiting)
       const isLate = status && status !== 'lobby';
-      if (isLate) {
-        setLateJoiner(true);
-        lateJoinerRef.current = true;
+      if (isLate && status === 'active') {
+        setPhase(audioUnlocked ? TOURNAMENT_PHASES.COUNTDOWN : TOURNAMENT_PHASES.TAP_READY);
+      } else {
+        setPhase(TOURNAMENT_PHASES.WAITING);
       }
-      setPhase(TOURNAMENT_PHASES.WAITING);
 
       return true;
     } catch (err) {
