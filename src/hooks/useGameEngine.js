@@ -67,11 +67,12 @@ export default function useGameEngine({ bonusLevelEnabled = false, roundConfig =
   const effectiveTotalLevelsRef = useRef(effectiveTotalLevels);
   effectiveTotalLevelsRef.current = effectiveTotalLevels;
   const startingLevel = roundConfig ? roundConfig.startLevel : 1;
+  const tournamentAmmoBonus = roundConfig ? 1 : 0; // +1 ammo per system in tournament mode
 
   const [currentLevel, setCurrentLevel] = useState(1);
   const [gameState, setGameState] = useState(GAME_STATES.PRE_GAME);
   const [sessionTime, setSessionTime] = useState(0);
-  const [ammo, setAmmo] = useState({ ...getLevelConfig(1).ammo });
+  const [ammo, setAmmo] = useState({ ...getLevelConfig(1, { tournamentAmmoBonus }).ammo });
   const [activeThreats, setActiveThreats] = useState([]);
   const [selectedThreatId, setSelectedThreatId] = useState(null);
   const [tzevaAdomActive, setTzevaAdomActive] = useState(false);
@@ -1183,7 +1184,7 @@ export default function useGameEngine({ bonusLevelEnabled = false, roundConfig =
     setCurrentLevel(startingLevel);
     setGameState(options.skipScoringIntro ? GAME_STATES.BRIEFING : GAME_STATES.SCORING_INTRO);
     setSessionTime(0);
-    setAmmo({ ...getLevelConfig(startingLevel).ammo });
+    setAmmo({ ...getLevelConfig(startingLevel, { tournamentAmmoBonus }).ammo });
     setActiveThreats([]);
     setSelectedThreatId(null);
     setResultLog([]);
@@ -1229,7 +1230,7 @@ export default function useGameEngine({ bonusLevelEnabled = false, roundConfig =
   // Start a specific level (called after briefing/level intro)
   // Note: escape room timer is NOT reset between levels — it persists across the campaign
   const startLevel = useCallback((level) => {
-    const config = getLevelConfig(level);
+    const config = getLevelConfig(level, { tournamentAmmoBonus });
     setCurrentLevel(level);
     setSessionTime(0);
     setAmmo({ ...config.ammo });
@@ -1355,7 +1356,7 @@ export default function useGameEngine({ bonusLevelEnabled = false, roundConfig =
     };
     setCurrentLevel(level);
     setSessionTime(0);
-    setAmmo({ ...getLevelConfig(level).ammo });
+    setAmmo({ ...getLevelConfig(level, { tournamentAmmoBonus }).ammo });
     setActiveThreats([]);
     setSelectedThreatId(null);
     setResultLog([]);
@@ -1401,7 +1402,7 @@ export default function useGameEngine({ bonusLevelEnabled = false, roundConfig =
     setGameState(GAME_STATES.PRE_GAME);
     setCurrentLevel(1);
     setSessionTime(0);
-    setAmmo({ ...getLevelConfig(1).ammo });
+    setAmmo({ ...getLevelConfig(1, { tournamentAmmoBonus }).ammo });
     setActiveThreats([]);
     setSelectedThreatId(null);
     setResultLog([]);

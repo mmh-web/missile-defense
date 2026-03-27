@@ -819,8 +819,16 @@ export function pickThreatVariant(level) {
   return lvl.threats;
 }
 
-export function getLevelConfig(level) {
-  return LEVELS[level - 1] || LEVELS[0];
+export function getLevelConfig(level, options = {}) {
+  const config = LEVELS[level - 1] || LEVELS[0];
+  if (options.tournamentAmmoBonus) {
+    const boosted = { ...config, ammo: { ...config.ammo } };
+    for (const key of Object.keys(boosted.ammo)) {
+      boosted.ammo[key] += options.tournamentAmmoBonus;
+    }
+    return boosted;
+  }
+  return config;
 }
 
 export const TOTAL_LEVELS = LEVELS.length;
