@@ -324,6 +324,7 @@ export default function useGameEngine({ bonusLevelEnabled = false, roundConfig =
 
   // === SUFRIN MODE — beard defense cheat code (once per level, sustained 15s defense) ===
   const sufrinIntervalRef = useRef(null);
+  const sufrinAudioRef = useRef(null);
 
   const triggerSufrinMode = useCallback(() => {
     if (cheatUsesRef.current.sufrin <= 0) return;
@@ -332,6 +333,28 @@ export default function useGameEngine({ bonusLevelEnabled = false, roundConfig =
     cheatUsesRef.current.sufrin--;
     setCheatUses(prev => ({ ...prev, sufrin: cheatUsesRef.current.sufrin }));
     setSufrinActive(true);
+
+    // Play SUFRIN theme audio
+    try {
+      if (sufrinAudioRef.current) { sufrinAudioRef.current.pause(); sufrinAudioRef.current = null; }
+      const audio = new Audio(`${import.meta.env.BASE_URL}sounds/sufrin-theme.mp3`);
+      audio.volume = Math.min(volumeRef.current, 1.0);
+      audio.play().catch(() => {});
+      sufrinAudioRef.current = audio;
+      // Fade out and stop when cheat ends
+      setTimeout(() => {
+        if (sufrinAudioRef.current) {
+          const fadeOut = setInterval(() => {
+            if (sufrinAudioRef.current && sufrinAudioRef.current.volume > 0.05) {
+              sufrinAudioRef.current.volume = Math.max(0, sufrinAudioRef.current.volume - 0.05);
+            } else {
+              clearInterval(fadeOut);
+              if (sufrinAudioRef.current) { sufrinAudioRef.current.pause(); sufrinAudioRef.current = null; }
+            }
+          }, 100);
+        }
+      }, 14000);
+    } catch (e) { /* audio not critical */ }
 
     // After 1s (portrait drops in), start zapping threats every 300ms
     setTimeout(() => {
