@@ -1101,8 +1101,8 @@ function ThreatBriefingPhase({ data, onComplete, onSkip }) {
     const timers = bullets.map((_, i) =>
       setTimeout(() => { setVisibleBullets(i + 1); briefingSounds.docReveal(); }, (i + 1) * 2500)
     );
-    const allBulletsTime = bullets.length * 2500;
-    const readyTimer = setTimeout(() => setCanContinue(true), allBulletsTime + 2000);
+    // Show CONTINUE after 3s (hero image visible) — don't wait for all animations
+    const readyTimer = setTimeout(() => setCanContinue(true), 3000);
     return () => { timers.forEach(clearTimeout); clearTimeout(readyTimer); };
   }, [bullets]);
 
@@ -1217,8 +1217,8 @@ function DefenseBriefingPhase({ data, onComplete, onSkip, level }) {
     const timers = bullets.map((_, i) =>
       setTimeout(() => { setVisibleBullets(i + 1); briefingSounds.docReveal(); }, (i + 1) * 2000)
     );
-    const allBulletsTime = bullets.length * 2000;
-    const readyTimer = setTimeout(() => setCanContinue(true), allBulletsTime + 2000);
+    // Show CONTINUE after 3s (hero image visible) — don't wait for all animations
+    const readyTimer = setTimeout(() => setCanContinue(true), 3000);
     return () => { timers.forEach(clearTimeout); clearTimeout(readyTimer); };
   }, [bullets]);
 
@@ -1400,20 +1400,29 @@ function CombinedBriefingPhase({ threatData, defenseData, onComplete, onSkip, le
 
       <CountdownBar duration={25} onComplete={onComplete} paused={false} />
 
-      {/* Skip button */}
-      {onSkip && (
-        <div className="flex items-center justify-center">
+      {/* Continue + Skip buttons */}
+      <div className="flex items-center justify-center gap-3">
+        <button
+          onClick={onComplete}
+          className="px-8 py-2.5 bg-green-900/30 border border-green-700 text-green-400
+            font-mono text-sm tracking-widest rounded-lg
+            hover:bg-green-900/50 hover:border-green-400
+            transition-all active:scale-95 cursor-pointer"
+        >
+          CONTINUE ▸
+        </button>
+        {onSkip && (
           <button
             onClick={onSkip}
-            className="px-5 py-2 bg-gray-800/60 border border-gray-600 text-gray-400
+            className="px-5 py-2.5 bg-gray-800/60 border border-gray-600 text-gray-400
               font-mono text-xs tracking-widest rounded-lg
               hover:bg-gray-700/80 hover:border-gray-400 hover:text-gray-300
               transition-all active:scale-95 cursor-pointer"
           >
             SKIP BRIEFING ▸
           </button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
