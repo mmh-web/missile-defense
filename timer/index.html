@@ -308,6 +308,28 @@ body::after {
   text-shadow: 0 0 30px rgba(0,255,0,0.5);
   animation: none;
 }
+.clock.paused {
+  animation: pausePulse 1.5s ease-in-out infinite;
+  cursor: pointer;
+}
+.clock:not(.paused):not(.victory) {
+  cursor: pointer;
+}
+@keyframes pausePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+.pause-label {
+  font-size: clamp(14px, 3vw, 28px);
+  color: var(--amber);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  margin-top: 8px;
+  display: none;
+}
+.pause-label.visible {
+  display: block;
+}
 
 @keyframes clockPulse {
   0%, 100% { opacity: 1; }
@@ -1007,6 +1029,7 @@ body::after {
   <div class="top-zone">
     <div class="op-header" id="timerOpHeader">OPERATION IRON PANTHER</div>
     <div class="clock" id="clock">18:00</div>
+    <div class="pause-label" id="pauseLabel">⏸ Paused</div>
     <div class="time-remaining-label" id="timeRemainingLabel">Completion Time</div>
     <div class="mission-failed-text" id="missionFailedText">Mission Failed</div>
     <div class="mission-complete-text" id="missionCompleteText">Mission Complete</div>
@@ -1698,6 +1721,9 @@ function addTime(seconds) {
 // ============================================
 function triggerVictory() {
   state.gameOver = true;
+  state.isPaused = false;
+  $('clock').classList.remove('paused');
+  $('pauseLabel').classList.remove('visible');
   clearInterval(state.timerInterval);
   removeBeforeUnload(); releaseWakeLock();
 
@@ -1729,6 +1755,9 @@ function triggerVictory() {
 
 function triggerMissionFailed() {
   state.gameOver = true;
+  state.isPaused = false;
+  $('clock').classList.remove('paused');
+  $('pauseLabel').classList.remove('visible');
   clearInterval(state.timerInterval);
   removeBeforeUnload(); releaseWakeLock();
   stopMusic(1000); playKlaxon();
@@ -1885,9 +1914,11 @@ function closeAdminOverlay() {
 
   $('adminOverlay').classList.remove('active');
 
-  // Resume timer if it was paused
+  // Resume timer if it was paused (by admin overlay or clock tap)
   if (state.timerRunning && !state.gameOver) {
     state.isPaused = false;
+    $('clock').classList.remove('paused');
+    $('pauseLabel').classList.remove('visible');
   }
 }
 
@@ -2115,6 +2146,29 @@ function init() {
     setMusicVolume(val / 100);
   });
   $('muteToggle').addEventListener('click', () => setMuted(!state.muted));
+
+  // ---- DOUBLE-TAP CLOCK TO PAUSE, SINGLE TAP TO RESUME ----
+  let lastClockTap = 0;
+  $('clock').addEventListener('click', () => {
+    if (!state.timerRunning || state.gameOver) return;
+    if (state.isPaused) {
+      // Single tap to resume
+      state.isPaused = false;
+      $('clock').classList.remove('paused');
+      $('pauseLabel').classList.remove('visible');
+    } else {
+      // Double-tap to pause (within 400ms)
+      const now = Date.now();
+      if (now - lastClockTap < 400) {
+        state.isPaused = true;
+        $('clock').classList.add('paused');
+        $('pauseLabel').classList.add('visible');
+        lastClockTap = 0;
+      } else {
+        lastClockTap = now;
+      }
+    }
+  });
 
   // ---- BACK BUTTON ----
   $('backBtn').addEventListener('click', () => {
