@@ -434,24 +434,52 @@ export async function getTournament(eventCode) {
 /**
  * Create a new tournament. Called from the admin dashboard.
  */
-export async function createTournament(eventCode) {
+// Default advance configs per tournament format
+function getDefaultAdvanceConfig(format) {
+  switch (format) {
+    case '1-round': return {};  // No advancement — single round
+    case '2-round': return { 1: { type: 'count', value: 2 } };
+    case '3-round': return { 1: { type: 'percentage', value: 50 }, 2: { type: 'count', value: 2 } };
+    default: return { 1: { type: 'count', value: 2 } };
+  }
+}
+
+function getDefaultMultipliers(format) {
+  switch (format) {
+    case '1-round': return { 1: 1 };
+    case '2-round': return { 1: 1, 2: 1.5 };
+    case '3-round': return { 1: 1, 2: 1.5, 3: 2 };
+    default: return { 1: 1, 2: 1.5 };
+  }
+}
+
+export async function createTournament(eventCode, format = '2-round', briefingMode = 'forced') {
   if (!db || !eventCode) return null;
   const docId = getTournamentDocId(eventCode);
   const docRef = doc(db, TOURNAMENTS, docId);
   const data = {
     eventCode: eventCode.toUpperCase(),
+    format,
+    briefingMode,
     currentRound: 1,
     roundStatus: 'lobby', // lobby | active | complete | finished
-    advanceConfig: {
-      1: { type: 'percentage', value: 50 },
-      2: { type: 'count', value: 2 },
-    },
+    advanceConfig: getDefaultAdvanceConfig(format),
+    roundMultipliers: getDefaultMultipliers(format),
     rounds: {},
     teams: {},
     createdAt: Date.now(),
   };
   await setDoc(docRef, data);
   return data;
+}
+
+/**
+ * Update briefing mode for a tournament (admin can change between rounds).
+ */
+export async function updateBriefingMode(eventCode, mode) {
+  if (!db || !eventCode) return;
+  const docRef = doc(db, TOURNAMENTS, getTournamentDocId(eventCode));
+  await setDoc(docRef, { briefingMode: mode }, { merge: true });
 }
 
 /**

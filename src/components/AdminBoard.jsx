@@ -27,10 +27,11 @@ import {
   kickTeam,
   updateAdvanceConfig,
   sanitizeTeamKey,
+  updateBriefingMode,
 } from '../utils/leaderboard.js';
-import { ROUND_CONFIGS } from '../hooks/useGameEngine.js';
+import { ROUND_CONFIGS, getTotalRounds, getRoundConfig, getFormatConfig, FORMAT_CONFIGS } from '../hooks/useGameEngine.js';
 
-const ADMIN_PIN = '1881';
+const ADMIN_PIN = '0000';
 
 // ── Sound Effects ────────────────────────────────────────────
 let _audioCtx = null;
@@ -200,6 +201,10 @@ export default function AdminBoard({ eventCode, skipPin }) {
   // ── Advancement config ─────────────────────────────────────
   const [advanceType, setAdvanceType] = useState('percentage');
   const [advanceValue, setAdvanceValue] = useState(50);
+
+  // ── Creation screen selectors ─────────────────────────────
+  const [selectedFormat, setSelectedFormat] = useState('2-round');
+  const [selectedBriefingMode, setSelectedBriefingMode] = useState('forced');
 
   // ── Admin panel visibility ─────────────────────────────────
   const [panelOpen, setPanelOpen] = useState(false);
@@ -447,7 +452,8 @@ export default function AdminBoard({ eventCode, skipPin }) {
           if (!isAdvancingRef.current) {
             isAdvancingRef.current = true;
             const cr = tournamentDoc.currentRound || 1;
-            const advanceFn = cr >= 3
+            const tr = getTotalRounds(tournamentDoc);
+            const advanceFn = cr >= tr
               ? finishTournament(eventCode)
               : advanceToNextRound(eventCode, cr + 1);
             advanceFn.catch(() => { isAdvancingRef.current = false; });
@@ -485,7 +491,7 @@ export default function AdminBoard({ eventCode, skipPin }) {
 
   // ── Champion reveal ────────────────────────────────────────
   useEffect(() => {
-    if (!tournamentDoc || tournamentDoc.roundStatus !== 'finished' || (tournamentDoc.currentRound || 1) < 3) return;
+    if (!tournamentDoc || tournamentDoc.roundStatus !== 'finished' || (tournamentDoc.currentRound || 1) < getTotalRounds(tournamentDoc)) return;
     if (championReveal) return;
     setTimeout(() => setChampionReveal('runner_up'), 2000);
     setTimeout(() => setChampionReveal('champion'), 5000);
@@ -506,8 +512,9 @@ export default function AdminBoard({ eventCode, skipPin }) {
 
   // ── Derived state ──────────────────────────────────────────
   const currentRound = tournamentDoc?.currentRound || 1;
+  const totalRounds = getTotalRounds(tournamentDoc);
   const roundStatus = tournamentDoc?.roundStatus || 'lobby';
-  const roundLabel = ROUND_CONFIGS[currentRound]?.label || `ROUND ${currentRound}`;
+  const roundLabel = getRoundConfig(tournamentDoc, currentRound)?.label || `ROUND ${currentRound}`;
   const teams = tournamentDoc?.teams || {};
   const activeTeams = Object.entries(teams).filter(([_, t]) => !t.kicked);
   const teamCount = activeTeams.length;
@@ -539,7 +546,7 @@ export default function AdminBoard({ eventCode, skipPin }) {
   };
 
   // ── Action handlers ────────────────────────────────────────
-  const handleCreateTournament = () => createTournament(eventCode);
+  const handleCreateTournament = () => createTournament(eventCode, selectedFormat, selectedBriefingMode);
   const handleStartRound = async () => { await startRoundWithCountdown(eventCode, 5000); setConfirmAction(null); };
   const handleCloseRound = async () => {
     const { advancing, cutoffScore } = computeAdvancing();
@@ -550,7 +557,7 @@ export default function AdminBoard({ eventCode, skipPin }) {
     if (isAdvancingRef.current) return; // Prevent double-advance
     isAdvancingRef.current = true;
     try {
-      if (currentRound >= 3) await finishTournament(eventCode);
+      if (currentRound >= totalRounds) await finishTournament(eventCode);
       else await advanceToNextRound(eventCode, currentRound + 1);
     } catch { isAdvancingRef.current = false; }
     setConfirmAction(null);
@@ -606,6 +613,47 @@ export default function AdminBoard({ eventCode, skipPin }) {
         <div className="text-center">
           <div className="font-mono text-2xl font-bold tracking-[0.2em] text-green-400 mb-2">IRON DOME COMMAND</div>
           <div className="font-mono text-sm text-gray-500 tracking-widest mb-8">{eventCode} TOURNAMENT</div>
+
+          {/* Format selector */}
+          <div className="max-w-md mx-auto">
+            <div className="font-mono text-[10px] text-gray-500 tracking-wider mb-2">FORMAT</div>
+            <div className="flex gap-2 mb-4">
+              {[
+                { key: '1-round', label: 'MARATHON', desc: '1 ROUND \u2022 ALL LEVELS' },
+                { key: '2-round', label: '2 ROUNDS', desc: 'QUALIFIER + FINAL' },
+                { key: '3-round', label: '3 ROUNDS', desc: 'QUALIFIER \u2192 SEMI \u2192 FINAL' },
+              ].map(f => (
+                <button key={f.key} onClick={() => setSelectedFormat(f.key)}
+                  className={`flex-1 py-3 rounded-lg font-mono text-xs tracking-wider border transition-all cursor-pointer
+                    ${selectedFormat === f.key
+                      ? 'border-green-500 bg-green-900/30 text-green-400'
+                      : 'border-gray-700 bg-gray-900/30 text-gray-500 hover:border-gray-500'}`}>
+                  <div className="font-bold">{f.label}</div>
+                  <div className="text-[9px] mt-0.5 opacity-70">{f.desc}</div>
+                </button>
+              ))}
+            </div>
+
+            {/* Briefing mode selector */}
+            <div className="font-mono text-[10px] text-gray-500 tracking-wider mb-2 mt-4">BRIEFING MODE</div>
+            <div className="flex gap-2 mb-6">
+              {[
+                { key: 'forced', label: 'REQUIRED', desc: 'NO SKIP' },
+                { key: 'skip-allowed', label: 'SKIPPABLE', desc: 'PLAYERS CAN SKIP' },
+                { key: 'no-briefings', label: 'NONE', desc: 'SKIP ALL' },
+              ].map(b => (
+                <button key={b.key} onClick={() => setSelectedBriefingMode(b.key)}
+                  className={`flex-1 py-3 rounded-lg font-mono text-xs tracking-wider border transition-all cursor-pointer
+                    ${selectedBriefingMode === b.key
+                      ? 'border-cyan-500 bg-cyan-900/30 text-cyan-400'
+                      : 'border-gray-700 bg-gray-900/30 text-gray-500 hover:border-gray-500'}`}>
+                  <div className="font-bold">{b.label}</div>
+                  <div className="text-[9px] mt-0.5 opacity-70">{b.desc}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
           <button onClick={handleCreateTournament}
             className="px-8 py-4 bg-green-900/40 border-2 border-green-500/60 rounded-xl font-mono text-lg tracking-widest text-green-400 hover:bg-green-900/60 transition-all cursor-pointer"
             style={{ textShadow: '0 0 20px rgba(34,197,94,0.3)' }}>
@@ -741,7 +789,7 @@ export default function AdminBoard({ eventCode, skipPin }) {
           onConfirm={handleCloseRound} onCancel={() => setConfirmAction(null)} />
       )}
       {confirmAction === 'advance' && (
-        <ConfirmDialog message={currentRound >= 3 ? 'End the tournament and show final results?' : `Advance to Round ${currentRound + 1}?`}
+        <ConfirmDialog message={currentRound >= totalRounds ? 'End the tournament and show final results?' : `Advance to Round ${currentRound + 1}?`}
           onConfirm={handleAdvanceToNext} onCancel={() => setConfirmAction(null)} />
       )}
       {confirmAction === 'reset' && (
@@ -766,11 +814,11 @@ export default function AdminBoard({ eventCode, skipPin }) {
         </div>
         <div className="text-right">
           <div className="font-mono text-2xl font-bold tracking-[0.25em]"
-            style={{ color: currentRound === 3 ? '#f43f5e' : currentRound === 2 ? '#a855f7' : '#22c55e' }}>
+            style={{ color: currentRound === totalRounds ? '#f43f5e' : currentRound === 2 ? '#a855f7' : '#22c55e' }}>
             {roundLabel}
           </div>
           <div className="font-mono text-sm text-gray-500 tracking-widest mt-1">
-            ROUND {currentRound} OF 3
+            {totalRounds > 1 ? `ROUND ${currentRound} OF ${totalRounds}` : 'MARATHON'}
             {isPaused && <span className="text-yellow-400 ml-3">⏸ PAUSED</span>}
           </div>
         </div>
@@ -922,7 +970,7 @@ export default function AdminBoard({ eventCode, skipPin }) {
                   className="px-8 py-3 rounded-xl font-mono text-base tracking-widest
                     bg-orange-900/30 border-2 border-orange-500/50 text-orange-400
                     hover:bg-orange-900/50 transition-all cursor-pointer">
-                  CLOSE {roundLabel}
+                  {totalRounds === 1 ? 'END ROUND' : `CLOSE ${roundLabel}`}
                 </button>
               </div>
             )}
@@ -944,7 +992,7 @@ export default function AdminBoard({ eventCode, skipPin }) {
                     bg-green-900/40 border-2 border-green-500/60 text-green-400
                     hover:bg-green-900/60 transition-all cursor-pointer"
                   style={{ textShadow: '0 0 20px rgba(34,197,94,0.3)' }}>
-                  {currentRound >= 3 ? 'END TOURNAMENT' : `ADVANCE TO ROUND ${currentRound + 1}`}
+                  {currentRound >= totalRounds ? 'END TOURNAMENT' : `ADVANCE TO ROUND ${currentRound + 1}`}
                 </button>
               </div>
             )}
@@ -986,7 +1034,7 @@ export default function AdminBoard({ eventCode, skipPin }) {
 
           <div className="p-4 space-y-4">
             {/* Advancement config */}
-            {(roundStatus === 'lobby' || roundStatus === 'active') && (
+            {totalRounds > 1 && (roundStatus === 'lobby' || roundStatus === 'active') && (
               <div>
                 <div className="font-mono text-[10px] text-gray-500 tracking-wider mb-2">ADVANCEMENT</div>
                 <div className="flex items-center gap-2">
@@ -1042,6 +1090,22 @@ export default function AdminBoard({ eventCode, skipPin }) {
                 </div>
               </div>
             )}
+
+            {/* Briefing Mode */}
+            <div className="mt-4 pt-4 border-t border-gray-800">
+              <div className="font-mono text-[10px] text-gray-500 tracking-wider mb-2">BRIEFING MODE</div>
+              <div className="flex gap-1">
+                {['forced', 'skip-allowed', 'no-briefings'].map(mode => (
+                  <button key={mode} onClick={() => updateBriefingMode(eventCode, mode)}
+                    className={`flex-1 py-1.5 rounded text-[10px] font-mono tracking-wider cursor-pointer transition-all
+                      ${(tournamentDoc?.briefingMode || 'forced') === mode
+                        ? 'bg-cyan-900/40 border border-cyan-500/50 text-cyan-400'
+                        : 'bg-gray-900/30 border border-gray-800 text-gray-600 hover:text-gray-400'}`}>
+                    {mode === 'forced' ? 'REQUIRED' : mode === 'skip-allowed' ? 'SKIPPABLE' : 'NONE'}
+                  </button>
+                ))}
+              </div>
+            </div>
 
             {/* Reset */}
             <button onClick={() => setConfirmAction('reset')}

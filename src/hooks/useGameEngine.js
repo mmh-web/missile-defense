@@ -50,12 +50,44 @@ export function clearLeaderboard() {
   localStorage.removeItem(LB_KEY);
 }
 
-// Round configs for tournament mode
-export const ROUND_CONFIGS = {
-  1: { startLevel: 1, endLevel: 3, label: 'QUALIFIER' },
-  2: { startLevel: 4, endLevel: 5, label: 'SEMIFINAL' },
-  3: { startLevel: 6, endLevel: 6, label: 'FINAL' },
+// Tournament format configs — defines round structure per format
+export const FORMAT_CONFIGS = {
+  '1-round': {
+    totalRounds: 1,
+    rounds: {
+      1: { startLevel: 1, endLevel: 6, label: 'MARATHON', maxCheats: 3 },
+    },
+  },
+  '2-round': {
+    totalRounds: 2,
+    rounds: {
+      1: { startLevel: 1, endLevel: 5, label: 'QUALIFIER', maxCheats: 3 },
+      2: { startLevel: 6, endLevel: 6, label: 'FINAL', maxCheats: 1 },
+    },
+  },
+  '3-round': {
+    totalRounds: 3,
+    rounds: {
+      1: { startLevel: 1, endLevel: 3, label: 'QUALIFIER', maxCheats: 1 },
+      2: { startLevel: 4, endLevel: 5, label: 'SEMIFINAL', maxCheats: 1 },
+      3: { startLevel: 6, endLevel: 6, label: 'FINAL', maxCheats: 1 },
+    },
+  },
 };
+
+// Backward-compatible alias (existing imports still work)
+export const ROUND_CONFIGS = FORMAT_CONFIGS['3-round'].rounds;
+
+// Helpers — use these instead of hardcoded round numbers
+export function getTotalRounds(doc) {
+  return FORMAT_CONFIGS[doc?.format || '3-round']?.totalRounds || 3;
+}
+export function getRoundConfig(doc, round) {
+  return FORMAT_CONFIGS[doc?.format || '3-round']?.rounds?.[round] || null;
+}
+export function getFormatConfig(doc) {
+  return FORMAT_CONFIGS[doc?.format || '3-round'] || FORMAT_CONFIGS['3-round'];
+}
 
 export default function useGameEngine({ bonusLevelEnabled = false, roundConfig = null } = {}) {
   // When bonus is OFF, campaign ends after L6 (effectiveTotalLevels = 6)
@@ -101,8 +133,8 @@ export default function useGameEngine({ bonusLevelEnabled = false, roundConfig =
   const [bouncingThreats, setBouncingThreats] = useState([]);
   const [sufrinActive, setSufrinActive] = useState(false);
 
-  // Campaign-wide cheat uses (3 each solo, 1 each tournament — persist across levels, reset on campaign start)
-  const CHEAT_MAX_USES = roundConfig ? 1 : 3;
+  // Campaign-wide cheat uses — per-format limits (persist across levels, reset on campaign start)
+  const CHEAT_MAX_USES = roundConfig?.maxCheats ?? (roundConfig ? 1 : 3);
   const [cheatUses, setCheatUses] = useState({ tzur: CHEAT_MAX_USES, sasha: CHEAT_MAX_USES, dvir: CHEAT_MAX_USES, sufrin: CHEAT_MAX_USES, bh: CHEAT_MAX_USES, bsd: CHEAT_MAX_USES });
   const cheatUsesRef = useRef({ tzur: CHEAT_MAX_USES, sasha: CHEAT_MAX_USES, dvir: CHEAT_MAX_USES, sufrin: CHEAT_MAX_USES, bh: CHEAT_MAX_USES, bsd: CHEAT_MAX_USES });
 

@@ -13,7 +13,7 @@ import {
   subscribeLeaderboard,
   getTournament,
 } from '../utils/leaderboard.js';
-import { ROUND_CONFIGS } from './useGameEngine.js';
+import { ROUND_CONFIGS, getTotalRounds, getRoundConfig, getFormatConfig } from './useGameEngine.js';
 
 const SESSION_KEY = 'tournament_v2_state';
 
@@ -250,7 +250,7 @@ export default function useTournament(initialEventCode = null) {
       if (roundResult?.advancingTeams) {
         if (roundResult.advancingTeams.includes(teamKey)) {
           // Check if this is the final round
-          if (currentRound >= 3) {
+          if (currentRound >= getTotalRounds(tournamentDoc)) {
             setPhase(TOURNAMENT_PHASES.CHAMPION);
           } else {
             setPhase(TOURNAMENT_PHASES.ADVANCING);
@@ -424,7 +424,8 @@ export default function useTournament(initialEventCode = null) {
     // can change between when this callback is created and when it's called
     const doc = tournamentDocRef.current;
     const currentRound = doc?.currentRound || 1;
-    const multiplier = doc?.roundMultipliers?.[currentRound] || 1;
+    const roundCfg = getRoundConfig(doc, currentRound);
+    const multiplier = roundCfg?.multiplier || doc?.roundMultipliers?.[currentRound] || 1;
     const adjustedScore = Math.round(roundScore * multiplier);
     const base = cumulativeBaseRef.current;
     const totalScore = base + adjustedScore;
@@ -454,7 +455,7 @@ export default function useTournament(initialEventCode = null) {
    * Get the current round config for the game engine.
    */
   const currentRoundConfig = tournamentDoc
-    ? ROUND_CONFIGS[tournamentDoc.currentRound] || null
+    ? getRoundConfig(tournamentDoc, tournamentDoc.currentRound) || null
     : null;
 
   /**
@@ -514,6 +515,7 @@ export default function useTournament(initialEventCode = null) {
     currentRoundConfig,
     currentRoundEventCode,
     isPaused,
+    briefingMode: tournamentDoc?.briefingMode || 'forced',
 
     // Actions
     joinTournament,

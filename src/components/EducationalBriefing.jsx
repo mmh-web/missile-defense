@@ -43,7 +43,7 @@ const BRIEFING_CONTENT = {
         { id: 'l1d2', icon: '🔢', stat: '20,000+', detail: 'Rockets and mortars fired from Gaza since 2001 — range of 5-45 km, Sderot to Beersheba' },
         { id: 'l1d3', icon: '💰', stat: '62:1', detail: 'Cost ratio — $800 Qassam vs $50,000 Tamir interceptor. The ratio itself is a weapon' },
         { id: 'l1d4', icon: '🛡️', stat: '90%+', detail: 'Iron Dome success rate since 2011 — only fires at rockets headed for populated areas' },
-        { id: 'l1d5', icon: '🏭', stat: '3-4', detail: 'Launchers per Iron Dome battery, plus radar and control center — enough for a medium city' },
+        { id: 'l1d5', icon: '🏭', stat: '3-4', detail: 'Launchers per Iron Dome battery, plus radar and control center. Developed by Rafael Advanced Defense Systems with US backing' },
         { id: 'l1d6', icon: '🧠', stat: 'SELECTIVE FIRE', detail: 'Iron Dome\'s secret — lets rockets aimed at open fields pass, saving interceptors for real threats' },
       ],
       animation: 'iron_dome',
@@ -136,7 +136,7 @@ const BRIEFING_CONTENT = {
         { id: 'l3d1', icon: '✈️', stat: 'LOW & SLOW', detail: 'Cruise missiles fly like small aircraft, hugging terrain to sneak under radar with GPS accuracy' },
         { id: 'l3d2', icon: '🇮🇷', stat: '1,600 km', detail: 'Range of Iran\'s Paveh cruise missile — enough to reach central Israel flying low the entire way' },
         { id: 'l3d3', icon: '📡', stat: 'TERRAIN HUG', detail: 'Unlike high-arc ballistic missiles, cruise missiles stay low — hard to detect until close range' },
-        { id: 'l3d4', icon: '🛡️', stat: 'HIT-TO-KILL', detail: 'David\'s Sling Stunner interceptors use no explosive warhead — pure kinetic impact, operational 2017' },
+        { id: 'l3d4', icon: '🛡️', stat: 'HIT-TO-KILL', detail: 'David\'s Sling fills the gap between Iron Dome (short-range) and Arrow (long-range) — Stunner uses pure kinetic impact, operational 2017' },
         { id: 'l3d5', icon: '👁️', stat: 'DUAL SEEKER', detail: 'Stunner uses both infrared and radar guidance to track maneuvering targets at 40-300 km range' },
         { id: 'l3d6', icon: '🏭', stat: '$1 million', detail: 'Cost per Stunner interceptor — expensive, but far cheaper than what it protects' },
       ],
@@ -187,7 +187,7 @@ const BRIEFING_CONTENT = {
         { id: 'l4d2', icon: '💥', stat: '~200', detail: 'Ballistic missiles Iran fired at Israel in Oct 2024 — the largest such attack in history' },
         { id: 'l4d3', icon: '📅', stat: 'YEAR 2000', detail: 'Arrow 2 became operational — world\'s first modern anti-ballistic missile system, born from 1991 Scud attacks' },
         { id: 'l4d4', icon: '🚀', stat: 'MACH 9', detail: 'Arrow 2 speed — intercepts at 50+ km altitude, 5× higher than airliners fly' },
-        { id: 'l4d5', icon: '🏭', stat: '$2.4 billion', detail: 'US investment in Arrow program since 1989 — jointly built by IAI and Boeing' },
+        { id: 'l4d5', icon: '🏭', stat: '$2.4 billion', detail: 'US investment in Arrow program since 1989 — jointly built by IAI and Boeing. Each Arrow 2 costs ~$2M vs ~$100K per ballistic missile' },
         { id: 'l4d6', icon: '📡', stat: '500+ km', detail: 'Green Pine radar detection range — tracks 30 targets simultaneously, guides Arrow to within 4 meters' },
       ],
       animation: 'arrow_2',
@@ -235,7 +235,7 @@ const BRIEFING_CONTENT = {
       factPool: [
         { id: 'l5d1', icon: '⚡', stat: 'MACH 5+', detail: 'Hypersonic speed — over 3,700 mph, boost to edge of space then glide while maneuvering' },
         { id: 'l5d2', icon: '⏱️', stat: '40 seconds', detail: 'To cross 100 km at Mach 7 — surface heats to 3,600°F from air friction' },
-        { id: 'l5d3', icon: '🇷🇺', stat: 'MACH 20', detail: 'Russia\'s Avangard speed — Russia, China, Iran, North Korea all developing hypersonics' },
+        { id: 'l5d3', icon: '🇷🇺', stat: 'MACH 20', detail: 'Russia\'s Avangard speed — Russia, China, the United States, Iran, and North Korea all developing hypersonics' },
         { id: 'l5d4', icon: '🌌', stat: 'IN SPACE', detail: 'Arrow 3 intercepts outside the atmosphere — hit-to-kill with pure kinetic energy, no warhead' },
         { id: 'l5d5', icon: '📏', stat: '100+ km', detail: 'Arrow 3 engagement altitude — highest layer of Israeli defense. Tested in space in 2019' },
         { id: 'l5d6', icon: '🌐', stat: 'BURNS UP', detail: 'Debris from space intercepts burns on reentry — protecting people below' },
@@ -2161,7 +2161,7 @@ const BRIEFING_ACCENTS = {
   7: { color: '#f43f5e', label: 'FINAL' },      // Rose — April 13 / cost problem & Iron Beam
 };
 
-export default function EducationalBriefing({ level, onComplete }) {
+export default function EducationalBriefing({ level, onComplete, hideSkip = false }) {
   const content = BRIEFING_CONTENT[level] || BRIEFING_CONTENT[1];
   const phases = content.phases;
   const levelInfo = LEVEL_NAMES[level] || { name: `LEVEL ${level}`, subtitle: '' };
@@ -2235,6 +2235,8 @@ export default function EducationalBriefing({ level, onComplete }) {
   const handleSkipBriefing = useCallback(() => {
     onComplete({ quizPoints: 0 });
   }, [onComplete]);
+  // In forced mode, pass null to sub-phases so SKIP buttons are hidden
+  const skipHandler = hideSkip ? null : handleSkipBriefing;
 
   const quizBasePath = import.meta.env.BASE_URL || '/missile-defense/';
   const quizHeroImage = contentRef.current?.threat?.heroImage || 'ID1.jpg';
@@ -2336,18 +2338,18 @@ export default function EducationalBriefing({ level, onComplete }) {
               threatData={contentRef.current.threat}
               defenseData={contentRef.current.defense}
               onComplete={handleBriefingPhaseComplete}
-              onSkip={handleSkipBriefing}
+              onSkip={skipHandler}
               level={level}
             />
           )}
           {phase === 'threat' && contentRef.current.threat && (
-            <ThreatBriefingPhase data={contentRef.current.threat} onComplete={handleThreatComplete} onSkip={handleSkipBriefing} />
+            <ThreatBriefingPhase data={contentRef.current.threat} onComplete={handleThreatComplete} onSkip={skipHandler} />
           )}
           {phase === 'defense' && contentRef.current.defense && (
-            <DefenseBriefingPhase data={contentRef.current.defense} onComplete={handleDefenseComplete} onSkip={handleSkipBriefing} level={level} />
+            <DefenseBriefingPhase data={contentRef.current.defense} onComplete={handleDefenseComplete} onSkip={skipHandler} level={level} />
           )}
           {phase === 'quiz' && (
-            <IntelCheckPhase level={level} shownFactIds={factIdsRef.current} onComplete={handleQuizComplete} onSkip={handleSkipBriefing} />
+            <IntelCheckPhase level={level} shownFactIds={factIdsRef.current} onComplete={handleQuizComplete} onSkip={skipHandler} />
           )}
           {phase === 'exercise' && content.exerciseConfig && (
             <FieldExercisePhase config={content.exerciseConfig} onComplete={handleExerciseComplete} />

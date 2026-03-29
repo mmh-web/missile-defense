@@ -17,7 +17,7 @@ import SpectatorBoard from './components/SpectatorBoard.jsx';
 import AdminBoard from './components/AdminBoard.jsx';
 import PracticeRound from './components/PracticeRound.jsx';
 import { getLevelConfig, LEVEL_ACCENT_COLORS } from './config/threats.js';
-import { ROUND_CONFIGS } from './hooks/useGameEngine.js';
+import { ROUND_CONFIGS, getTotalRounds, getRoundConfig, FORMAT_CONFIGS } from './hooks/useGameEngine.js';
 import { getLeaderboard, getEventCode, getRoundNumber, getSpectateCode, getAdminCode, getGameCode, getTournamentEventCode, updateLiveScore, markScoreFinished, createTournament, subscribeAllTimeLeaderboard } from './utils/leaderboard.js';
 import { containsProfanity } from './utils/nameFilter.js';
 import {
@@ -462,9 +462,10 @@ function AppInner({ tournamentConfig = null, isPracticeMode = false }) {
       return () => { clearInterval(interval); setPauseCountdown(null); };
     }
 
-    // Auto-advance from BRIEFING after 60s (prevents stalling on "Start Level" button)
+    // Auto-advance from BRIEFING after 60s (or 300s in forced-briefing mode — 5min safety net)
     if (gameState === GAME_STATES.BRIEFING) {
-      let remaining = 60;
+      const isForcedBriefing = tournamentConfig?.briefingMode === 'forced';
+      let remaining = isForcedBriefing ? 300 : 60;
       setPauseCountdown(remaining);
       const interval = setInterval(() => {
         remaining--;
@@ -624,14 +625,15 @@ function AppInner({ tournamentConfig = null, isPracticeMode = false }) {
     }
   }, [handleAction, currentLevel]);
 
-  // Auto-skip briefing if facilitator toggle is on, or if this level's briefing was already seen
+  // Auto-skip briefing if facilitator toggle is on, tournament no-briefings mode, or if this level's briefing was already seen
+  const effectiveSkipBriefings = tournamentConfig?.briefingMode === 'no-briefings' || skipBriefings;
   useEffect(() => {
-    if (gameState === GAME_STATES.BRIEFING && (skipBriefings || seenBriefingsRef.current.has(currentLevel))) {
+    if (gameState === GAME_STATES.BRIEFING && (effectiveSkipBriefings || seenBriefingsRef.current.has(currentLevel))) {
       // Skip directly to gameplay (bypass LevelIntro)
       seenBriefingsRef.current.add(currentLevel);
       startLevel(currentLevel);
     }
-  }, [gameState, currentLevel, startLevel, skipBriefings, GAME_STATES]);
+  }, [gameState, currentLevel, startLevel, effectiveSkipBriefings, GAME_STATES]);
 
   // Keyboard handling
   useEffect(() => {
@@ -1121,6 +1123,7 @@ function AppInner({ tournamentConfig = null, isPracticeMode = false }) {
           key={`briefing-${currentLevel}`}
           level={currentLevel}
           onComplete={handleBriefingComplete}
+          hideSkip={tournamentConfig?.briefingMode === 'forced'}
         />
         {pauseCountdown !== null && (
           <div className="absolute bottom-6 inset-x-0 z-20 flex justify-center pointer-events-none">
@@ -1374,7 +1377,7 @@ function AppInner({ tournamentConfig = null, isPracticeMode = false }) {
             {/* Tournament mode indicator */}
             {tournamentConfig && (
               <div className="font-mono text-[9px] text-orange-400/50 tracking-[0.3em] mt-0.5">
-                {ROUND_CONFIGS[tournamentConfig.currentRound]?.label || 'TOURNAMENT'} — {tournamentConfig.eventCode}
+                {tournamentConfig.roundConfig?.label || 'TOURNAMENT'} — {tournamentConfig.eventCode}
               </div>
             )}
           </div>
@@ -1870,7 +1873,7 @@ function TournamentCountdownScreen({ tournament }) {
           {tournament.countdownValue || ''}
         </div>
         <div className="font-mono text-sm tracking-[0.4em] text-green-500/60">
-          {ROUND_CONFIGS[tournament.tournamentDoc?.currentRound]?.label || 'GET READY'}
+          {getRoundConfig(tournament.tournamentDoc, tournament.tournamentDoc?.currentRound)?.label || 'GET READY'}
         </div>
       </div>
     </div>
@@ -1881,7 +1884,7 @@ function TournamentRoundCompleteScreen({ tournament }) {
   const stats = tournament.roundLeaderboard;
   const rank = tournament.playerRank;
   const currentRound = tournament.tournamentDoc?.currentRound || 1;
-  const roundLabel = ROUND_CONFIGS[currentRound]?.label || `ROUND ${currentRound}`;
+  const roundLabel = getRoundConfig(tournament.tournamentDoc, currentRound)?.label || `ROUND ${currentRound}`;
 
   return (
     <div className="h-screen bg-[#0a0e1a] flex items-center justify-center">
@@ -1926,13 +1929,13 @@ function TournamentRoundCompleteScreen({ tournament }) {
 
 function TournamentAdvancingScreen({ tournament }) {
   const currentRound = tournament.tournamentDoc?.currentRound || 1;
-  const isFinalRound = currentRound >= 3;
+  const isFinalRound = currentRound >= getTotalRounds(tournament.tournamentDoc);
 
   return (
     <div className="h-screen bg-[#0a0e1a] flex items-center justify-center">
       <div className="text-center max-w-sm mx-auto px-4">
         <div className="font-mono text-xs tracking-[0.4em] text-green-500/60 mb-4">
-          {ROUND_CONFIGS[currentRound]?.label || ''}
+          {getRoundConfig(tournament.tournamentDoc, currentRound)?.label || ''}
         </div>
         <div className="font-mono text-3xl font-black tracking-[0.2em] text-green-400 mb-4"
           style={{ textShadow: '0 0 40px rgba(34,197,94,0.4)' }}>
@@ -2096,9 +2099,10 @@ function TournamentRouter({ initialGameCode }) {
     currentRoundEventCode: tournament.currentRoundEventCode,
     onRoundFinished: tournament.onRoundFinished,
     isPaused: tournament.isPaused,
+    briefingMode: tournament.briefingMode,
   }), [currentRound, tournament.eventCode, tournament.teamName, tournament.teamEmoji,
        tournament.cumulativeBase, tournament.currentRoundEventCode, tournament.isPaused,
-       tournament.currentRoundConfig, tournament.onRoundFinished]);
+       tournament.currentRoundConfig, tournament.onRoundFinished, tournament.briefingMode]);
 
   // ── Conditional returns (after all hooks) ──────────────────
 
@@ -2288,7 +2292,7 @@ function TitleScreen({ tournament, onSoloMission, onHostMode, gatePassword, gate
         <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(10,14,26,0.7) 0%, rgba(10,14,26,0.85) 40%, rgba(10,14,26,0.95) 100%)' }} />
         <form onSubmit={(e) => {
           e.preventDefault();
-          if (hostPinInput === '1881') {
+          if (hostPinInput === '0000') {
             sessionStorage.setItem('admin_unlocked', 'true');
             setScreen('host_create');
           } else {

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { subscribeLeaderboard, subscribeTournament, sanitizeTeamKey } from '../utils/leaderboard.js';
-import { ROUND_CONFIGS } from '../hooks/useGameEngine.js';
+import { ROUND_CONFIGS, getTotalRounds, getRoundConfig, getFormatConfig } from '../hooks/useGameEngine.js';
 
 // Sound effects for spectator board
 let _audioCtx = null;
@@ -258,7 +258,7 @@ export default function SpectatorBoard({ eventCode }) {
 
   // Champion reveal after R3
   useEffect(() => {
-    if (!tournamentDoc || tournamentDoc.roundStatus !== 'finished' || (tournamentDoc.currentRound || 1) < 3) return;
+    if (!tournamentDoc || tournamentDoc.roundStatus !== 'finished' || (tournamentDoc.currentRound || 1) < getTotalRounds(tournamentDoc)) return;
     if (championReveal) return;
 
     // Start champion reveal sequence
@@ -270,7 +270,9 @@ export default function SpectatorBoard({ eventCode }) {
   const isV2Tournament = !!tournamentDoc;
   const roundStatus = tournamentDoc?.roundStatus || 'lobby';
 
-  const roundLabel = ROUND_CONFIGS[currentRound]?.label || `ROUND ${currentRound}`;
+  const totalRounds = getTotalRounds(tournamentDoc);
+  const isFinalRound = currentRound >= totalRounds;
+  const roundLabel = getRoundConfig(tournamentDoc, currentRound)?.label || `ROUND ${currentRound}`;
   const roundEventCode = `${eventCode}-R${currentRound}`;
   const scale = getScaleConfig(entries.length);
 
@@ -367,7 +369,7 @@ export default function SpectatorBoard({ eventCode }) {
   // Keyboard shortcuts for facilitator control
   useEffect(() => {
     const handleKey = (e) => {
-      if (e.key >= '1' && e.key <= '3') {
+      if (e.key >= '1' && e.key <= String(totalRounds)) {
         setCurrentRound(parseInt(e.key, 10));
       }
       if (e.key === 'c' || e.key === 'C') {
@@ -385,7 +387,7 @@ export default function SpectatorBoard({ eventCode }) {
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, []);
+  }, [totalRounds]);
 
   const [isFull, setIsFull] = useState(!!document.fullscreenElement);
   useEffect(() => {
@@ -426,11 +428,11 @@ export default function SpectatorBoard({ eventCode }) {
         </div>
         <div className="text-right">
           <div className="font-mono text-2xl font-bold tracking-[0.25em]"
-            style={{ color: currentRound === 3 ? '#f43f5e' : currentRound === 2 ? '#a855f7' : '#22c55e' }}>
+            style={{ color: isFinalRound ? '#f43f5e' : currentRound === totalRounds - 1 ? '#a855f7' : '#22c55e' }}>
             {roundLabel}
           </div>
           <div className="font-mono text-sm text-gray-500 tracking-widest mt-1">
-            ROUND {currentRound} OF 3
+            ROUND {currentRound} OF {totalRounds}
           </div>
         </div>
       </div>
