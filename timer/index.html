@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="mobile-web-app-capable" content="yes">
 <title>Escape Room Timer</title>
 <style>
 /* ============================================
@@ -1958,7 +1961,7 @@ function goToTimer() {
     });
   }
 
-  try { document.documentElement.requestFullscreen().catch(() => {}); } catch(e) {}
+  try { reqFullscreen(document.documentElement).catch(() => {}); } catch(e) {}
   requestWakeLock();
   addBeforeUnload();
   startTimer();
@@ -1991,14 +1994,29 @@ function cleanupSession() {
   state.isPaused = false;
   state.timerRunning = false;
   state.selectedBox = -1;
-  if (document.fullscreenElement) {
-    try { document.exitFullscreen().catch(() => {}); } catch(e) {}
+  if (isFullscreen()) {
+    try { exitFullscreen().catch(() => {}); } catch(e) {}
   }
 }
 
 // ============================================
 // WAKE LOCK & BEFOREUNLOAD
 // ============================================
+// Cross-browser fullscreen (Safari uses webkit prefix)
+function reqFullscreen(el) {
+  if (el.requestFullscreen) return el.requestFullscreen();
+  if (el.webkitRequestFullscreen) return el.webkitRequestFullscreen();
+  return Promise.reject();
+}
+function exitFullscreen() {
+  if (document.exitFullscreen) return document.exitFullscreen();
+  if (document.webkitExitFullscreen) return document.webkitExitFullscreen();
+  return Promise.reject();
+}
+function isFullscreen() {
+  return !!(document.fullscreenElement || document.webkitFullscreenElement);
+}
+
 async function requestWakeLock() {
   try { if ('wakeLock' in navigator) state.wakeLock = await navigator.wakeLock.request('screen'); } catch(e) {}
 }
@@ -2111,10 +2129,10 @@ function init() {
 
   // ---- FULLSCREEN ----
   $('globalFullscreenBtn').addEventListener('click', () => {
-    if (document.fullscreenElement) {
-      document.exitFullscreen().catch(() => {});
+    if (isFullscreen()) {
+      exitFullscreen().catch(() => {});
     } else {
-      document.documentElement.requestFullscreen().catch(() => {});
+      reqFullscreen(document.documentElement).catch(() => {});
     }
   });
 
