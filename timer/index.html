@@ -1316,6 +1316,7 @@ function formatTime(sec) {
 // ============================================
 // WEB AUDIO
 // ============================================
+let musicLoadPromise = null;
 function initAudio() {
   if (state.audioCtx) {
     if (state.audioCtx.state === 'suspended') state.audioCtx.resume();
@@ -1329,7 +1330,7 @@ function initAudio() {
   state.musicGain.connect(state.masterGain);
   state.sfxGain = state.audioCtx.createGain();
   state.sfxGain.connect(state.masterGain);
-  loadMusicTracks();
+  musicLoadPromise = loadMusicTracks();
 }
 
 async function loadMusicTracks() {
@@ -1950,7 +1951,12 @@ function goToTimer() {
   showScreen('timerScreen');
 
   initAudio();
-  if (state.currentTrack > 0 && state.musicAvailable[state.currentTrack]) playMusic(state.currentTrack);
+  // Wait for tracks to finish loading, then start music
+  if (musicLoadPromise) {
+    musicLoadPromise.then(() => {
+      if (state.currentTrack > 0 && state.musicAvailable[state.currentTrack]) playMusic(state.currentTrack);
+    });
+  }
 
   try { document.documentElement.requestFullscreen().catch(() => {}); } catch(e) {}
   requestWakeLock();
@@ -2030,6 +2036,10 @@ function init() {
     $(id).addEventListener('change', readWelcomeInputs);
     $(id).addEventListener('input', readWelcomeInputs);
   });
+
+  // Init audio on first interaction (so tracks preload before mission starts)
+  const initOnce = () => { initAudio(); ['click','touchstart','keydown','pointerdown'].forEach(e => document.removeEventListener(e, initOnce)); };
+  ['click','touchstart','keydown','pointerdown'].forEach(e => document.addEventListener(e, initOnce));
 
   // Begin mission
   $('beginBtn').addEventListener('click', goToTimer);
