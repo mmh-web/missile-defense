@@ -375,9 +375,23 @@ export default function SpectatorBoard({ eventCode }) {
       }
       if (e.key === 'ArrowUp') { e.preventDefault(); setQualifyCount(prev => Math.min(prev + 1, 20)); }
       if (e.key === 'ArrowDown') { e.preventDefault(); setQualifyCount(prev => Math.max(prev - 1, 1)); }
+      if (e.key === 'f' || e.key === 'F') {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen().catch(() => {});
+        } else {
+          document.exitFullscreen().catch(() => {});
+        }
+      }
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
+  }, []);
+
+  const [isFull, setIsFull] = useState(!!document.fullscreenElement);
+  useEffect(() => {
+    const handler = () => setIsFull(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', handler);
+    return () => document.removeEventListener('fullscreenchange', handler);
   }, []);
 
   return (
@@ -386,6 +400,18 @@ export default function SpectatorBoard({ eventCode }) {
       {/* Accent glow */}
       <div className="absolute top-0 left-0 right-0 h-1 pointer-events-none"
         style={{ background: 'linear-gradient(90deg, transparent, #22c55e60, transparent)' }} />
+
+      {/* Fullscreen toggle — top right, visible on hover */}
+      <button onClick={() => {
+        if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
+        else document.exitFullscreen().catch(() => {});
+      }}
+        className="absolute top-4 right-4 z-20 w-8 h-8 flex items-center justify-center
+          border border-gray-700 rounded text-gray-500 hover:text-white hover:border-gray-400
+          transition-colors cursor-pointer font-mono text-sm bg-black/30 opacity-0 hover:opacity-100"
+        style={{ cursor: 'pointer', pointerEvents: 'auto' }}>
+        {isFull ? '⊡' : '⛶'}
+      </button>
 
       {/* Header */}
       <div className="flex items-center justify-between px-8 py-6">

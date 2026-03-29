@@ -2190,6 +2190,7 @@ function TournamentRouter({ initialGameCode }) {
 // ── All-Time Leaderboard Screen ──────────────────────────────
 function AllTimeLeaderboardScreen({ onBack }) {
   const [entries, setEntries] = useState([]);
+  const [isFull, setIsFull] = useState(!!document.fullscreenElement);
   const basePath = import.meta.env.BASE_URL || '/missile-defense/';
 
   useEffect(() => {
@@ -2197,10 +2198,32 @@ function AllTimeLeaderboardScreen({ onBack }) {
     return unsub;
   }, []);
 
+  useEffect(() => {
+    const handler = () => setIsFull(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', handler);
+    return () => document.removeEventListener('fullscreenchange', handler);
+  }, []);
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    } else {
+      document.exitFullscreen().catch(() => {});
+    }
+  };
+
   return (
     <div className="h-screen bg-[#0a0e1a] flex flex-col items-center justify-center relative overflow-hidden">
       <div className="absolute inset-0" style={{ background: `url('${basePath}images/ID3.jpg') center 40% / cover no-repeat` }} />
       <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(10,14,26,0.8) 0%, rgba(10,14,26,0.92) 30%, rgba(10,14,26,0.97) 100%)' }} />
+
+      {/* Fullscreen toggle — top right */}
+      <button onClick={toggleFullscreen}
+        className="absolute top-4 right-4 z-20 w-8 h-8 flex items-center justify-center
+          border border-gray-600 rounded text-gray-400 hover:text-white hover:border-gray-400
+          transition-colors cursor-pointer font-mono text-sm bg-black/30 backdrop-blur-sm">
+        {isFull ? '⊡' : '⛶'}
+      </button>
 
       <div className="relative z-10 w-full max-w-md mx-auto px-6 max-h-[90vh] overflow-y-auto">
         <div className="text-center mb-6">
