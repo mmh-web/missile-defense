@@ -1,0 +1,2221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Escape Room Timer</title>
+<style>
+/* ============================================
+   RESET & BASE
+   ============================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0a0a0a;
+  --bg-light: #0f0f0f;
+  --red: #ff0000;
+  --red-bright: #ff2222;
+  --amber: #ffaa00;
+  --green: #00ff00;
+  --green-dark: #003300;
+  --gray: #888888;
+  --gray-dim: #555555;
+  --gray-dark: #333333;
+  --white: #f0f0f0;
+  --gold: #ffaa00;
+  --silver: #cccccc;
+  --bronze: #cc8844;
+  --font: 'Courier New', Courier, monospace;
+}
+
+html, body {
+  width: 100%; height: 100%;
+  background: var(--bg);
+  color: var(--white);
+  font-family: var(--font);
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+/* Scanline overlay */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.08) 2px,
+    rgba(0,0,0,0.08) 4px
+  );
+}
+
+/* ============================================
+   SCREENS
+   ============================================ */
+.screen {
+  display: none;
+  width: 100%; height: 100%;
+  position: absolute; top: 0; left: 0;
+}
+.screen.active { display: flex; }
+
+/* ============================================
+   GLOBAL LOCK BUTTON (all screens)
+   ============================================ */
+#globalLockBtn, #globalMuteBtn, #globalFullscreenBtn {
+  position: fixed;
+  z-index: 400;
+  background: none;
+  border: none;
+  font-size: clamp(20px, 2.5vw, 30px);
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+  padding: 12px;
+  line-height: 1;
+}
+#globalLockBtn:hover, #globalMuteBtn:hover, #globalFullscreenBtn:hover { opacity: 1; }
+#globalLockBtn { bottom: 8px; right: 8px; }
+#globalMuteBtn { bottom: 8px; left: 8px; }
+#globalFullscreenBtn {
+  bottom: 8px; right: 52px;
+  color: var(--gray);
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* ============================================
+   WELCOME SCREEN
+   ============================================ */
+#welcomeScreen {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3.5vh;
+}
+
+.welcome-op-name {
+  font-size: clamp(16px, 3.5vw, 42px);
+  color: var(--amber);
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  font-weight: bold;
+}
+
+.welcome-duration {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.welcome-duration-label {
+  font-size: clamp(11px, 1.4vw, 16px);
+  color: var(--gray);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.welcome-duration-input {
+  background: #111;
+  border: 1px solid var(--gray-dark);
+  color: var(--white);
+  font-family: var(--font);
+  font-size: clamp(24px, 3.5vw, 42px);
+  padding: 12px 16px;
+  width: 100px;
+  text-align: center;
+  outline: none;
+  line-height: 1.2;
+}
+.welcome-duration-input:focus { border-color: var(--amber); }
+.welcome-duration-colon {
+  font-size: clamp(24px, 3.5vw, 42px);
+  color: var(--gray);
+}
+
+.welcome-prompt {
+  font-size: clamp(12px, 1.8vw, 22px);
+  color: var(--gray);
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+}
+
+.welcome-team-input {
+  background: #141414;
+  border: 1px solid var(--gray-dim);
+  border-bottom: 2px solid var(--amber);
+  border-radius: 4px;
+  color: var(--white);
+  font-family: var(--font);
+  font-size: clamp(20px, 4vw, 48px);
+  text-align: center;
+  text-transform: uppercase;
+  padding: 14px 20px;
+  width: 80%;
+  max-width: 600px;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  cursor: text;
+}
+.welcome-team-input::placeholder {
+  color: #444;
+}
+.welcome-team-input:focus {
+  background: #181818;
+  border-color: var(--green);
+  border-bottom-color: var(--green);
+  box-shadow: 0 2px 20px rgba(0,255,0,0.15), inset 0 0 20px rgba(0,255,0,0.03);
+}
+
+.begin-btn {
+  background: transparent;
+  border: 2px solid var(--green);
+  color: var(--green);
+  font-family: var(--font);
+  font-size: clamp(16px, 2.5vw, 30px);
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  padding: 16px 48px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.begin-btn:hover {
+  background: var(--green);
+  color: var(--bg);
+}
+
+/* ============================================
+   SHARED STYLES
+   ============================================ */
+.admin-input {
+  background: #111;
+  border: 1px solid var(--gray-dark);
+  color: var(--white);
+  font-family: var(--font);
+  font-size: clamp(14px, 1.6vw, 20px);
+  padding: 8px 12px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.admin-input:focus { border-color: var(--amber); }
+.admin-input.small { width: 60px; text-align: center; }
+.admin-input.medium { width: 200px; }
+.admin-input.wide { width: 100%; max-width: 360px; }
+
+.admin-code-boxes { display: flex; gap: 8px; }
+.admin-code-box {
+  width: 50px; height: 50px;
+  background: #111;
+  border: 2px solid var(--gray-dark);
+  color: var(--amber);
+  font-family: var(--font);
+  font-size: 24px;
+  text-align: center;
+  text-transform: uppercase;
+  outline: none;
+}
+.admin-code-box:focus { border-color: var(--amber); }
+
+.admin-btn {
+  background: transparent;
+  border: 2px solid var(--amber);
+  color: var(--amber);
+  font-family: var(--font);
+  font-size: clamp(14px, 1.8vw, 22px);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  padding: 12px 32px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.admin-btn:hover { background: var(--amber); color: var(--bg); }
+.admin-btn.danger {
+  border-color: #cc3333;
+  color: #cc3333;
+  font-size: clamp(11px, 1.2vw, 14px);
+}
+.admin-btn.danger:hover { background: #cc3333; color: var(--white); }
+.admin-btn.small-btn {
+  font-size: clamp(11px, 1.2vw, 14px);
+  padding: 8px 16px;
+}
+
+/* ============================================
+   TIMER DISPLAY
+   ============================================ */
+#timerScreen {
+  flex-direction: column;
+  position: relative;
+}
+
+.timer-bg-pulse {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, rgba(255,0,0,0.06) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s;
+  z-index: 0;
+}
+.timer-bg-pulse.warning { animation: bgPulse 2s ease-in-out infinite; }
+.timer-bg-pulse.critical { animation: bgPulse 0.8s ease-in-out infinite; }
+
+@keyframes bgPulse {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 1; }
+}
+
+.top-zone {
+  flex: 0 0 65%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+}
+
+.op-header {
+  font-size: clamp(14px, 3vw, 36px);
+  color: var(--amber);
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  font-weight: bold;
+  margin-bottom: 2vh;
+}
+
+.clock {
+  font-size: clamp(80px, 18vw, 240px);
+  color: var(--red);
+  text-shadow: 0 0 30px rgba(255,0,0,0.5);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.clock.warning {
+  color: var(--red-bright);
+  animation: clockPulse 1s ease-in-out infinite;
+}
+.clock.critical {
+  animation: clockFlash 0.5s ease-in-out infinite;
+}
+.clock.victory {
+  color: var(--green);
+  text-shadow: 0 0 30px rgba(0,255,0,0.5);
+  animation: none;
+}
+
+@keyframes clockPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+@keyframes clockFlash {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.time-added-flash {
+  position: absolute;
+  font-size: clamp(20px, 5vw, 60px);
+  color: var(--amber);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 10;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+}
+.time-added-flash.show {
+  animation: flashUp 1.5s ease-out forwards;
+}
+@keyframes flashUp {
+  0% { opacity: 1; transform: translate(-50%, -50%); }
+  100% { opacity: 0; transform: translate(-50%, -100%); }
+}
+
+.mission-failed-text, .mission-complete-text {
+  display: none;
+  font-size: clamp(24px, 8vw, 100px);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  line-height: 1;
+}
+.mission-failed-text { color: var(--white); }
+.mission-complete-text { color: var(--green); }
+.time-remaining-label {
+  display: none;
+  font-size: clamp(12px, 2vw, 24px);
+  color: var(--green);
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  opacity: 0.7;
+  margin-top: 1vh;
+}
+
+.bottom-zone {
+  flex: 0 0 35%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-top: 1px solid #1a1a1a;
+  background: var(--bg-light);
+  position: relative;
+  z-index: 1;
+  gap: 1.5vh;
+}
+
+.code-label {
+  font-size: clamp(10px, 2vw, 24px);
+  color: var(--gray);
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+}
+
+.code-boxes-container {
+  display: flex;
+  gap: clamp(8px, 2vw, 24px);
+  align-items: center;
+  justify-content: center;
+}
+
+.code-box-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.code-box {
+  width: clamp(50px, 10vw, 120px);
+  height: clamp(55px, 11vw, 132px);
+  background: #111;
+  border: 2px solid var(--gray-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(28px, 8vw, 96px);
+  color: var(--white);
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+.code-box.selected {
+  border-color: var(--amber);
+  box-shadow: 0 0 15px rgba(255,170,0,0.3);
+}
+.code-box.correct {
+  border-color: var(--green);
+  color: var(--green);
+  box-shadow: 0 0 15px rgba(0,255,0,0.3);
+  cursor: default;
+}
+.code-box.wrong { animation: boxShake 0.3s ease-in-out; }
+.code-box.flash-red { background: rgba(255,0,0,0.3); }
+.code-box.locked {
+  background: rgba(80,0,0,0.4);
+  border-color: #550000;
+  cursor: default;
+  color: #550000;
+}
+.code-box .underscore {
+  position: absolute;
+  bottom: 12%;
+  width: 50%;
+  height: 3px;
+  background: var(--gray-dim);
+}
+.code-box .locked-label {
+  display: none;
+  font-size: clamp(8px, 1.2vw, 14px);
+  color: #880000;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.code-box.locked .locked-label { display: block; }
+.code-box.locked .underscore { display: none; }
+.code-box.locked .box-letter { display: none; }
+
+@keyframes boxShake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-5px); }
+  40% { transform: translateX(5px); }
+  60% { transform: translateX(-5px); }
+  80% { transform: translateX(5px); }
+}
+
+.pips { display: flex; gap: 4px; }
+.pip {
+  width: clamp(6px, 0.8vw, 10px);
+  height: clamp(6px, 0.8vw, 10px);
+  border-radius: 50%;
+  background: var(--white);
+  transition: all 0.3s;
+}
+.pip.used {
+  background: transparent;
+  border: 1.5px solid #cc3333;
+}
+
+.code-hint {
+  font-size: clamp(8px, 1.2vw, 14px);
+  color: var(--gray-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* Corner buttons (timer screen only) */
+.corner-btn {
+  position: absolute;
+  z-index: 100;
+  background: none;
+  border: none;
+  font-size: clamp(20px, 2.5vw, 30px);
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+  padding: 12px;
+  line-height: 1;
+}
+.corner-btn:hover { opacity: 1; }
+
+.back-btn { top: 8px; left: 8px; }
+.trophy-btn { top: 8px; left: 50%; transform: translateX(-50%); }
+
+/* ============================================
+   OVERLAYS
+   ============================================ */
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  align-items: center;
+  justify-content: center;
+}
+.overlay.active { display: flex; }
+
+.overlay-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+}
+
+.overlay-content {
+  position: relative;
+  z-index: 1;
+  background: #111;
+  border: 1px solid var(--gray-dark);
+  padding: clamp(16px, 3vw, 32px);
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+}
+
+.overlay-title {
+  font-size: clamp(14px, 2.5vw, 28px);
+  color: var(--amber);
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+}
+
+/* PIN overlay */
+.pin-inputs { display: flex; gap: 8px; }
+.pin-box {
+  width: 50px; height: 55px;
+  background: #0a0a0a;
+  border: 2px solid var(--gray-dark);
+  color: var(--white);
+  font-family: var(--font);
+  font-size: 28px;
+  text-align: center;
+  outline: none;
+  -webkit-text-security: disc;
+}
+.pin-box:focus { border-color: var(--amber); }
+
+.pin-error { animation: pinShake 0.3s ease-in-out; }
+@keyframes pinShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-8px); }
+  75% { transform: translateX(8px); }
+}
+
+/* Sound popup */
+.sound-popup {
+  display: none;
+  position: fixed;
+  bottom: 52px;
+  left: 8px;
+  z-index: 450;
+  background: #111;
+  border: 1px solid var(--gray-dark);
+  padding: 16px;
+  min-width: 220px;
+  flex-direction: column;
+  gap: 12px;
+}
+.sound-popup.active { display: flex; }
+
+.track-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  color: var(--gray);
+  font-size: clamp(10px, 1.2vw, 14px);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 4px 0;
+}
+.track-option:hover { color: var(--white); }
+.track-option.active-track { color: var(--amber); }
+.track-option.disabled { color: #333; cursor: default; pointer-events: none; }
+
+.track-radio {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--gray-dark);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.track-option.active-track .track-radio { border-color: var(--amber); }
+.track-option.active-track .track-radio::after {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--amber);
+}
+
+.volume-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: clamp(9px, 1vw, 12px);
+  color: var(--gray);
+  text-transform: uppercase;
+}
+.volume-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  flex: 1;
+  height: 4px;
+  background: var(--gray-dark);
+  outline: none;
+  border-radius: 2px;
+}
+.volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--amber);
+  cursor: pointer;
+}
+.volume-slider::-moz-range-thumb {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--amber);
+  cursor: pointer;
+  border: none;
+}
+
+.mute-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  color: var(--gray);
+  font-size: clamp(10px, 1.2vw, 14px);
+  text-transform: uppercase;
+  padding-top: 8px;
+  border-top: 1px solid #222;
+}
+.mute-toggle:hover { color: var(--white); }
+.mute-checkbox {
+  width: 14px; height: 14px;
+  border: 2px solid var(--gray-dark);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.mute-checkbox.checked { border-color: #cc3333; }
+.mute-checkbox.checked::after {
+  content: '✕';
+  font-size: 10px;
+  color: #cc3333;
+}
+
+/* Admin overlay sections */
+.admin-overlay-section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 0;
+  border-top: 1px solid #222;
+}
+.admin-overlay-section:first-of-type { border-top: none; }
+
+.admin-overlay-label {
+  font-size: clamp(10px, 1.3vw, 14px);
+  color: var(--gray);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.admin-overlay-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.time-preset-btn {
+  background: transparent;
+  border: 1px solid var(--amber);
+  color: var(--amber);
+  font-family: var(--font);
+  font-size: clamp(12px, 1.4vw, 16px);
+  padding: 8px 16px;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+.time-preset-btn:hover { background: var(--amber); color: var(--bg); }
+
+.box-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: clamp(11px, 1.2vw, 14px);
+  color: var(--gray);
+}
+.box-status .status-indicator {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+}
+.box-status .status-indicator.solved { background: var(--green); }
+.box-status .status-indicator.active { background: var(--amber); }
+.box-status .status-indicator.locked-ind { background: #cc3333; }
+
+.reset-box-btn {
+  background: transparent;
+  border: 1px solid #cc3333;
+  color: #cc3333;
+  font-family: var(--font);
+  font-size: 11px;
+  padding: 4px 10px;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+.reset-box-btn:hover { background: #cc3333; color: var(--white); }
+
+.overlay-btn {
+  background: transparent;
+  border: 2px solid var(--amber);
+  color: var(--amber);
+  font-family: var(--font);
+  font-size: clamp(12px, 1.6vw, 18px);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 10px 28px;
+  cursor: pointer;
+}
+.overlay-btn:hover { background: var(--amber); color: var(--bg); }
+.overlay-btn.green { border-color: var(--green); color: var(--green); }
+.overlay-btn.green:hover { background: var(--green); color: var(--bg); }
+
+/* ============================================
+   LEADERBOARD
+   ============================================ */
+.leaderboard-table {
+  width: 100%;
+  max-width: 700px;
+  border-collapse: collapse;
+  font-family: var(--font);
+}
+.leaderboard-table th {
+  font-size: clamp(10px, 1.3vw, 14px);
+  color: var(--gray);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 8px 12px;
+  border-bottom: 1px solid #333;
+  text-align: left;
+}
+.leaderboard-table td {
+  font-size: clamp(12px, 1.6vw, 18px);
+  padding: 8px 12px;
+  border-bottom: 1px solid #1a1a1a;
+  color: var(--white);
+}
+.leaderboard-table tr.current-team td {
+  color: var(--green);
+  text-shadow: 0 0 8px rgba(0,255,0,0.3);
+}
+.rank-gold { color: var(--gold) !important; }
+.rank-silver { color: var(--silver) !important; }
+.rank-bronze { color: var(--bronze) !important; }
+
+.no-scores {
+  color: var(--gray-dim);
+  font-size: clamp(12px, 1.4vw, 16px);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 20px;
+}
+
+/* ============================================
+   FULLSCREEN LEADERBOARD
+   ============================================ */
+#leaderboardScreen {
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 4vh 4vw;
+  gap: 3vh;
+  overflow-y: auto;
+}
+#leaderboardScreen .lb-title {
+  font-size: clamp(18px, 3.5vw, 42px);
+  color: var(--amber);
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+}
+#leaderboardScreen .leaderboard-table td {
+  font-size: clamp(14px, 2vw, 24px);
+  padding: 10px 16px;
+}
+#leaderboardScreen .leaderboard-table th {
+  font-size: clamp(12px, 1.5vw, 18px);
+  padding: 10px 16px;
+}
+.lb-back-btn {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  background: none;
+  border: 1px solid var(--gray-dark);
+  color: var(--gray-dim);
+  font-family: var(--font);
+  font-size: 12px;
+  text-transform: uppercase;
+  padding: 6px 12px;
+  cursor: pointer;
+  z-index: 10;
+}
+.lb-back-btn:hover { color: var(--gray); border-color: var(--gray); }
+
+/* ============================================
+   MISSION FAILED / VICTORY
+   ============================================ */
+#timerScreen.state-failed { background: #cc0000; }
+#timerScreen.state-failed .top-zone { justify-content: center; }
+#timerScreen.state-failed .clock { display: none; }
+#timerScreen.state-failed .op-header { color: var(--white); }
+#timerScreen.state-failed .mission-failed-text { display: block; }
+#timerScreen.state-failed .bottom-zone { background: rgba(0,0,0,0.3); border-color: rgba(0,0,0,0.2); }
+#timerScreen.state-failed .code-label { color: rgba(255,255,255,0.5); }
+#timerScreen.state-failed .code-hint { display: none; }
+#timerScreen.state-failed .timer-bg-pulse { display: none; }
+
+#timerScreen.state-victory { background: #001a00; }
+#timerScreen.state-victory .mission-complete-text { display: block; }
+#timerScreen.state-victory .time-remaining-label { display: block; }
+#timerScreen.state-victory .bottom-zone { background: rgba(0,20,0,0.5); border-color: rgba(0,255,0,0.1); }
+#timerScreen.state-victory .code-label { color: var(--green); opacity: 0.5; }
+#timerScreen.state-victory .code-hint { display: none; }
+#timerScreen.state-victory .timer-bg-pulse { display: none; }
+
+.next-team-btn {
+  display: none;
+  background: transparent;
+  border: 2px solid var(--amber);
+  color: var(--amber);
+  font-family: var(--font);
+  font-size: clamp(14px, 2vw, 22px);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  padding: 12px 32px;
+  cursor: pointer;
+  position: absolute;
+  bottom: clamp(12px, 3vh, 32px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+}
+.next-team-btn:hover { background: var(--amber); color: var(--bg); }
+
+.victory-leaderboard {
+  display: none;
+  width: 100%;
+  max-height: 50vh;
+  overflow-y: auto;
+  padding: 0 4vw;
+}
+.victory-leaderboard.show {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: fadeIn 0.5s ease-out;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+#timerScreen.state-victory.compact .top-zone { flex: 0 0 35%; }
+#timerScreen.state-victory.compact .bottom-zone { display: none; }
+#timerScreen.state-victory.compact .victory-leaderboard { flex: 0 0 55%; }
+#timerScreen.state-victory.compact .clock { font-size: clamp(30px, 8vw, 100px); }
+#timerScreen.state-victory.compact .mission-complete-text { font-size: clamp(16px, 4vw, 50px); }
+
+.victory-flash {
+  position: fixed;
+  inset: 0;
+  background: var(--green);
+  z-index: 1000;
+  pointer-events: none;
+  animation: victoryFlashAnim 0.3s ease-out forwards;
+}
+@keyframes victoryFlashAnim { 0% { opacity: 0.8; } 100% { opacity: 0; } }
+
+/* On-screen keyboard for touch */
+.onscreen-keyboard {
+  display: none;
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  z-index: 50;
+  background: #111;
+  border-top: 1px solid #222;
+  padding: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+}
+.onscreen-keyboard.show { display: flex; }
+.osk-key {
+  width: clamp(28px, 3.5vw, 44px);
+  height: clamp(32px, 4vw, 48px);
+  background: #1a1a1a;
+  border: 1px solid #333;
+  color: var(--white);
+  font-family: var(--font);
+  font-size: clamp(12px, 1.6vw, 18px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.osk-key:hover, .osk-key:active { background: #333; }
+
+/* ============================================
+   CONFIRM DIALOG
+   ============================================ */
+.confirm-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 600;
+  align-items: center;
+  justify-content: center;
+}
+.confirm-overlay.active { display: flex; }
+.confirm-box {
+  background: #111;
+  border: 1px solid #cc3333;
+  padding: 24px;
+  text-align: center;
+  z-index: 1;
+  max-width: 400px;
+}
+.confirm-text {
+  color: var(--white);
+  font-size: 14px;
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+.confirm-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+</style>
+</head>
+<body>
+
+<!-- ======== GLOBAL BUTTONS (always visible on all screens) ======== -->
+<button id="globalLockBtn" title="Admin">🔒</button>
+<button id="globalMuteBtn" title="Sound">🔊</button>
+<button id="globalFullscreenBtn" title="Fullscreen">
+  <svg width="22" height="22" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+    <path d="M1 7V1h6M13 1h6v6M19 13v6h-6M7 19H1v-6"/>
+  </svg>
+</button>
+
+<!-- Sound popup (global) -->
+<div class="sound-popup" id="soundPopup">
+  <div class="track-option active-track" data-track="1">
+    <div class="track-radio"></div>
+    <span>Tension</span>
+  </div>
+  <div class="track-option" data-track="2">
+    <div class="track-radio"></div>
+    <span>Relax</span>
+  </div>
+  <div class="track-option" data-track="3">
+    <div class="track-radio"></div>
+    <span>Track 3</span>
+  </div>
+  <div class="track-option" data-track="0">
+    <div class="track-radio"></div>
+    <span>Off</span>
+  </div>
+  <div class="volume-row">
+    <span>Music</span>
+    <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="40">
+    <span id="volumeValue">40%</span>
+  </div>
+  <div class="mute-toggle" id="muteToggle">
+    <div class="mute-checkbox" id="muteCheckbox"></div>
+    <span>Mute All</span>
+  </div>
+</div>
+
+<!-- ======== WELCOME SCREEN ======== -->
+<div id="welcomeScreen" class="screen active">
+  <div class="welcome-op-name" id="welcomeOpName">OPERATION IRON PANTHER</div>
+
+  <div class="welcome-duration">
+    <span class="welcome-duration-label">Time</span>
+    <input type="number" id="welcomeMinutes" class="welcome-duration-input" min="0" max="99" value="18">
+    <span class="welcome-duration-colon">:</span>
+    <input type="number" id="welcomeSeconds" class="welcome-duration-input" min="0" max="59" value="00">
+  </div>
+
+  <div class="welcome-prompt">Enter Team Name</div>
+  <input type="text" class="welcome-team-input" id="teamNameInput" maxlength="50" placeholder="TEAM NAME" autocomplete="off">
+  <button class="begin-btn" id="beginBtn">Begin Mission</button>
+</div>
+
+<!-- ======== TIMER SCREEN ======== -->
+<div id="timerScreen" class="screen">
+  <div class="timer-bg-pulse" id="bgPulse"></div>
+
+  <div class="top-zone">
+    <div class="op-header" id="timerOpHeader">OPERATION IRON PANTHER</div>
+    <div class="clock" id="clock">18:00</div>
+    <div class="time-remaining-label" id="timeRemainingLabel">Completion Time</div>
+    <div class="mission-failed-text" id="missionFailedText">Mission Failed</div>
+    <div class="mission-complete-text" id="missionCompleteText">Mission Complete</div>
+    <div class="time-added-flash" id="timeAddedFlash"></div>
+  </div>
+
+  <div class="bottom-zone" id="bottomZone">
+    <div class="code-label">Mission Exit Code</div>
+    <div class="code-boxes-container" id="codeBoxes"></div>
+    <div class="code-hint" id="codeHint">Select a position · Enter a letter</div>
+    <div class="onscreen-keyboard" id="osk"></div>
+  </div>
+
+  <div class="victory-leaderboard" id="victoryLeaderboard"></div>
+
+  <button class="next-team-btn" id="nextTeamBtn">Next Team</button>
+
+  <!-- Timer-only buttons -->
+  <button class="corner-btn back-btn" id="backBtn" title="Back to setup">◀</button>
+  <button class="corner-btn trophy-btn" id="trophyBtn" title="Leaderboard">🏆</button>
+</div>
+
+<!-- ======== FULLSCREEN LEADERBOARD ======== -->
+<div id="leaderboardScreen" class="screen">
+  <div class="lb-title">Mission Rankings</div>
+  <div id="fullscreenLbBody" style="width:100%;max-width:800px;"></div>
+  <button class="lb-back-btn" id="lbBackBtn">Back</button>
+</div>
+
+<!-- ======== PIN OVERLAY ======== -->
+<div class="overlay" id="pinOverlay">
+  <div class="overlay-backdrop" id="pinBackdrop"></div>
+  <div class="overlay-content">
+    <div class="overlay-title">Enter PIN</div>
+    <div class="pin-inputs" id="pinInputs">
+      <input type="tel" class="pin-box" maxlength="1" data-idx="0">
+      <input type="tel" class="pin-box" maxlength="1" data-idx="1">
+      <input type="tel" class="pin-box" maxlength="1" data-idx="2">
+      <input type="tel" class="pin-box" maxlength="1" data-idx="3">
+    </div>
+    <button class="overlay-btn" id="pinSubmitBtn">Submit</button>
+  </div>
+</div>
+
+<!-- ======== ADMIN OVERLAY (accessible from any screen) ======== -->
+<div class="overlay" id="adminOverlay">
+  <div class="overlay-backdrop"></div>
+  <div class="overlay-content" style="min-width:320px;max-width:540px;">
+    <div class="overlay-title">Admin Controls</div>
+
+    <!-- Timer controls — only visible during active session -->
+    <div class="admin-overlay-section" id="adminTimerSection" style="display:none;">
+      <div class="admin-overlay-label">Add Time</div>
+      <div class="admin-overlay-row">
+        <button class="time-preset-btn" data-add="60">+1:00</button>
+        <button class="time-preset-btn" data-add="120">+2:00</button>
+        <button class="time-preset-btn" data-add="300">+5:00</button>
+      </div>
+      <div class="admin-overlay-row">
+        <input type="number" id="customAddMin" class="admin-input small" min="0" max="99" value="0" placeholder="M">
+        <span style="color:var(--gray)">:</span>
+        <input type="number" id="customAddSec" class="admin-input small" min="0" max="59" value="0" placeholder="S">
+        <button class="time-preset-btn" id="customAddBtn">Add</button>
+      </div>
+    </div>
+
+    <div class="admin-overlay-section" id="adminSetTimeSection" style="display:none;">
+      <div class="admin-overlay-label">Set Time</div>
+      <div class="admin-overlay-row">
+        <input type="number" id="setTimeMin" class="admin-input small" min="0" max="99" placeholder="M">
+        <span style="color:var(--gray)">:</span>
+        <input type="number" id="setTimeSec" class="admin-input small" min="0" max="59" placeholder="S">
+        <button class="time-preset-btn" id="setTimeBtn">Set</button>
+      </div>
+    </div>
+
+    <div class="admin-overlay-section" id="adminBoxSection" style="display:none;">
+      <div class="admin-overlay-label">Code Box Status</div>
+      <div id="boxStatusContainer"></div>
+    </div>
+
+    <!-- Settings — always visible -->
+    <div class="admin-overlay-section">
+      <div class="admin-overlay-label">Exit Code</div>
+      <div class="admin-overlay-row">
+        <div class="admin-code-boxes" id="adminCodeBoxes">
+          <input type="text" class="admin-code-box" maxlength="1" value="K" data-idx="0">
+          <input type="text" class="admin-code-box" maxlength="1" value="I" data-idx="1">
+          <input type="text" class="admin-code-box" maxlength="1" value="N" data-idx="2">
+          <input type="text" class="admin-code-box" maxlength="1" value="D" data-idx="3">
+        </div>
+        <button class="time-preset-btn" id="applyCodeBtn">Apply</button>
+      </div>
+      <div id="codeChangeWarning" style="font-size:11px;color:#cc3333;display:none;">Warning: resets all box progress</div>
+    </div>
+
+    <div class="admin-overlay-section">
+      <div class="admin-overlay-label">Operation Name</div>
+      <div class="admin-overlay-row">
+        <input type="text" id="adminOpName" class="admin-input wide" value="OPERATION IRON PANTHER">
+      </div>
+    </div>
+
+    <div class="admin-overlay-section">
+      <div class="admin-overlay-row" style="gap:16px;">
+        <div>
+          <div class="admin-overlay-label">Attempts/Box</div>
+          <input type="number" id="adminAttempts" class="admin-input small" min="1" max="10" value="3" style="margin-top:4px;">
+        </div>
+        <div>
+          <div class="admin-overlay-label">Event ID</div>
+          <input type="text" id="adminEventId" class="admin-input medium" value="" style="margin-top:4px;">
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-overlay-section">
+      <div class="admin-overlay-label">Admin PIN</div>
+      <div class="admin-overlay-row">
+        <input type="text" id="adminPin" class="admin-input small" maxlength="4" value="0000" style="width:80px;">
+      </div>
+    </div>
+
+    <div class="admin-overlay-section">
+      <div class="admin-overlay-row" style="justify-content:center;gap:12px;">
+        <button class="admin-btn small-btn" id="showLeaderboardBtn">Show Leaderboard</button>
+        <button class="admin-btn danger small-btn" id="clearLeaderboardBtn">Clear Leaderboard</button>
+      </div>
+    </div>
+
+    <button class="overlay-btn green" id="adminCloseBtn">Close</button>
+  </div>
+</div>
+
+<!-- ======== LEADERBOARD OVERLAY ======== -->
+<div class="overlay" id="leaderboardOverlay">
+  <div class="overlay-backdrop" id="lbOverlayBackdrop"></div>
+  <div class="overlay-content" style="min-width:50vw;">
+    <div class="overlay-title">Mission Rankings</div>
+    <div id="overlayLbBody"></div>
+    <button class="overlay-btn" id="closeLbOverlay">Close</button>
+  </div>
+</div>
+
+<!-- ======== CONFIRM DIALOG ======== -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="overlay-backdrop"></div>
+  <div class="confirm-box">
+    <div class="confirm-text" id="confirmText"></div>
+    <div class="confirm-buttons">
+      <button class="overlay-btn danger" id="confirmYes" style="border-color:#cc3333;color:#cc3333;">Confirm</button>
+      <button class="overlay-btn" id="confirmNo">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======== FIREBASE SDK ======== -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+<script>
+// ============================================
+// FIREBASE CONFIG — Replace with your project credentials
+// ============================================
+const FIREBASE_CONFIG = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
+  projectId: "YOUR_PROJECT",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+
+let firebaseApp = null;
+let db = null;
+let firebaseReady = false;
+
+try {
+  firebaseApp = firebase.initializeApp(FIREBASE_CONFIG);
+  db = firebase.database();
+  firebaseReady = true;
+} catch (e) {
+  console.warn('Firebase init failed — leaderboard disabled:', e.message);
+}
+
+// ============================================
+// STATE
+// ============================================
+const state = {
+  opName: 'OPERATION IRON PANTHER',
+  durationMin: 18,
+  durationSec: 0,
+  exitCode: ['K', 'I', 'N', 'D'],
+  attemptsPerBox: 3,
+  eventId: new Date().toISOString().slice(0, 10),
+  adminPin: '0000',
+
+  teamName: '',
+  timeRemaining: 0,
+  timerInterval: null,
+  isPaused: false,
+  gameOver: false,
+  timerRunning: false, // true when a session is active (timer screen visible)
+  selectedBox: -1,
+  evaluating: false,
+  boxes: [],
+
+  audioCtx: null,
+  musicGain: null,
+  sfxGain: null,
+  masterGain: null,
+  muted: false,
+  musicVolume: 0.4,
+  currentTrack: 1,
+  musicBuffers: {},
+  musicAvailable: { 1: false, 2: false, 3: false },
+  currentMusicSource: null,
+
+  wakeLock: null,
+  pinCallback: null,
+  fbListener: null,
+  fbScores: [],
+  confirmCallback: null,
+  lockPressTimer: null,
+  previousScreen: 'welcomeScreen', // track which screen to return to from leaderboard
+};
+
+// ============================================
+// LOCALSTORAGE
+// ============================================
+function saveSettings() {
+  const s = {
+    opName: state.opName,
+    durationMin: state.durationMin,
+    durationSec: state.durationSec,
+    exitCode: state.exitCode,
+    attemptsPerBox: state.attemptsPerBox,
+    eventId: state.eventId,
+    adminPin: state.adminPin,
+    musicVolume: state.musicVolume,
+    currentTrack: state.currentTrack
+  };
+  try { localStorage.setItem('escapeRoomSettings', JSON.stringify(s)); } catch(e) {}
+}
+
+function loadSettings() {
+  try {
+    const s = JSON.parse(localStorage.getItem('escapeRoomSettings'));
+    if (!s) return;
+    if (s.opName) state.opName = s.opName;
+    if (s.durationMin !== undefined) state.durationMin = s.durationMin;
+    if (s.durationSec !== undefined) state.durationSec = s.durationSec;
+    if (s.exitCode) state.exitCode = s.exitCode;
+    if (s.attemptsPerBox) state.attemptsPerBox = s.attemptsPerBox;
+    if (s.eventId) state.eventId = s.eventId;
+    if (s.adminPin) state.adminPin = s.adminPin;
+    if (s.musicVolume !== undefined) state.musicVolume = s.musicVolume;
+    if (s.currentTrack !== undefined) state.currentTrack = s.currentTrack;
+  } catch(e) {}
+}
+
+function populateWelcomeFromState() {
+  $('welcomeMinutes').value = state.durationMin;
+  $('welcomeSeconds').value = String(state.durationSec).padStart(2, '0');
+  $('welcomeOpName').textContent = state.opName;
+}
+
+function populateAdminFromState() {
+  $('adminOpName').value = state.opName;
+  $('adminAttempts').value = state.attemptsPerBox;
+  $('adminEventId').value = state.eventId;
+  $('adminPin').value = state.adminPin;
+  const codeBoxes = document.querySelectorAll('#adminCodeBoxes .admin-code-box');
+  codeBoxes.forEach((b, i) => b.value = state.exitCode[i] || '');
+}
+
+function readAdminInputs() {
+  state.opName = $('adminOpName').value || 'OPERATION IRON PANTHER';
+  state.attemptsPerBox = Math.max(1, Math.min(10, parseInt($('adminAttempts').value) || 3));
+  state.eventId = $('adminEventId').value || new Date().toISOString().slice(0, 10);
+  state.adminPin = ($('adminPin').value || '0000').padStart(4, '0').slice(0, 4);
+  const codeBoxes = document.querySelectorAll('#adminCodeBoxes .admin-code-box');
+  state.exitCode = Array.from(codeBoxes).map(b => (b.value || 'A').toUpperCase().charAt(0));
+  saveSettings();
+}
+
+function readWelcomeInputs() {
+  state.durationMin = parseInt($('welcomeMinutes').value) || 0;
+  state.durationSec = parseInt($('welcomeSeconds').value) || 0;
+  saveSettings();
+}
+
+// ============================================
+// HELPERS
+// ============================================
+function $(id) { return document.getElementById(id); }
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  $(id).classList.add('active');
+}
+
+function formatTime(sec) {
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+}
+
+// ============================================
+// WEB AUDIO
+// ============================================
+function initAudio() {
+  if (state.audioCtx) {
+    if (state.audioCtx.state === 'suspended') state.audioCtx.resume();
+    return;
+  }
+  state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  state.masterGain = state.audioCtx.createGain();
+  state.masterGain.connect(state.audioCtx.destination);
+  state.musicGain = state.audioCtx.createGain();
+  state.musicGain.gain.value = state.musicVolume;
+  state.musicGain.connect(state.masterGain);
+  state.sfxGain = state.audioCtx.createGain();
+  state.sfxGain.connect(state.masterGain);
+  loadMusicTracks();
+}
+
+async function loadMusicTracks() {
+  for (let i = 1; i <= 3; i++) {
+    try {
+      const resp = await fetch(`music/track${i}.mp3`);
+      if (!resp.ok) throw new Error('Not found');
+      const buf = await resp.arrayBuffer();
+      state.musicBuffers[i] = await state.audioCtx.decodeAudioData(buf);
+      state.musicAvailable[i] = true;
+      const opt = document.querySelector(`.track-option[data-track="${i}"]`);
+      if (opt) opt.classList.remove('disabled');
+    } catch (e) {
+      state.musicAvailable[i] = false;
+      const opt = document.querySelector(`.track-option[data-track="${i}"]`);
+      if (opt) opt.classList.add('disabled');
+    }
+  }
+}
+
+function playMusic(trackNum) {
+  stopMusic();
+  if (!trackNum || !state.musicBuffers[trackNum]) return;
+  const source = state.audioCtx.createBufferSource();
+  source.buffer = state.musicBuffers[trackNum];
+  source.loop = true;
+  source.connect(state.musicGain);
+  source.start();
+  state.currentMusicSource = source;
+}
+
+function stopMusic(fadeMs) {
+  if (!state.currentMusicSource) return;
+  if (fadeMs && state.audioCtx) {
+    const g = state.musicGain;
+    g.gain.setValueAtTime(g.gain.value, state.audioCtx.currentTime);
+    g.gain.linearRampToValueAtTime(0, state.audioCtx.currentTime + fadeMs / 1000);
+    const src = state.currentMusicSource;
+    setTimeout(() => {
+      try { src.stop(); } catch(e) {}
+      g.gain.setValueAtTime(state.musicVolume, state.audioCtx.currentTime);
+    }, fadeMs + 50);
+  } else {
+    try { state.currentMusicSource.stop(); } catch(e) {}
+  }
+  state.currentMusicSource = null;
+}
+
+function switchTrack(num) {
+  state.currentTrack = num;
+  updateTrackUI();
+  saveSettings();
+  if (num === 0) { stopMusic(200); return; }
+  if (!state.musicAvailable[num]) return;
+  playMusic(num);
+}
+
+function setMusicVolume(val) {
+  state.musicVolume = val;
+  if (state.musicGain) state.musicGain.gain.setValueAtTime(val, state.audioCtx.currentTime);
+  saveSettings();
+}
+
+function setMuted(muted) {
+  state.muted = muted;
+  if (state.masterGain) state.masterGain.gain.setValueAtTime(muted ? 0 : 1, state.audioCtx.currentTime);
+  $('globalMuteBtn').textContent = muted ? '🔇' : '🔊';
+  $('muteCheckbox').classList.toggle('checked', muted);
+}
+
+// Sound effects
+function playTick(phase) {
+  if (!state.audioCtx) return;
+  const ctx = state.audioCtx; const t = ctx.currentTime;
+  const dur = 0.02;
+  const bufSize = ctx.sampleRate * dur;
+  const noiseBuf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+  const data = noiseBuf.getChannelData(0);
+  for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1);
+  const noise = ctx.createBufferSource();
+  noise.buffer = noiseBuf;
+  const gain = ctx.createGain();
+  let vol = 0.08;
+  if (phase === 'warning') vol = 0.15;
+  else if (phase === 'critical') vol = 0.25;
+  else if (phase === 'final10') vol = 0.35;
+  gain.gain.setValueAtTime(vol, t);
+  gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'highpass'; filter.frequency.value = 800;
+  noise.connect(filter); filter.connect(gain); gain.connect(state.sfxGain);
+  noise.start(t); noise.stop(t + dur);
+  if (phase === 'warning' || phase === 'critical' || phase === 'final10') {
+    const osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.value = phase === 'final10' ? 55 : 40;
+    const g2 = ctx.createGain();
+    let bVol = phase === 'final10' ? 0.3 : phase === 'critical' ? 0.2 : 0.1;
+    g2.gain.setValueAtTime(bVol, t);
+    g2.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+    osc.connect(g2); g2.connect(state.sfxGain);
+    osc.start(t); osc.stop(t + 0.15);
+  }
+}
+
+function playCorrect() {
+  if (!state.audioCtx) return;
+  const ctx = state.audioCtx; const t = ctx.currentTime;
+  [523.25, 659.25].forEach((freq, i) => {
+    const osc = ctx.createOscillator(); osc.type = 'sine'; osc.frequency.value = freq;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.3, t + i * 0.12);
+    g.gain.exponentialRampToValueAtTime(0.001, t + i * 0.12 + 0.2);
+    osc.connect(g); g.connect(state.sfxGain);
+    osc.start(t + i * 0.12); osc.stop(t + i * 0.12 + 0.25);
+  });
+}
+
+function playWrong() {
+  if (!state.audioCtx) return;
+  const ctx = state.audioCtx; const t = ctx.currentTime;
+  const osc = ctx.createOscillator(); osc.type = 'sawtooth'; osc.frequency.value = 110;
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0.25, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+  osc.connect(g); g.connect(state.sfxGain);
+  osc.start(t); osc.stop(t + 0.25);
+}
+
+function playLockout() {
+  if (!state.audioCtx) return;
+  const ctx = state.audioCtx; const t = ctx.currentTime;
+  [329.63, 261.63, 220].forEach((freq, i) => {
+    const osc = ctx.createOscillator(); osc.type = 'sine'; osc.frequency.value = freq;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.25, t + i * 0.15);
+    g.gain.exponentialRampToValueAtTime(0.001, t + i * 0.15 + 0.2);
+    osc.connect(g); g.connect(state.sfxGain);
+    osc.start(t + i * 0.15); osc.stop(t + i * 0.15 + 0.25);
+  });
+}
+
+function playVictoryFanfare() {
+  if (!state.audioCtx) return;
+  const ctx = state.audioCtx; const t = ctx.currentTime;
+  [523.25, 659.25, 783.99, 1046.5].forEach((freq, i) => {
+    const osc = ctx.createOscillator(); osc.type = 'sine'; osc.frequency.value = freq;
+    const g = ctx.createGain();
+    const start = t + i * 0.2; const dur = i === 3 ? 0.6 : 0.25;
+    g.gain.setValueAtTime(0.3, start);
+    g.gain.exponentialRampToValueAtTime(0.001, start + dur);
+    osc.connect(g); g.connect(state.sfxGain);
+    osc.start(start); osc.stop(start + dur + 0.1);
+  });
+  setTimeout(() => {
+    [261.63, 329.63, 392].forEach(freq => {
+      const osc = ctx.createOscillator(); osc.type = 'sine'; osc.frequency.value = freq;
+      const g = ctx.createGain(); const ct = ctx.currentTime;
+      g.gain.setValueAtTime(0.15, ct);
+      g.gain.exponentialRampToValueAtTime(0.001, ct + 1.5);
+      osc.connect(g); g.connect(state.sfxGain);
+      osc.start(ct); osc.stop(ct + 1.6);
+    });
+  }, 900);
+}
+
+function playKlaxon() {
+  if (!state.audioCtx) return;
+  const ctx = state.audioCtx; const t = ctx.currentTime;
+  for (let i = 0; i < 6; i++) {
+    const osc = ctx.createOscillator(); osc.type = 'square';
+    osc.frequency.value = i % 2 === 0 ? 440 : 300;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.2, t + i * 0.5);
+    g.gain.setValueAtTime(0, t + i * 0.5 + 0.48);
+    osc.connect(g); g.connect(state.sfxGain);
+    osc.start(t + i * 0.5); osc.stop(t + i * 0.5 + 0.5);
+  }
+}
+
+function playBloop() {
+  if (!state.audioCtx) return;
+  const ctx = state.audioCtx; const t = ctx.currentTime;
+  const osc = ctx.createOscillator(); osc.type = 'sine';
+  osc.frequency.setValueAtTime(400, t);
+  osc.frequency.exponentialRampToValueAtTime(800, t + 0.1);
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0.2, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+  osc.connect(g); g.connect(state.sfxGain);
+  osc.start(t); osc.stop(t + 0.2);
+}
+
+// ============================================
+// CODE BOXES
+// ============================================
+function buildCodeBoxes() {
+  const container = $('codeBoxes');
+  container.innerHTML = '';
+  state.boxes = [];
+  for (let i = 0; i < 4; i++) {
+    state.boxes.push({ letter: '', solved: false, locked: false, strikes: 0 });
+    const wrapper = document.createElement('div');
+    wrapper.className = 'code-box-wrapper';
+    const box = document.createElement('div');
+    box.className = 'code-box';
+    box.dataset.idx = i;
+    box.innerHTML = `<span class="box-letter"></span><div class="underscore"></div><span class="locked-label">Locked</span>`;
+    box.addEventListener('click', () => selectBox(i));
+    const pips = document.createElement('div');
+    pips.className = 'pips';
+    for (let p = 0; p < state.attemptsPerBox; p++) {
+      const pip = document.createElement('div');
+      pip.className = 'pip';
+      pips.appendChild(pip);
+    }
+    wrapper.appendChild(box);
+    wrapper.appendChild(pips);
+    container.appendChild(wrapper);
+  }
+}
+
+function selectBox(idx) {
+  const b = state.boxes[idx];
+  if (b.solved || b.locked || state.gameOver) return;
+  state.selectedBox = idx;
+  document.querySelectorAll('.code-box').forEach((el, i) => {
+    el.classList.toggle('selected', i === idx);
+  });
+}
+
+function evaluateLetter(letter) {
+  if (state.evaluating || state.gameOver) return;
+  let idx = state.selectedBox;
+  if (idx < 0 || state.boxes[idx].solved || state.boxes[idx].locked) {
+    idx = state.boxes.findIndex(b => !b.solved && !b.locked);
+    if (idx < 0) return;
+    selectBox(idx);
+  }
+  const b = state.boxes[idx];
+  if (b.solved || b.locked) return;
+  state.evaluating = true;
+  const boxEl = document.querySelectorAll('.code-box')[idx];
+  const letterEl = boxEl.querySelector('.box-letter');
+  const underscoreEl = boxEl.querySelector('.underscore');
+  letterEl.textContent = letter;
+  underscoreEl.style.display = 'none';
+
+  setTimeout(() => {
+    if (letter === state.exitCode[idx]) {
+      b.solved = true; b.letter = letter;
+      boxEl.classList.remove('selected'); boxEl.classList.add('correct');
+      playCorrect();
+      state.selectedBox = -1;
+      const next = state.boxes.findIndex(bx => !bx.solved && !bx.locked);
+      if (next >= 0) selectBox(next);
+      if (state.boxes.every(bx => bx.solved)) triggerVictory();
+    } else {
+      b.strikes++;
+      boxEl.classList.add('wrong', 'flash-red');
+      playWrong();
+      setTimeout(() => {
+        boxEl.classList.remove('wrong', 'flash-red');
+        letterEl.textContent = ''; underscoreEl.style.display = '';
+        updatePips(idx);
+        if (b.strikes >= state.attemptsPerBox) {
+          b.locked = true;
+          boxEl.classList.remove('selected'); boxEl.classList.add('locked');
+          playLockout();
+          state.selectedBox = -1;
+          const next = state.boxes.findIndex(bx => !bx.solved && !bx.locked);
+          if (next >= 0) selectBox(next);
+        }
+      }, 350);
+    }
+    state.evaluating = false;
+  }, 300);
+}
+
+function updatePips(idx) {
+  const wrapper = document.querySelectorAll('.code-box-wrapper')[idx];
+  const pips = wrapper.querySelectorAll('.pip');
+  const b = state.boxes[idx];
+  pips.forEach((p, i) => p.classList.toggle('used', i < b.strikes));
+}
+
+// ============================================
+// ON-SCREEN KEYBOARD
+// ============================================
+function buildOSK() {
+  const osk = $('osk'); osk.innerHTML = '';
+  'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').forEach(ch => {
+    const key = document.createElement('div');
+    key.className = 'osk-key'; key.textContent = ch;
+    key.addEventListener('click', (e) => { e.stopPropagation(); evaluateLetter(ch); });
+    osk.appendChild(key);
+  });
+}
+
+function checkTouch() {
+  const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  $('osk').classList.toggle('show', isTouch);
+}
+
+// ============================================
+// TIMER
+// ============================================
+function startTimer() {
+  state.timeRemaining = state.durationMin * 60 + state.durationSec;
+  updateClockDisplay();
+  state.gameOver = false;
+  state.isPaused = false;
+  state.timerRunning = true;
+
+  state.timerInterval = setInterval(() => {
+    if (state.isPaused || state.gameOver) return;
+    state.timeRemaining--;
+    updateClockDisplay();
+    updateTimerPhase();
+    const t = state.timeRemaining;
+    let phase = 'normal';
+    if (t <= 10) phase = 'final10';
+    else if (t <= 30) phase = 'critical';
+    else if (t <= 120) phase = 'warning';
+    playTick(phase);
+    if (state.timeRemaining <= 0) {
+      state.timeRemaining = 0;
+      triggerMissionFailed();
+    }
+  }, 1000);
+}
+
+function updateClockDisplay() {
+  if (state.gameOver) return;
+  $('clock').textContent = formatTime(state.timeRemaining);
+}
+
+function updateTimerPhase() {
+  const t = state.timeRemaining;
+  const clock = $('clock'); const pulse = $('bgPulse');
+  clock.classList.remove('warning', 'critical');
+  pulse.classList.remove('warning', 'critical');
+  if (t <= 30) { clock.classList.add('critical'); pulse.classList.add('critical'); }
+  else if (t <= 120) { clock.classList.add('warning'); pulse.classList.add('warning'); }
+}
+
+function addTime(seconds) {
+  state.timeRemaining += seconds;
+  updateClockDisplay();
+  playBloop();
+  const flash = $('timeAddedFlash');
+  const min = Math.floor(seconds / 60); const sec = seconds % 60;
+  let txt = '+';
+  if (min > 0) txt += min + ':' + String(sec).padStart(2, '0');
+  else txt += sec + 's';
+  flash.textContent = txt;
+  flash.classList.remove('show'); void flash.offsetWidth; flash.classList.add('show');
+}
+
+// ============================================
+// GAME END STATES
+// ============================================
+function triggerVictory() {
+  state.gameOver = true;
+  clearInterval(state.timerInterval);
+  removeBeforeUnload(); releaseWakeLock();
+
+  const flashEl = document.createElement('div');
+  flashEl.className = 'victory-flash';
+  document.body.appendChild(flashEl);
+  setTimeout(() => flashEl.remove(), 400);
+
+  stopMusic(2000);
+  playVictoryFanfare();
+
+  const totalDuration = state.durationMin * 60 + state.durationSec;
+  const elapsedTime = totalDuration - state.timeRemaining;
+  const timer = $('timerScreen');
+  timer.classList.add('state-victory');
+  $('clock').classList.add('victory');
+  $('clock').textContent = formatTime(elapsedTime);
+  $('nextTeamBtn').style.display = 'block';
+
+  submitScore(true);
+
+  setTimeout(() => {
+    timer.classList.add('compact');
+    const vlb = $('victoryLeaderboard');
+    vlb.classList.add('show');
+    renderLeaderboard(vlb, state.teamName);
+  }, 3000);
+}
+
+function triggerMissionFailed() {
+  state.gameOver = true;
+  clearInterval(state.timerInterval);
+  removeBeforeUnload(); releaseWakeLock();
+  stopMusic(1000); playKlaxon();
+  $('timerScreen').classList.add('state-failed');
+  $('nextTeamBtn').style.display = 'block';
+  document.querySelectorAll('.code-box').forEach(b => b.style.pointerEvents = 'none');
+  submitScore(false);
+}
+
+// ============================================
+// FIREBASE
+// ============================================
+function getScoresRef() {
+  if (!firebaseReady || !db) return null;
+  return db.ref('escape-room-leaderboard/events/' + state.eventId + '/scores');
+}
+
+function submitScore(completed) {
+  const ref = getScoresRef();
+  if (!ref) return;
+  const lettersFound = state.boxes.filter(b => b.solved).length;
+  const totalDuration = state.durationMin * 60 + state.durationSec;
+  const elapsedTime = totalDuration - state.timeRemaining;
+  ref.push({
+    teamName: state.teamName || 'UNKNOWN UNIT',
+    timeRemaining: completed ? state.timeRemaining : 0,
+    totalDuration: totalDuration,
+    elapsedTime: completed ? elapsedTime : totalDuration,
+    completed: completed,
+    lettersFound: lettersFound,
+    timestamp: firebase.database.ServerValue.TIMESTAMP
+  }).catch(e => console.warn('Score submit failed:', e));
+}
+
+function listenToScores(callback) {
+  if (state.fbListener) state.fbListener();
+  const ref = getScoresRef();
+  if (!ref) { callback([]); return; }
+  const unsub = ref.orderByChild('elapsedTime').on('value', snap => {
+    const scores = [];
+    snap.forEach(child => {
+      const v = child.val();
+      if (v.completed) {
+        if (v.elapsedTime === undefined && v.totalDuration !== undefined) {
+          v.elapsedTime = v.totalDuration - v.timeRemaining;
+        } else if (v.elapsedTime === undefined) {
+          v.elapsedTime = 0;
+        }
+        scores.push(v);
+      }
+    });
+    scores.sort((a, b) => a.elapsedTime - b.elapsedTime);
+    state.fbScores = scores;
+    callback(scores);
+  }, err => { console.warn('Firebase read error:', err); callback([]); });
+  state.fbListener = () => ref.off('value', unsub);
+}
+
+function clearLeaderboard() {
+  const ref = getScoresRef();
+  if (!ref) return;
+  ref.remove().catch(e => console.warn('Clear failed:', e));
+}
+
+function renderLeaderboard(container, highlightTeam) {
+  listenToScores(scores => {
+    if (!scores.length) {
+      container.innerHTML = '<div class="no-scores">No scores yet</div>';
+      return;
+    }
+    let html = '<table class="leaderboard-table"><thead><tr><th>Rank</th><th>Team</th><th>Time</th></tr></thead><tbody>';
+    scores.slice(0, 20).forEach((s, i) => {
+      const rank = i + 1;
+      let rankClass = '';
+      if (rank === 1) rankClass = 'rank-gold';
+      else if (rank === 2) rankClass = 'rank-silver';
+      else if (rank === 3) rankClass = 'rank-bronze';
+      const isCurrent = highlightTeam && s.teamName === highlightTeam;
+      html += `<tr class="${isCurrent ? 'current-team' : ''}">
+        <td class="${rankClass}">#${rank}</td>
+        <td>${escapeHtml(s.teamName)}</td>
+        <td>${formatTime(s.elapsedTime)}</td>
+      </tr>`;
+    });
+    html += '</tbody></table>';
+    container.innerHTML = html;
+  });
+}
+
+function escapeHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+// ============================================
+// OVERLAYS & PIN
+// ============================================
+function showPinOverlay(callback) {
+  state.pinCallback = callback;
+  $('pinOverlay').classList.add('active');
+  const boxes = document.querySelectorAll('#pinInputs .pin-box');
+  boxes.forEach(b => b.value = '');
+  boxes[0].focus();
+}
+
+function closePinOverlay() {
+  $('pinOverlay').classList.remove('active');
+  state.pinCallback = null;
+}
+
+function checkPin() {
+  const boxes = Array.from(document.querySelectorAll('#pinInputs .pin-box'));
+  const entered = boxes.map(b => b.value).join('');
+  if (entered === state.adminPin) {
+    const cb = state.pinCallback;
+    closePinOverlay();
+    if (cb) cb();
+  } else {
+    $('pinInputs').classList.add('pin-error');
+    setTimeout(() => {
+      $('pinInputs').classList.remove('pin-error');
+      boxes.forEach(b => b.value = '');
+      boxes[0].focus();
+    }, 350);
+  }
+}
+
+function showAdminOverlay() {
+  // Pause timer if running
+  if (state.timerRunning && !state.gameOver) {
+    state.isPaused = true;
+  }
+
+  // Show/hide session-specific sections
+  const isSession = state.timerRunning && !state.gameOver;
+  $('adminTimerSection').style.display = isSession ? '' : 'none';
+  $('adminSetTimeSection').style.display = isSession ? '' : 'none';
+  $('adminBoxSection').style.display = isSession ? '' : 'none';
+  $('codeChangeWarning').style.display = isSession ? '' : 'none';
+
+  if (isSession) updateBoxStatusUI();
+
+  populateAdminFromState();
+  $('adminOverlay').classList.add('active');
+}
+
+function closeAdminOverlay() {
+  // Read and save all admin inputs
+  readAdminInputs();
+
+  // Update welcome screen to reflect changes
+  populateWelcomeFromState();
+
+  $('adminOverlay').classList.remove('active');
+
+  // Resume timer if it was paused
+  if (state.timerRunning && !state.gameOver) {
+    state.isPaused = false;
+  }
+}
+
+function updateBoxStatusUI() {
+  const container = $('boxStatusContainer');
+  container.innerHTML = '';
+  state.boxes.forEach((b, i) => {
+    const row = document.createElement('div');
+    row.className = 'box-status'; row.style.marginBottom = '6px';
+    const dot = document.createElement('div');
+    dot.className = 'status-indicator ' + (b.solved ? 'solved' : b.locked ? 'locked-ind' : 'active');
+    row.appendChild(dot);
+    const label = document.createElement('span');
+    label.textContent = `Box ${i + 1}: ${b.solved ? 'SOLVED (' + b.letter + ')' : b.locked ? 'LOCKED' : `Active (${state.attemptsPerBox - b.strikes} left)`}`;
+    row.appendChild(label);
+    if (b.locked) {
+      const resetBtn = document.createElement('button');
+      resetBtn.className = 'reset-box-btn'; resetBtn.textContent = 'Reset';
+      resetBtn.addEventListener('click', () => {
+        b.locked = false; b.strikes = 0;
+        const boxEl = document.querySelectorAll('.code-box')[i];
+        boxEl.classList.remove('locked');
+        boxEl.querySelector('.box-letter').textContent = '';
+        boxEl.querySelector('.underscore').style.display = '';
+        document.querySelectorAll('.code-box-wrapper')[i].querySelectorAll('.pip').forEach(p => p.classList.remove('used'));
+        updateBoxStatusUI();
+      });
+      row.appendChild(resetBtn);
+    }
+    container.appendChild(row);
+  });
+}
+
+function showConfirm(text, callback) {
+  $('confirmText').textContent = text;
+  $('confirmOverlay').classList.add('active');
+  state.confirmCallback = callback;
+}
+
+function closeConfirm() {
+  $('confirmOverlay').classList.remove('active');
+  state.confirmCallback = null;
+}
+
+// ============================================
+// SCREEN NAVIGATION
+// ============================================
+function goToTimer() {
+  readWelcomeInputs();
+  state.teamName = $('teamNameInput').value.trim().toUpperCase() || 'UNKNOWN UNIT';
+  $('timerOpHeader').textContent = state.opName;
+
+  const timer = $('timerScreen');
+  timer.classList.remove('state-failed', 'state-victory', 'compact');
+  $('clock').classList.remove('victory', 'warning', 'critical');
+  $('bgPulse').classList.remove('warning', 'critical');
+  $('nextTeamBtn').style.display = 'none';
+  $('victoryLeaderboard').classList.remove('show');
+  $('victoryLeaderboard').innerHTML = '';
+
+  buildCodeBoxes();
+  buildOSK();
+  checkTouch();
+  showScreen('timerScreen');
+
+  initAudio();
+  if (state.currentTrack > 0 && state.musicAvailable[state.currentTrack]) playMusic(state.currentTrack);
+
+  try { document.documentElement.requestFullscreen().catch(() => {}); } catch(e) {}
+  requestWakeLock();
+  addBeforeUnload();
+  startTimer();
+  selectBox(0);
+}
+
+function goToWelcome() {
+  cleanupSession();
+  populateWelcomeFromState();
+  $('teamNameInput').value = '';
+  showScreen('welcomeScreen');
+  $('teamNameInput').focus();
+}
+
+function goToFullscreenLeaderboard() {
+  // Remember where we came from
+  if ($('welcomeScreen').classList.contains('active')) state.previousScreen = 'welcomeScreen';
+  else if ($('timerScreen').classList.contains('active')) state.previousScreen = 'timerScreen';
+  showScreen('leaderboardScreen');
+  renderLeaderboard($('fullscreenLbBody'));
+}
+
+function cleanupSession() {
+  clearInterval(state.timerInterval);
+  stopMusic();
+  removeBeforeUnload();
+  releaseWakeLock();
+  if (state.fbListener) { state.fbListener(); state.fbListener = null; }
+  state.gameOver = false;
+  state.isPaused = false;
+  state.timerRunning = false;
+  state.selectedBox = -1;
+  if (document.fullscreenElement) {
+    try { document.exitFullscreen().catch(() => {}); } catch(e) {}
+  }
+}
+
+// ============================================
+// WAKE LOCK & BEFOREUNLOAD
+// ============================================
+async function requestWakeLock() {
+  try { if ('wakeLock' in navigator) state.wakeLock = await navigator.wakeLock.request('screen'); } catch(e) {}
+}
+function releaseWakeLock() {
+  if (state.wakeLock) { try { state.wakeLock.release(); } catch(e) {} state.wakeLock = null; }
+}
+function beforeUnloadHandler(e) { e.preventDefault(); e.returnValue = ''; }
+function addBeforeUnload() { window.addEventListener('beforeunload', beforeUnloadHandler); }
+function removeBeforeUnload() { window.removeEventListener('beforeunload', beforeUnloadHandler); }
+
+// ============================================
+// TRACK UI
+// ============================================
+function updateTrackUI() {
+  document.querySelectorAll('.track-option').forEach(opt => {
+    opt.classList.toggle('active-track', parseInt(opt.dataset.track) === state.currentTrack);
+  });
+}
+
+// ============================================
+// EVENT LISTENERS
+// ============================================
+function init() {
+  loadSettings();
+  populateWelcomeFromState();
+  populateAdminFromState();
+
+  // Welcome screen — uppercase team name
+  $('teamNameInput').addEventListener('input', () => {
+    $('teamNameInput').value = $('teamNameInput').value.toUpperCase();
+  });
+
+  // Welcome screen — save duration on change
+  ['welcomeMinutes', 'welcomeSeconds'].forEach(id => {
+    $(id).addEventListener('change', readWelcomeInputs);
+    $(id).addEventListener('input', readWelcomeInputs);
+  });
+
+  // Begin mission
+  $('beginBtn').addEventListener('click', goToTimer);
+  $('teamNameInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') goToTimer(); });
+
+  // Keyboard input on timer screen
+  document.addEventListener('keydown', (e) => {
+    if (!$('timerScreen').classList.contains('active')) return;
+    if (state.gameOver) return;
+    if ($('adminOverlay').classList.contains('active')) return;
+    if ($('pinOverlay').classList.contains('active')) return;
+    const key = e.key.toUpperCase();
+    if (/^[A-Z]$/.test(key)) { e.preventDefault(); evaluateLetter(key); }
+  });
+
+  // ---- GLOBAL LOCK BUTTON ----
+  const lockBtn = $('globalLockBtn');
+  lockBtn.addEventListener('click', () => {
+    showPinOverlay(showAdminOverlay);
+  });
+
+  // Long press to reset PIN
+  lockBtn.addEventListener('mousedown', startLockPress);
+  lockBtn.addEventListener('touchstart', startLockPress, { passive: true });
+  lockBtn.addEventListener('mouseup', cancelLockPress);
+  lockBtn.addEventListener('mouseleave', cancelLockPress);
+  lockBtn.addEventListener('touchend', cancelLockPress);
+  lockBtn.addEventListener('touchcancel', cancelLockPress);
+  function startLockPress() {
+    state.lockPressTimer = setTimeout(() => {
+      showConfirm('Reset admin PIN to 0000?', () => { state.adminPin = '0000'; saveSettings(); });
+    }, 5000);
+  }
+  function cancelLockPress() { clearTimeout(state.lockPressTimer); }
+
+  // ---- SOUND CONTROLS ----
+  $('globalMuteBtn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    $('soundPopup').classList.toggle('active');
+  });
+  document.addEventListener('click', (e) => {
+    if (!$('soundPopup').contains(e.target) && e.target !== $('globalMuteBtn')) {
+      $('soundPopup').classList.remove('active');
+    }
+  });
+  document.querySelectorAll('.track-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      if (opt.classList.contains('disabled')) return;
+      switchTrack(parseInt(opt.dataset.track));
+    });
+  });
+  $('volumeSlider').addEventListener('input', () => {
+    const val = parseInt($('volumeSlider').value);
+    $('volumeValue').textContent = val + '%';
+    setMusicVolume(val / 100);
+  });
+  $('muteToggle').addEventListener('click', () => setMuted(!state.muted));
+
+  // ---- BACK BUTTON ----
+  $('backBtn').addEventListener('click', () => {
+    if (state.timerRunning && !state.gameOver) {
+      showConfirm('Abort mission and return to setup?', () => {
+        goToWelcome();
+      });
+    } else {
+      goToWelcome();
+    }
+  });
+
+  // ---- FULLSCREEN ----
+  $('globalFullscreenBtn').addEventListener('click', () => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(() => {});
+    } else {
+      document.documentElement.requestFullscreen().catch(() => {});
+    }
+  });
+
+  // ---- TROPHY / LEADERBOARD ----
+  $('trophyBtn').addEventListener('click', () => {
+    $('leaderboardOverlay').classList.add('active');
+    renderLeaderboard($('overlayLbBody'));
+  });
+  $('closeLbOverlay').addEventListener('click', () => {
+    $('leaderboardOverlay').classList.remove('active');
+    if (state.fbListener) { state.fbListener(); state.fbListener = null; }
+  });
+  $('lbOverlayBackdrop').addEventListener('click', () => {
+    $('leaderboardOverlay').classList.remove('active');
+    if (state.fbListener) { state.fbListener(); state.fbListener = null; }
+  });
+
+  // ---- PIN OVERLAY ----
+  document.querySelectorAll('#pinInputs .pin-box').forEach((box, i, arr) => {
+    box.addEventListener('input', () => {
+      box.value = box.value.replace(/[^0-9]/g, '');
+      if (box.value && i < arr.length - 1) arr[i + 1].focus();
+      if (Array.from(arr).every(b => b.value)) setTimeout(checkPin, 50);
+    });
+    box.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' && !box.value && i > 0) arr[i - 1].focus();
+      if (e.key === 'Enter') checkPin();
+    });
+  });
+  $('pinSubmitBtn').addEventListener('click', checkPin);
+  $('pinBackdrop').addEventListener('click', closePinOverlay);
+
+  // ---- ADMIN OVERLAY ----
+  // Admin code boxes — uppercase, auto-advance
+  document.querySelectorAll('#adminCodeBoxes .admin-code-box').forEach(box => {
+    box.addEventListener('input', () => {
+      box.value = box.value.toUpperCase().replace(/[^A-Z]/g, '');
+      if (box.value && box.nextElementSibling) box.nextElementSibling.focus();
+    });
+  });
+
+  // Apply code button
+  $('applyCodeBtn').addEventListener('click', () => {
+    const isSession = state.timerRunning && !state.gameOver;
+    if (isSession) {
+      showConfirm('Changing the code will reset all box progress. Continue?', () => {
+        readAdminInputs();
+        buildCodeBoxes(); buildOSK(); checkTouch();
+        updateBoxStatusUI();
+        selectBox(0);
+      });
+    } else {
+      readAdminInputs();
+    }
+  });
+
+  // Add time presets
+  document.querySelectorAll('.time-preset-btn[data-add]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      addTime(parseInt(btn.dataset.add));
+      updateBoxStatusUI();
+    });
+  });
+  $('customAddBtn').addEventListener('click', () => {
+    const min = parseInt($('customAddMin').value) || 0;
+    const sec = parseInt($('customAddSec').value) || 0;
+    const total = min * 60 + sec;
+    if (total > 0) addTime(total);
+  });
+  $('setTimeBtn').addEventListener('click', () => {
+    const min = parseInt($('setTimeMin').value) || 0;
+    const sec = parseInt($('setTimeSec').value) || 0;
+    state.timeRemaining = min * 60 + sec;
+    updateClockDisplay();
+  });
+
+  // Close admin overlay
+  $('adminCloseBtn').addEventListener('click', closeAdminOverlay);
+
+  // Leaderboard buttons in admin
+  $('showLeaderboardBtn').addEventListener('click', () => {
+    closeAdminOverlay();
+    goToFullscreenLeaderboard();
+  });
+  $('clearLeaderboardBtn').addEventListener('click', () => {
+    readAdminInputs();
+    showConfirm(`This will permanently delete all scores for event "${state.eventId}". Are you sure?`, clearLeaderboard);
+  });
+
+  // Next team button — PIN protected → goes to welcome screen
+  $('nextTeamBtn').addEventListener('click', () => {
+    showPinOverlay(goToWelcome);
+  });
+
+  // Fullscreen leaderboard back button
+  $('lbBackBtn').addEventListener('click', () => {
+    if (state.fbListener) { state.fbListener(); state.fbListener = null; }
+    showScreen(state.previousScreen);
+  });
+
+  // Confirm dialog
+  $('confirmYes').addEventListener('click', () => { if (state.confirmCallback) state.confirmCallback(); closeConfirm(); });
+  $('confirmNo').addEventListener('click', closeConfirm);
+
+  // Initialize volume slider
+  $('volumeSlider').value = state.musicVolume * 100;
+  $('volumeValue').textContent = Math.round(state.musicVolume * 100) + '%';
+  updateTrackUI();
+}
+
+init();
+</script>
+</body>
+</html>
