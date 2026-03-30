@@ -671,13 +671,15 @@ export default function AdminBoard({ eventCode, skipPin }) {
   const renderLeaderboardRow = (entry, i) => {
     const rank = i + 1;
     const advancingTeams = tournamentDoc?.rounds?.[currentRound]?.advancingTeams;
-    const isQualifying = advancingTeams
-      ? advancingTeams.includes(sanitizeTeamKey(entry.name))
-      : rank <= qualifyCount;
+    const isQualifying = totalRounds === 1
+      ? true  // Marathon — no elimination
+      : advancingTeams
+        ? advancingTeams.includes(sanitizeTeamKey(entry.name))
+        : rank <= qualifyCount;
     const isClosed = roundClosed && revealPhase !== 'revealing';
     const isRevealing = revealPhase === 'revealing';
     const isRevealed = !isRevealing || i <= revealedIndex;
-    const isAdvancing = isClosed && isQualifying;
+    const isAdvancing = isClosed && isQualifying && totalRounds > 1;
     const isEliminated = isClosed && !isQualifying;
 
     if (isRevealing && !isRevealed) return null;
@@ -711,7 +713,7 @@ export default function AdminBoard({ eventCode, skipPin }) {
       borderColor = '#22c55e80'; rowGlow = '0 0 20px rgba(34,197,94,0.15)';
     }
 
-    const showCutoff = !isClosed && rank === qualifyCount && i < entries.length - 1;
+    const showCutoff = totalRounds > 1 && !isClosed && rank === qualifyCount && i < entries.length - 1;
 
     return (
       <div key={entry.name}>

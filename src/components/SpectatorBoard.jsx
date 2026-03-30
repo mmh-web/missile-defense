@@ -544,13 +544,15 @@ export default function SpectatorBoard({ eventCode }) {
               const rank = i + 1;
               // V2 tournament: use advancingTeams from tournament doc if available
               const advancingTeams = tournamentDoc?.rounds?.[currentRound]?.advancingTeams;
-              const isQualifying = advancingTeams
-                ? advancingTeams.includes(sanitizeTeamKey(entry.name))
-                : rank <= qualifyCount;
+              const isQualifying = totalRounds === 1
+                ? true  // Marathon — no elimination
+                : advancingTeams
+                  ? advancingTeams.includes(sanitizeTeamKey(entry.name))
+                  : rank <= qualifyCount;
               const isClosed = roundClosed && revealPhase !== 'revealing';
               const isRevealing = revealPhase === 'revealing';
               const isRevealed = !isRevealing || i <= revealedIndex;
-              const isAdvancing = isClosed && isQualifying;
+              const isAdvancing = isClosed && isQualifying && totalRounds > 1;
               const isEliminated = isClosed && !isQualifying;
 
               // Hide unrevealed rows during reveal animation
@@ -596,7 +598,7 @@ export default function SpectatorBoard({ eventCode }) {
                 rowGlow = '0 0 20px rgba(34,197,94,0.15)';
               }
 
-              const showCutoff = !isClosed && rank === qualifyCount && i < entries.length - 1;
+              const showCutoff = totalRounds > 1 && !isClosed && rank === qualifyCount && i < entries.length - 1;
 
               return (
                 <div key={entry.name}>
@@ -702,7 +704,7 @@ export default function SpectatorBoard({ eventCode }) {
       {/* Bottom controls hint (visible to facilitator) */}
       <div className="px-8 py-3 border-t border-gray-800/50 flex items-center justify-between">
         <div className="font-mono text-[10px] text-gray-700 tracking-wider">
-          KEYS: 1-3 switch round | C close/open round | Up/Down adjust qualifier count ({qualifyCount})
+          KEYS: {totalRounds > 1 ? `1-${totalRounds} switch round | ` : ''}C close/open round{totalRounds > 1 ? ` | Up/Down adjust qualifier count (${qualifyCount})` : ''}
         </div>
         <div className="font-mono text-[10px] text-gray-700 tracking-wider">
           {entries.length} TEAMS | {entries.filter(e => e.status === 'playing').length} PLAYING | {entries.filter(e => e.status === 'finished').length} FINISHED | {roundClosed ? 'ROUND CLOSED' : 'ROUND OPEN'}
