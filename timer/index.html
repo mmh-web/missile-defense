@@ -1913,8 +1913,9 @@ function closeAdminOverlay() {
   // Read and save all admin inputs
   readAdminInputs();
 
-  // Update welcome screen to reflect changes
+  // Update welcome screen and timer header to reflect changes
   populateWelcomeFromState();
+  if ($('timerOpHeader')) $('timerOpHeader').textContent = state.opName;
 
   $('adminOverlay').classList.remove('active');
 
