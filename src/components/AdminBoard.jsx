@@ -28,6 +28,7 @@ import {
   updateAdvanceConfig,
   sanitizeTeamKey,
   updateBriefingMode,
+  updateTournamentFormat,
 } from '../utils/leaderboard.js';
 import { ROUND_CONFIGS, getTotalRounds, getRoundConfig, getFormatConfig, FORMAT_CONFIGS } from '../hooks/useGameEngine.js';
 
@@ -1089,6 +1090,28 @@ export default function AdminBoard({ eventCode, skipPin }) {
                   ))}
                 </div>
               </div>
+            )}
+
+            {/* Round Format — only changeable in lobby before R1 starts */}
+            {roundStatus === 'lobby' && currentRound === 1 && (
+            <div className="mt-4 pt-4 border-t border-gray-800">
+              <div className="font-mono text-[10px] text-gray-500 tracking-wider mb-2">ROUND FORMAT</div>
+              <div className="flex gap-1">
+                {[
+                  { key: '1-round', label: 'MARATHON' },
+                  { key: '2-round', label: '2 ROUNDS' },
+                  { key: '3-round', label: '3 ROUNDS' },
+                ].map(f => (
+                  <button key={f.key} onClick={() => updateTournamentFormat(eventCode, f.key)}
+                    className={`flex-1 py-1.5 rounded text-[10px] font-mono tracking-wider cursor-pointer transition-all
+                      ${(tournamentDoc?.format || '2-round') === f.key
+                        ? 'bg-green-900/40 border border-green-500/50 text-green-400'
+                        : 'bg-gray-900/30 border border-gray-800 text-gray-600 hover:text-gray-400'}`}>
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+            </div>
             )}
 
             {/* Briefing Mode */}

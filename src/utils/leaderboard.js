@@ -474,6 +474,20 @@ export async function createTournament(eventCode, format = '2-round', briefingMo
 }
 
 /**
+ * Update tournament format (admin can change in lobby before R1 starts).
+ * Also resets advanceConfig and roundMultipliers to match the new format.
+ */
+export async function updateTournamentFormat(eventCode, format) {
+  if (!db || !eventCode) return;
+  const docRef = doc(db, TOURNAMENTS, getTournamentDocId(eventCode));
+  await setDoc(docRef, {
+    format,
+    advanceConfig: getDefaultAdvanceConfig(format),
+    roundMultipliers: getDefaultMultipliers(format),
+  }, { merge: true });
+}
+
+/**
  * Update briefing mode for a tournament (admin can change between rounds).
  */
 export async function updateBriefingMode(eventCode, mode) {
