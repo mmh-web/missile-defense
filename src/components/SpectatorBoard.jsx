@@ -433,7 +433,7 @@ export default function SpectatorBoard({ eventCode }) {
 
       {/* Offline banner */}
       {offline && (
-        <div className="mx-8 mb-2 px-4 py-2 rounded bg-yellow-950/80 border border-yellow-600 text-yellow-400 font-mono text-sm text-center tracking-wider">
+        <div className="mx-[60px] mb-2 px-4 py-2 rounded bg-yellow-950/80 border border-yellow-600 text-yellow-400 font-mono text-sm text-center tracking-wider">
           OFFLINE — scores may be delayed
         </div>
       )}
@@ -742,7 +742,7 @@ export default function SpectatorBoard({ eventCode }) {
       `}</style>
 
       {/* Bottom controls hint (visible to facilitator) */}
-      <div className="px-8 py-3 border-t border-gray-800/50 flex items-center justify-between">
+      <div className="px-[60px] py-3 border-t border-gray-800/50 flex items-center justify-between">
         <div className="font-mono text-[10px] text-gray-700 tracking-wider">
           KEYS: {totalRounds > 1 ? `1-${totalRounds} switch round | ` : ''}C close/open round{totalRounds > 1 ? ` | Up/Down adjust qualifier count (${qualifyCount})` : ''}
         </div>
