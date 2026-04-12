@@ -416,24 +416,18 @@ export default function SpectatorBoard({ eventCode }) {
       </button>
 
       {/* Header */}
-      <div className="flex items-center justify-between px-8 py-6">
-        <div>
-          <div className="font-mono text-3xl font-black tracking-[0.3em] text-green-400"
-            style={{ textShadow: '0 0 40px rgba(34,197,94,0.3)' }}>
+      <div className="flex items-center justify-between px-[60px] py-5"
+        style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+        <div className="flex items-baseline gap-5">
+          <div className="font-mono text-xl font-extrabold tracking-[0.25em] text-gray-200">
             IRON DOME COMMAND
           </div>
-          <div className="font-mono text-lg tracking-[0.2em] text-gray-400 mt-1">
+          <div className="font-mono text-[13px] tracking-[0.15em]" style={{ color: '#9ca3af' }}>
             {eventCode} TOURNAMENT
           </div>
         </div>
-        <div className="text-right">
-          <div className="font-mono text-2xl font-bold tracking-[0.25em]"
-            style={{ color: isFinalRound ? '#f43f5e' : currentRound === totalRounds - 1 ? '#a855f7' : '#22c55e' }}>
-            {roundLabel}
-          </div>
-          <div className="font-mono text-sm text-gray-500 tracking-widest mt-1">
-            ROUND {currentRound} OF {totalRounds}
-          </div>
+        <div className="font-mono text-[13px] font-semibold tracking-[0.2em]" style={{ color: '#9ca3af' }}>
+          ROUND {currentRound} OF {totalRounds}
         </div>
       </div>
 
@@ -445,51 +439,97 @@ export default function SpectatorBoard({ eventCode }) {
       )}
 
       {/* Main Content */}
-      <div className="flex-1 px-8 pb-6 overflow-hidden">
+      <div className="flex-1 px-[60px] pb-6 overflow-hidden">
         {/* V2 Tournament Lobby */}
         {isV2Tournament && roundStatus === 'lobby' ? (
-          <div className="h-full flex flex-col items-center justify-center">
-            {/* Game code + instructions */}
-            <div className="text-center mb-8">
-              <div className="font-mono text-lg text-gray-500 tracking-widest mb-2">
-                GO TO kipat-barzel.org
-              </div>
-              <div className="font-mono text-sm text-gray-600 tracking-wider mb-1">ENTER CODE</div>
-              <div className="font-mono text-5xl font-black text-green-400 tracking-[0.4em]"
-                style={{ textShadow: '0 0 40px rgba(34,197,94,0.3)' }}>
-                {eventCode}
-              </div>
-            </div>
-
-            {/* Team count */}
-            <div className="font-mono text-3xl font-bold text-green-400/80 mb-6 tabular-nums">
-              {lobbyTeams.length} <span className="text-lg text-green-400/50 tracking-widest">TEAMS DEPLOYED</span>
-            </div>
-
-            {/* Team grid — names pop in */}
-            <div className="flex flex-wrap justify-center gap-3 max-w-4xl">
-              {lobbyTeams.map((team, i) => (
-                <div key={team.key}
-                  className="px-4 py-2 bg-gray-900/60 border border-green-500/20 rounded-lg
-                    flex items-center gap-2 lobby-team-enter"
-                  style={{
-                    animation: `lobbySlideIn 0.4s ease-out ${i * 0.05}s both`,
-                  }}>
-                  {team.emoji && <span className="text-lg">{team.emoji}</span>}
-                  <span className="font-mono text-sm font-bold text-green-400 tracking-wider">{team.name}</span>
+          <div className="h-full flex items-center gap-[50px]">
+            {/* LEFT: How to Join card */}
+            <div className="w-[500px] flex-shrink-0">
+              <div className="rounded-3xl p-11"
+                style={{ background: '#141c2b', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <div className="font-mono text-[15px] font-bold tracking-[0.35em] text-gray-200 mb-9">
+                  HOW TO JOIN
                 </div>
-              ))}
+
+                <div className="flex flex-col gap-8">
+                  {/* Step 1 */}
+                  <div className="flex items-center gap-6">
+                    <div className="w-[52px] h-[52px] rounded-[14px] flex items-center justify-center text-[22px] font-black flex-shrink-0"
+                      style={{ background: '#22c55e', color: '#0a0e1a' }}>1</div>
+                    <div>
+                      <div className="font-mono text-[15px] font-semibold tracking-[0.05em] mb-1" style={{ color: '#d1d5db' }}>Go to</div>
+                      <div className="font-mono text-[32px] font-extrabold text-white leading-tight">kipat-barzel.org</div>
+                    </div>
+                  </div>
+
+                  {/* Step 2 */}
+                  <div className="flex items-center gap-6">
+                    <div className="w-[52px] h-[52px] rounded-[14px] flex items-center justify-center text-[22px] font-black flex-shrink-0"
+                      style={{ background: '#22c55e', color: '#0a0e1a' }}>2</div>
+                    <div>
+                      <div className="font-mono text-[15px] font-semibold tracking-[0.05em] mb-1" style={{ color: '#d1d5db' }}>Tap</div>
+                      <span className="inline-block px-7 py-2.5 rounded-[10px] font-mono text-[20px] font-extrabold tracking-[0.1em]"
+                        style={{ border: '2px solid rgba(249,115,22,0.5)', background: 'rgba(249,115,22,0.1)', color: '#fb923c' }}>
+                        TOURNAMENT
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Step 3 */}
+                  <div className="flex items-center gap-6">
+                    <div className="w-[52px] h-[52px] rounded-[14px] flex items-center justify-center text-[22px] font-black flex-shrink-0"
+                      style={{ background: '#22c55e', color: '#0a0e1a' }}>3</div>
+                    <div>
+                      <div className="font-mono text-[15px] font-semibold tracking-[0.05em] mb-1" style={{ color: '#d1d5db' }}>Enter code</div>
+                      <div className="font-mono text-[56px] font-black leading-none tracking-[0.2em]"
+                        style={{ color: '#4ade80', textShadow: '0 0 40px rgba(34,197,94,0.25)' }}>
+                        {eventCode}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            {lobbyTeams.length === 0 && (
-              <div className="mt-8">
-                <RadarWaiting eventCode={eventCode} currentRound={currentRound} />
+            {/* Divider */}
+            <div className="self-stretch w-px flex-shrink-0"
+              style={{ background: 'linear-gradient(to bottom, transparent 10%, rgba(255,255,255,0.06) 30%, rgba(255,255,255,0.06) 70%, transparent 90%)' }} />
+
+            {/* RIGHT: Teams */}
+            <div className="flex-1 flex flex-col justify-center overflow-hidden">
+              <div className="flex items-baseline gap-3.5 mb-6">
+                <div className="font-mono text-5xl font-black tabular-nums"
+                  style={{ color: '#22c55e', textShadow: '0 0 30px rgba(34,197,94,0.2)' }}>
+                  {lobbyTeams.length}
+                </div>
+                <div className="font-mono text-sm tracking-[0.25em]" style={{ color: 'rgba(34,197,94,0.5)' }}>
+                  TEAMS DEPLOYED
+                </div>
               </div>
-            )}
+
+              {lobbyTeams.length > 0 ? (
+                <div className="flex flex-wrap gap-2.5 overflow-hidden" style={{ alignContent: 'flex-start' }}>
+                  {lobbyTeams.map((team, i) => (
+                    <div key={team.key}
+                      className="flex items-center gap-2.5 px-5 py-3 rounded-[10px] font-mono"
+                      style={{
+                        background: 'rgba(17,24,39,0.6)',
+                        border: '1px solid rgba(34,197,94,0.12)',
+                        animation: `lobbySlideIn 0.5s ease-out ${i * 0.05}s both`,
+                      }}>
+                      {team.emoji && <span className="text-2xl leading-none">{team.emoji}</span>}
+                      <span className="text-[15px] font-bold tracking-[0.08em]" style={{ color: '#d1d5db' }}>{team.name}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <RadarWaiting eventCode={eventCode} currentRound={currentRound} />
+              )}
+            </div>
 
             <style>{`
               @keyframes lobbySlideIn {
-                from { opacity: 0; transform: translateY(20px) scale(0.9); }
+                from { opacity: 0; transform: translateY(16px) scale(0.92); }
                 to { opacity: 1; transform: translateY(0) scale(1); }
               }
             `}</style>
