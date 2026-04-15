@@ -839,48 +839,108 @@ export default function AdminBoard({ eventCode, skipPin }) {
 
         {/* ══ LOBBY ══ */}
         {roundStatus === 'lobby' && (
-          <div className="h-full flex flex-col items-center justify-center">
-            {/* Game code */}
-            <div className="text-center mb-6">
-              <div className="font-mono text-lg text-gray-500 tracking-widest mb-2">GO TO kipat-barzel.org</div>
-              <div className="font-mono text-sm text-gray-600 tracking-wider mb-1">ENTER CODE</div>
-              <div className="font-mono text-5xl font-black text-green-400 tracking-[0.4em]"
-                style={{ textShadow: '0 0 40px rgba(34,197,94,0.3)' }}>
-                {eventCode}
+          <div className="h-full flex items-center gap-[50px]">
+            {/* LEFT: How to Join card */}
+            <div className="w-[500px] flex-shrink-0">
+              <div className="rounded-3xl p-11"
+                style={{ background: '#141c2b', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <div className="font-mono text-[15px] font-bold tracking-[0.35em] text-gray-200 mb-9">
+                  HOW TO JOIN
+                </div>
+
+                <div className="flex flex-col gap-8">
+                  {/* Step 1 */}
+                  <div className="flex items-center gap-6">
+                    <div className="w-[52px] h-[52px] rounded-[14px] flex items-center justify-center text-[22px] font-black flex-shrink-0"
+                      style={{ background: '#22c55e', color: '#0a0e1a' }}>1</div>
+                    <div>
+                      <div className="font-mono text-[15px] font-semibold tracking-[0.05em] mb-1" style={{ color: '#d1d5db' }}>Go to</div>
+                      <div className="font-mono text-[32px] font-extrabold text-white leading-tight">kipat-barzel.org</div>
+                    </div>
+                  </div>
+
+                  {/* Step 2 */}
+                  <div className="flex items-center gap-6">
+                    <div className="w-[52px] h-[52px] rounded-[14px] flex items-center justify-center text-[22px] font-black flex-shrink-0"
+                      style={{ background: '#22c55e', color: '#0a0e1a' }}>2</div>
+                    <div>
+                      <div className="font-mono text-[15px] font-semibold tracking-[0.05em] mb-1" style={{ color: '#d1d5db' }}>Tap</div>
+                      <span className="inline-block px-7 py-2.5 rounded-[10px] font-mono text-[20px] font-extrabold tracking-[0.1em]"
+                        style={{ border: '2px solid rgba(249,115,22,0.5)', background: 'rgba(249,115,22,0.1)', color: '#fb923c' }}>
+                        TOURNAMENT
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Step 3 */}
+                  <div className="flex items-center gap-6">
+                    <div className="w-[52px] h-[52px] rounded-[14px] flex items-center justify-center text-[22px] font-black flex-shrink-0"
+                      style={{ background: '#22c55e', color: '#0a0e1a' }}>3</div>
+                    <div>
+                      <div className="font-mono text-[15px] font-semibold tracking-[0.05em] mb-1" style={{ color: '#d1d5db' }}>Enter code</div>
+                      <div className="font-mono text-[56px] font-black leading-none tracking-[0.2em]"
+                        style={{ color: '#4ade80', textShadow: '0 0 40px rgba(34,197,94,0.25)' }}>
+                        {eventCode}
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Team count */}
-            <div className="font-mono text-3xl font-bold text-green-400/80 mb-6 tabular-nums">
-              {lobbyTeams.length} <span className="text-lg text-green-400/50 tracking-widest">TEAMS DEPLOYED</span>
-            </div>
+            {/* Divider */}
+            <div className="self-stretch w-px flex-shrink-0"
+              style={{ background: 'linear-gradient(to bottom, transparent 10%, rgba(255,255,255,0.06) 30%, rgba(255,255,255,0.06) 70%, transparent 90%)' }} />
 
-            {/* Team grid */}
-            <div className="flex flex-wrap justify-center gap-3 max-w-4xl mb-8">
-              {lobbyTeams.map((team, i) => (
-                <div key={team.key}
-                  className="px-4 py-2 bg-gray-900/60 border border-green-500/20 rounded-lg flex items-center gap-2"
-                  style={{ animation: `lobbySlideIn 0.4s ease-out ${i * 0.05}s both` }}>
-                  {team.emoji && <span className="text-lg">{team.emoji}</span>}
-                  <span className="font-mono text-sm font-bold text-green-400 tracking-wider">{team.name}</span>
+            {/* RIGHT: Teams */}
+            <div className="flex-1 flex flex-col justify-center overflow-hidden">
+              <div className="flex items-baseline gap-3.5 mb-6">
+                <div className="font-mono text-5xl font-black tabular-nums"
+                  style={{ color: '#22c55e', textShadow: '0 0 30px rgba(34,197,94,0.2)' }}>
+                  {lobbyTeams.length}
                 </div>
-              ))}
+                <div className="font-mono text-sm tracking-[0.25em]" style={{ color: 'rgba(34,197,94,0.5)' }}>
+                  TEAMS DEPLOYED
+                </div>
+              </div>
+
+              {lobbyTeams.length > 0 ? (
+                <div className="flex flex-wrap gap-2.5 overflow-hidden mb-6" style={{ alignContent: 'flex-start' }}>
+                  {lobbyTeams.map((team, i) => (
+                    <div key={team.key}
+                      className="flex items-center gap-2.5 px-5 py-3 rounded-[10px] font-mono"
+                      style={{
+                        background: 'rgba(17,24,39,0.6)',
+                        border: '1px solid rgba(34,197,94,0.12)',
+                        animation: `lobbySlideIn 0.5s ease-out ${i * 0.05}s both`,
+                      }}>
+                      {team.emoji && <span className="text-2xl leading-none">{team.emoji}</span>}
+                      <span className="text-[15px] font-bold tracking-[0.08em]" style={{ color: '#d1d5db' }}>{team.name}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="mb-6"><RadarWaiting eventCode={eventCode} /></div>
+              )}
+
+              {/* START ROUND button */}
+              {teamCount >= 2 && (
+                <button onClick={() => setConfirmAction('start')}
+                  className="self-start px-12 py-4 bg-green-900/40 border-2 border-green-500/60 rounded-xl
+                    font-mono text-xl tracking-widest text-green-400 hover:bg-green-900/60
+                    transition-all cursor-pointer"
+                  style={{ textShadow: '0 0 20px rgba(34,197,94,0.3)' }}>
+                  START {roundLabel}
+                </button>
+              )}
             </div>
 
-            {lobbyTeams.length === 0 && (
-              <div className="mt-4"><RadarWaiting eventCode={eventCode} /></div>
-            )}
-
-            {/* START ROUND button — integrated into display */}
-            {teamCount >= 2 && (
-              <button onClick={() => setConfirmAction('start')}
-                className="mt-4 px-12 py-4 bg-green-900/40 border-2 border-green-500/60 rounded-xl
-                  font-mono text-xl tracking-widest text-green-400 hover:bg-green-900/60
-                  transition-all cursor-pointer"
-                style={{ textShadow: '0 0 20px rgba(34,197,94,0.3)' }}>
-                START {roundLabel}
-              </button>
-            )}
+            <style>{`
+              @keyframes lobbySlideIn {
+                from { opacity: 0; transform: translateY(16px) scale(0.92); }
+                to { opacity: 1; transform: translateY(0) scale(1); }
+              }
+            `}</style>
           </div>
         )}
 
