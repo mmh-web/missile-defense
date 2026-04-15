@@ -505,7 +505,34 @@ body::after {
 .corner-btn:hover { opacity: 1; }
 
 .back-btn { top: 8px; left: 8px; }
-.trophy-btn { top: 8px; left: 50%; transform: translateX(-50%); }
+
+/* Global trophy button — visible on all screens, prominent */
+#trophyBtn {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 400;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: rgba(255, 170, 0, 0.08);
+  border: 1px solid rgba(255, 170, 0, 0.5);
+  border-radius: 6px;
+  color: var(--amber);
+  font-family: var(--font);
+  font-size: clamp(14px, 1.5vw, 18px);
+  font-weight: bold;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  opacity: 0.9;
+  transition: opacity 0.2s, background 0.2s, transform 0.1s;
+  line-height: 1;
+}
+#trophyBtn:hover { opacity: 1; background: rgba(255, 170, 0, 0.18); }
+#trophyBtn:active { transform: scale(0.96); }
+#trophyBtn .trophy-icon { font-size: 1.2em; }
 
 /* ============================================
    OVERLAYS
@@ -979,7 +1006,7 @@ body::after {
 
 <!-- Sound popup (global) -->
 <div class="sound-popup" id="soundPopup">
-  <div class="track-option active-track" data-track="1">
+  <div class="track-option" data-track="1">
     <div class="track-radio"></div>
     <span>Relax</span>
   </div>
@@ -987,7 +1014,7 @@ body::after {
     <div class="track-radio"></div>
     <span>Jewish</span>
   </div>
-  <div class="track-option" data-track="3">
+  <div class="track-option active-track" data-track="3">
     <div class="track-radio"></div>
     <span>Tension</span>
   </div>
@@ -1053,8 +1080,10 @@ body::after {
 
   <!-- Timer-only buttons -->
   <button class="corner-btn back-btn" id="backBtn" title="Back to setup">◀</button>
-  <button class="corner-btn trophy-btn" id="trophyBtn" title="Leaderboard">🏆</button>
 </div>
+
+<!-- Global trophy button (visible on all screens) -->
+<button id="trophyBtn" title="Leaderboard"><span class="trophy-icon">🏆</span><span>Leaderboard</span></button>
 
 <!-- ======== FULLSCREEN LEADERBOARD ======== -->
 <div id="leaderboardScreen" class="screen">
@@ -1248,7 +1277,7 @@ const state = {
   masterGain: null,
   muted: false,
   musicVolume: 0.4,
-  currentTrack: 1,
+  currentTrack: 3,
   musicBuffers: {},
   musicAvailable: { 1: false, 2: false, 3: false },
   currentMusicSource: null,
