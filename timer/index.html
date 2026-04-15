@@ -1322,6 +1322,22 @@ function loadSettings() {
     if (s.adminPin) state.adminPin = s.adminPin;
     if (s.musicVolume !== undefined) state.musicVolume = s.musicVolume;
     if (s.currentTrack !== undefined) state.currentTrack = s.currentTrack;
+    // One-time migration: force default to Tension (track 3) for users who haven't
+    // explicitly chosen since the Tension track was added
+    const MUSIC_DEFAULT_VERSION = 2;
+    if (!s.musicDefaultVersion || s.musicDefaultVersion < MUSIC_DEFAULT_VERSION) {
+      state.currentTrack = 3;
+      saveSettingsWithVersion();
+    }
+  } catch(e) {}
+}
+
+function saveSettingsWithVersion() {
+  try {
+    const existing = JSON.parse(localStorage.getItem('escapeRoomSettings')) || {};
+    existing.currentTrack = state.currentTrack;
+    existing.musicDefaultVersion = 2;
+    localStorage.setItem('escapeRoomSettings', JSON.stringify(existing));
   } catch(e) {}
 }
 
