@@ -12,7 +12,7 @@
 // The ?score=CODE spectator board still works for secondary displays.
 // ============================================================
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import {
   subscribeTournament,
   subscribeLeaderboard,
@@ -196,8 +196,15 @@ export default function AdminBoard({ eventCode, skipPin }) {
   // ── Tournament state ───────────────────────────────────────
   const [tournamentDoc, setTournamentDoc] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [entries, setEntries] = useState([]);
+  const [rawEntries, setEntries] = useState([]);
   const [confirmAction, setConfirmAction] = useState(null);
+  const [pendingKick, setPendingKick] = useState(null); // { teamKey, displayName } while confirming a row-level kick
+  // Hide kicked teams from the leaderboard, advancing calc, CSV export, etc.
+  // Declared early so effects that depend on `entries` don't hit a TDZ error.
+  const entries = useMemo(
+    () => rawEntries.filter(e => !tournamentDoc?.teams?.[sanitizeTeamKey(e.name)]?.kicked),
+    [rawEntries, tournamentDoc]
+  );
 
   // ── Advancement config ─────────────────────────────────────
   const [advanceType, setAdvanceType] = useState('percentage');
@@ -715,9 +722,14 @@ export default function AdminBoard({ eventCode, skipPin }) {
 
     const showCutoff = totalRounds > 1 && !isClosed && rank === qualifyCount && i < entries.length - 1;
 
+    // Can only remove teams while the round is in lobby or active (not after
+    // it's closed and advancement has been computed, to avoid orphan issues).
+    const canRemove = roundStatus === 'lobby' || roundStatus === 'active';
+    const teamKey = sanitizeTeamKey(entry.name);
+
     return (
       <div key={entry.name}>
-        <div className={`flex items-center gap-4 px-6 ${scale.rowPy} rounded-xl ${isEliminated ? 'opacity-40' : ''}`}
+        <div className={`group relative flex items-center gap-4 px-6 ${scale.rowPy} rounded-xl ${isEliminated ? 'opacity-40' : ''}`}
           style={{ background: bgColor, border: `1px solid ${borderColor}`, boxShadow: rowGlow, transition: 'all 0.6s ease-out' }}>
           <div className={`${scale.rankW} text-center font-mono ${scale.rankSize} font-black`}
             style={{ color: rankColor, textShadow: isLeader ? '0 0 20px rgba(234,179,8,0.4)' : 'none' }}>
@@ -757,6 +769,18 @@ export default function AdminBoard({ eventCode, skipPin }) {
             )}
             <AnimatedScore value={entry.score || 0} color={scoreColor}
               className={`font-mono ${scale.scoreSize} font-black tabular-nums`} />
+            {canRemove && (
+              <button
+                onClick={() => setPendingKick({ teamKey, displayName: entry.name })}
+                title={`Remove ${entry.name} from the game`}
+                aria-label={`Remove ${entry.name} from the game`}
+                className="opacity-0 group-hover:opacity-100 transition-opacity
+                  w-8 h-8 flex items-center justify-center rounded-lg
+                  text-gray-500 hover:text-red-400 hover:bg-red-500/10 cursor-pointer shrink-0"
+                style={{ fontSize: '16px', lineHeight: 1 }}>
+                🗑
+              </button>
+            )}
           </div>
         </div>
         {showCutoff && (
@@ -798,6 +822,12 @@ export default function AdminBoard({ eventCode, skipPin }) {
       {confirmAction === 'reset' && (
         <ConfirmDialog message="Reset tournament? All teams and scores will be cleared."
           onConfirm={handleReset} onCancel={() => setConfirmAction(null)} />
+      )}
+      {pendingKick && (
+        <ConfirmDialog
+          message={`Remove ${pendingKick.displayName} from the game? Their client will be bounced back to the title screen.`}
+          onConfirm={async () => { await handleKick(pendingKick.teamKey); setPendingKick(null); }}
+          onCancel={() => setPendingKick(null)} />
       )}
 
       {/* Accent glow line */}

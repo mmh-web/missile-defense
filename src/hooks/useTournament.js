@@ -12,6 +12,7 @@ import {
   sanitizeTeamKey,
   subscribeLeaderboard,
   getTournament,
+  getRoundScore,
 } from '../utils/leaderboard.js';
 import { ROUND_CONFIGS, getTotalRounds, getRoundConfig, getFormatConfig } from './useGameEngine.js';
 
@@ -33,35 +34,31 @@ export const TOURNAMENT_PHASES = {
   CHAMPION: 'champion',     // Tournament winner
 };
 
-/**
- * Load persisted tournament state from sessionStorage.
- */
+// Persisted tournament state uses localStorage (not sessionStorage) so that
+// refreshes across new tabs, accidental tab closures, and browser restarts
+// still restore the player's session. Name+emoji collisions between different
+// devices are handled via the rejoin-by-name path in submitTeamName.
+
 function loadSessionState() {
   try {
-    const raw = sessionStorage.getItem(SESSION_KEY);
+    const raw = localStorage.getItem(SESSION_KEY);
     return raw ? JSON.parse(raw) : null;
   } catch {
     return null;
   }
 }
 
-/**
- * Save tournament state to sessionStorage (survives refresh).
- */
 function saveSessionState(state) {
   try {
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify(state));
+    localStorage.setItem(SESSION_KEY, JSON.stringify(state));
   } catch {
     // Storage full or unavailable
   }
 }
 
-/**
- * Clear tournament session state.
- */
 function clearSessionState() {
   try {
-    sessionStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem(SESSION_KEY);
   } catch {}
 }
 
@@ -152,13 +149,28 @@ export default function useTournament(initialEventCode = null) {
       }
       setError(null);
 
-      // Validate session restoration: if we think we're "joined" (from sessionStorage)
-      // but our team isn't in this tournament's teams map, we have stale session data.
+      // Validate session restoration: if we think we're "joined" (from localStorage)
+      // but our team isn't in this tournament's teams map, clear stale session data.
+      // If our team was kicked by the admin, bounce back to TITLE with a message.
       if (joinedRef.current && teamKeyRef.current && doc.teams) {
-        if (!doc.teams[teamKeyRef.current]) {
+        const myTeam = doc.teams[teamKeyRef.current];
+        if (!myTeam) {
           setJoined(false);
           joinedRef.current = false;
           clearSessionState();
+        } else if (myTeam.kicked) {
+          // Admin removed this player — bounce to TITLE and clear session
+          clearSessionState();
+          setJoined(false);
+          joinedRef.current = false;
+          teamKeyRef.current = '';
+          setTeamName('');
+          setTeamEmoji('');
+          setCumulativeBase(0);
+          setRoundScores({});
+          setPhase(TOURNAMENT_PHASES.TITLE);
+          setError('YOU HAVE BEEN REMOVED FROM THE GAME');
+          return;
         }
       }
 
@@ -357,29 +369,72 @@ export default function useTournament(initialEventCode = null) {
 
   /**
    * Register team name + emoji and join the lobby.
+   *
+   * If a team with the same name+emoji already exists in this tournament
+   * (and isn't kicked), treat as a rejoin — restore their prior state
+   * and rebuild cumulative score from finalized round scores in Firestore.
    */
   const submitTeamName = useCallback(async (name, emoji = '') => {
     if (!eventCode || !name?.trim()) return false;
 
-    // Block joining if tournament is past Round 1
+    const cleanName = name.trim().toUpperCase().slice(0, 10);
+    const displayNameForKey = emoji ? `${emoji} ${cleanName}` : cleanName;
+    const key = sanitizeTeamKey(displayNameForKey);
+
     const currentRound = tournamentDoc?.currentRound || 1;
     const status = tournamentDoc?.roundStatus;
+    const existingTeam = tournamentDoc?.teams?.[key];
+
+    // Rejoin path: same name+emoji already in the tournament.
+    if (existingTeam && !joinedRef.current) {
+      if (existingTeam.kicked) {
+        setError('THIS NAME WAS REMOVED BY THE HOST');
+        return false;
+      }
+
+      teamKeyRef.current = key;
+      setError(null);
+      setTeamName(cleanName);
+      setTeamEmoji(emoji);
+      setJoined(true);
+
+      // Rebuild cumulative score from all finalized rounds up through
+      // (but not including) the current round. Best-effort — on failure
+      // the leaderboard in Firestore is still the source of truth.
+      try {
+        const multipliers = tournamentDoc?.roundMultipliers || {};
+        const restored = {};
+        let total = 0;
+        for (let r = 1; r < currentRound; r++) {
+          const raw = await getRoundScore(eventCode, r, displayNameForKey);
+          const mult = multipliers[r] || 1;
+          const adjusted = Math.round(raw * mult);
+          restored[r] = adjusted;
+          total += adjusted;
+        }
+        setRoundScores(restored);
+        setCumulativeBase(total);
+      } catch {}
+
+      // Phase: mirror the fresh-join logic below (determined by round status).
+      if (status === 'active') {
+        setPhase(audioUnlocked ? TOURNAMENT_PHASES.COUNTDOWN : TOURNAMENT_PHASES.TAP_READY);
+      } else if (status === 'complete' || status === 'finished') {
+        // Downstream effect will pick the right phase (advancing/eliminated/champion).
+        setPhase(TOURNAMENT_PHASES.WAITING);
+      } else {
+        setPhase(TOURNAMENT_PHASES.WAITING);
+      }
+      return true;
+    }
+
+    // Fresh-join path: block if tournament is past Round 1.
     if (currentRound > 1 || status === 'finished') {
       setError(status === 'finished' ? 'TOURNAMENT HAS ENDED' : 'TOURNAMENT IN PROGRESS — TOO LATE TO JOIN');
       return false;
     }
 
-    const cleanName = name.trim().toUpperCase().slice(0, 10);
-    const displayNameForKey = emoji ? `${emoji} ${cleanName}` : cleanName;
-    const key = sanitizeTeamKey(displayNameForKey);
     teamKeyRef.current = key;
-
-    // Check for duplicate name+icon combination
-    if (tournamentDoc?.teams?.[key] && !joinedRef.current) {
-      setError('NAME + ICON ALREADY TAKEN');
-      return false;
-    }
-
     setError(null);
     setTeamName(cleanName);
     setTeamEmoji(emoji);
@@ -400,7 +455,7 @@ export default function useTournament(initialEventCode = null) {
       setError('FAILED TO JOIN — TRY AGAIN');
       return false;
     }
-  }, [eventCode, tournamentDoc]);
+  }, [eventCode, tournamentDoc, audioUnlocked]);
 
   /**
    * Player taps "ready" — unlocks audio context.

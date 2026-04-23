@@ -2475,6 +2475,15 @@ function TitleScreen({ tournament, onSoloMission, onHostMode, gatePassword, gate
         <span className="hidden sm:inline text-xs tracking-[0.15em]">ALL-TIME</span>
       </button>
 
+      {/* Tournament error banner — e.g. after being removed by the host */}
+      {tournament.error && (
+        <div className="absolute top-5 left-1/2 -translate-x-1/2 z-20 px-4 py-2 rounded-lg
+          bg-red-900/70 border border-red-500/60 font-mono text-xs tracking-[0.2em] text-red-200
+          backdrop-blur-sm" style={{ boxShadow: '0 0 20px rgba(239,68,68,0.25)' }}>
+          {tournament.error}
+        </div>
+      )}
+
       <div className="relative z-10 text-center w-full max-w-md mx-auto px-6">
         {/* Title */}
         <div className="mb-2">

@@ -327,6 +327,25 @@ function getLiveDocId(eventCode, teamName) {
 }
 
 /**
+ * Read a specific team's finalized round score.
+ * Used by the rejoin flow to reconstruct cumulative totals when a
+ * player refreshes without localStorage state (new tab, cleared cache, etc).
+ *
+ * Returns the raw round score (unmultiplied) or 0 if not found.
+ */
+export async function getRoundScore(eventCode, roundNumber, teamName) {
+  if (!db || !eventCode || !teamName || !roundNumber) return 0;
+  try {
+    const docId = getLiveDocId(`${eventCode}-R${roundNumber}`, teamName);
+    const snap = await getDoc(doc(db, COLLECTION, docId));
+    if (!snap.exists()) return 0;
+    return snap.data()?.score || 0;
+  } catch {
+    return 0;
+  }
+}
+
+/**
  * Push a live score update to Firestore (tournament mode).
  * Uses setDoc with merge — creates on first call, updates thereafter.
  * Fire-and-forget: caller doesn't need to await.

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { subscribeLeaderboard, subscribeTournament, sanitizeTeamKey } from '../utils/leaderboard.js';
 import { ROUND_CONFIGS, getTotalRounds, getRoundConfig, getFormatConfig } from '../hooks/useGameEngine.js';
 
@@ -137,7 +137,7 @@ function RadarWaiting({ eventCode, currentRound }) {
 }
 
 export default function SpectatorBoard({ eventCode }) {
-  const [entries, setEntries] = useState([]);
+  const [rawEntries, setEntries] = useState([]);
   const [currentRound, setCurrentRound] = useState(1);
   const [qualifyCount, setQualifyCount] = useState(5);
   const [roundClosed, setRoundClosed] = useState(false);
@@ -150,6 +150,12 @@ export default function SpectatorBoard({ eventCode }) {
 
   // Tournament V2 state
   const [tournamentDoc, setTournamentDoc] = useState(null);
+
+  // Hide kicked teams from the spectator leaderboard.
+  const entries = useMemo(
+    () => rawEntries.filter(e => !tournamentDoc?.teams?.[sanitizeTeamKey(e.name)]?.kicked),
+    [rawEntries, tournamentDoc]
+  );
   const [lobbyTeams, setLobbyTeams] = useState([]); // array of { name, emoji, joinedAt }
   const [revealPhase, setRevealPhase] = useState(null); // null | 'dimming' | 'revealing' | 'done'
   const [revealedIndex, setRevealedIndex] = useState(-1);
