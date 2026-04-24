@@ -10,6 +10,7 @@ import {
   setDoc,
   getDoc,
   query,
+  where,
   orderBy,
   limit,
   getDocs,
@@ -195,16 +196,21 @@ export async function saveScore(entry) {
 export async function getLeaderboard(gameMode = 'CAMPAIGN', eventFilter = null) {
   const event = eventFilter !== null ? eventFilter : getEventCode();
   try {
+    // Push event + gameMode into the Firestore query so low-scoring players
+    // in an active event aren't silently dropped when the global `scores`
+    // collection accumulates 500+ high-score docs across other events.
+    // Requires a composite index on (event, gameMode, score desc).
     const q = query(
       collection(db, COLLECTION),
+      where('event', '==', event),
+      where('gameMode', '==', gameMode),
       orderBy('score', 'desc'),
-      limit(500)  // High limit to ensure event-filtered entries aren't excluded
+      limit(500)
     );
     const snapshot = await getDocs(q);
     const raw = [];
     snapshot.forEach((doc) => {
-      const data = doc.data();
-      if (data.gameMode === gameMode && (data.event || '') === event) raw.push(data);
+      raw.push(doc.data());
     });
     // Deduplicate by team name — keep highest score per team
     const dedupKey = (name) => (name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -229,16 +235,19 @@ export async function getLeaderboard(gameMode = 'CAMPAIGN', eventFilter = null) 
 export function subscribeLeaderboard(gameMode, callback, eventFilter = null) {
   const event = eventFilter !== null ? eventFilter : getEventCode();
   try {
+    // Push event + gameMode into the Firestore query — see getLeaderboard
+    // for why. Requires composite index on (event, gameMode, score desc).
     const q = query(
       collection(db, COLLECTION),
+      where('event', '==', event),
+      where('gameMode', '==', gameMode),
       orderBy('score', 'desc'),
-      limit(500)  // High limit to ensure event-filtered entries aren't excluded
+      limit(500)
     );
     return onSnapshot(q, (snapshot) => {
       const raw = [];
       snapshot.forEach((doc) => {
-        const data = doc.data();
-        if (data.gameMode === gameMode && (data.event || '') === event) raw.push(data);
+        raw.push(doc.data());
       });
       // Deduplicate by team name — keep highest score per team
       // Use sanitized key (strip emoji, lowercase) so "🔥 MIKE" and "MIKE" merge
